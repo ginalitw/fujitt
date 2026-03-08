@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026 Fuji Rock My Timetable</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --surface-color: #1a1a1a;
+            --text-main: #ffffff;
+            --text-muted: #9ca3af;
+            --border-color: #333333;
+            --accent-color: #3b82f6;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+        header { padding: 12px 16px; background-color: rgba(26,26,26,0.95); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        h1 { font-size: 1.1rem; font-weight: 700; white-space: nowrap; margin-right: 10px; }
+        .toolbar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+        .btn { background-color: var(--surface-color); color: var(--text-main); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
+        .btn-primary { background-color: var(--accent-color); border-color: var(--accent-color); font-weight: bold; }
+        .btn-highlight { background-color: #eab308; border-color: #eab308; color: #000; font-weight: bold; }
+        .day-selector { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+        .day-btn { background: transparent; color: var(--text-muted); border: none; font-size: 0.95rem; font-weight: 600; padding: 4px 8px; cursor: pointer; white-space: nowrap; }
+        .day-btn.active { color: var(--text-main); border-bottom: 2px solid var(--accent-color); }
+
+        /* ✅ 修正：外層用 overflow: auto 讓 sticky 生效 */
+        .timetable-scroll-container {
+            flex: 1;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+        }
+        .timetable-grid {
+            display: grid;
+            position: relative;
+            padding-bottom: 20px;
+            /* min-width 確保可以水平捲動 */
+        }
+
+        /* ✅ 修正：時間軸固定在左側 */
+        .time-col-bg {
+            grid-column: 1;
+            grid-row: 1 / -1;
+            position: sticky;
+            left: 0;
+            z-index: 90;
+            background-color: var(--bg-color);
+            border-right: 1px solid var(--border-color);
+            width: 50px;
+            min-width: 50px;
+        }
+        .top-left-corner {
+            grid-column: 1;
+            grid-row: 1;
+            position: sticky;
+            top: 0;
+            left: 0;
+            z-index: 200;
+            background-color: var(--bg-color);
+            border-bottom: 2px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            width: 50px;
+            min-width: 50px;
+        }
+        .stage-header {
+            grid-row: 1;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background-color: var(--bg-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-align: center;
+            border-bottom: 2px solid;
+            padding: 10px 0;
+        }
+        .time-label {
+            grid-column: 1;
+            position: sticky;
+            left: 0;
+            z-index: 95;
+            background-color: var(--bg-color);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: right;
+            padding-right: 8px;
+            transform: translateY(-8px);
+            width: 50px;
+            min-width: 50px;
+        }
+        .grid-line { grid-column: 2 / -1; border-top: 1px solid var(--border-color); z-index: 1; }
+        .grid-line.half-hour { border-top: 1px dashed #222; }
+        .event-block { margin: 0 4px; border-radius: 6px; padding: 6px; font-size: 0.8rem; z-index: 10; display: flex; flex-direction: column; overflow: hidden; border-left: 4px solid; background-color: var(--surface-color); transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .event-time { font-size: 0.7rem; opacity: 0.8; margin-bottom: 2px; }
+        .event-artist { font-weight: 700; line-height: 1.2; word-break: break-word; }
+        .event-block.dimmed { opacity: 0.6; background-color: #111; border-left-width: 2px; box-shadow: none; }
+        .event-block.dimmed .event-artist { font-weight: normal; color: var(--text-muted); }
+        .list-view-container { display: none; padding: 16px; flex-direction: column; gap: 12px; }
+        .list-item { display: flex; flex-direction: column; background: var(--surface-color); padding: 12px; border-radius: 8px; border-left: 4px solid; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .list-item.dimmed { opacity: 0.6; background: #111; }
+        .list-item-header { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; }
+        .list-item-title { font-size: 1.1rem; font-weight: bold; }
+        .current-time-line { height: 2px; background-color: #ff3b30; position: relative; z-index: 50; pointer-events: none; display: none; }
+        .current-time-dot { position: sticky; left: 50px; width: 10px; height: 10px; background-color: #ff3b30; border-radius: 50%; box-shadow: 0 0 8px #ff3b30; animation: pulse 2s infinite; transform: translateY(-4px); }
+        @keyframes pulse { 0%{transform:scale(0.95);box-shadow:0 0 0 0 rgba(255,59,48,0.7)} 70%{transform:scale(1);box-shadow:0 0 0 6px rgba(255,59,48,0)} 100%{transform:scale(0.95);box-shadow:0 0 0 0 rgba(255,59,48,0)} }
+        .fab-jump { position: fixed; bottom: 20px; right: 20px; background: var(--accent-color); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 900; border: none; cursor: pointer; }
+        .modal-overlay { display: none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: var(--surface-color); width: 100%; max-width: 400px; border-radius: 12px; padding: 20px; border: 1px solid var(--border-color); }
+        .modal-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 16px; text-align: center; }
+        .stage-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .stage-chip { padding: 8px 12px; border-radius: 20px; border: 1px solid; font-size: 0.85rem; background: transparent; color: var(--text-muted); cursor: pointer; transition: 0.2s; }
+        .stage-chip.active { color: #fff; font-weight: bold; }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; }
+        body.screenshot-mode header, body.screenshot-mode .fab-jump { display: none !important; }
+        .screenshot-watermark { display: none; text-align: center; font-size: 1.2rem; font-weight: 800; padding: 16px 0; letter-spacing: 2px; }
+        body.screenshot-mode .screenshot-watermark { display: block; }
+        #exit-screenshot-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:9999; background:rgba(0,0,0,0.1); align-items:flex-end; justify-content:center; padding-bottom:40px; }
+        body.screenshot-mode #exit-screenshot-overlay { display: flex; }
+        .exit-btn { background:rgba(255,255,255,0.2); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.5); color:white; padding:12px 24px; border-radius:30px; font-weight:bold; }
+        #loading-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:black; z-index:9999; display:flex; align-items:center; justify-content:center; color:white; font-family:sans-serif; }
+    </style>
+</head>
+<body>
+    <div id="loading-overlay">🤘 苗場資料讀取中...</div>
+    <header id="control-panel">
+        <div class="header-top">
+            <h1>🎵 我的 Timetable</h1>
+            <div class="toolbar">
+                <button class="btn btn-highlight" onclick="toggleScheduleMode()" id="btn-schedule-mode">👤 專屬排版</button>
+                <button class="btn" onclick="toggleViewMode()" id="btn-view-mode">📋 列表</button>
+                <button class="btn" onclick="openFilterModal()">⚙️ 舞台</button>
+                <button class="btn btn-primary" onclick="toggleScreenshotMode()">📸 截圖</button>
+            </div>
+        </div>
+        <div class="day-selector" id="day-selector"></div>
+    </header>
+    <div class="screenshot-watermark" id="watermark">2026 FUJI ROCK MY TT</div>
+    <div class="timetable-scroll-container" id="scroll-container"><div class="timetable-grid" id="timetable"></div></div>
+    <div class="list-view-container" id="list-view"></div>
+    <button class="fab-jump" onclick="scrollToNow()" id="fab-jump" title="跳至現在時間">📍</button>
+    <div id="exit-screenshot-overlay" onclick="toggleScreenshotMode()"><div class="exit-btn">點擊退出截圖模式</div></div>
+    <div class="modal-overlay" id="filter-modal"><div class="modal-content"><div class="modal-title">選擇要顯示的舞台</div><div class="stage-chips" id="stage-chips-container"></div><div class="modal-actions"><button class="btn" onclick="selectAllStages(true)">全選</button><button class="btn" onclick="selectAllStages(false)">全不選</button><button class="btn btn-primary" onclick="applyStageFilter()">確定</button></div></div></div>
+
+    <script>
+        var serverData = <?!= injectedData ?>;
+        var masterData = [];
+        var userWantedList = [];
+        var days = ["Day 1","Day 2","Day 3"];
+        var dayLabels = ["Day 1 (7/24)","Day 2 (7/25)","Day 3 (7/26)"];
+        var currentDay = days[0];
+        var viewMode = 'grid', scheduleMode = 'personal';
+
+        var KNOWN_STAGES = [
+            {id:"GREEN",keyword:"GREEN",name:"GREEN",color:"#22c55e"},
+            {id:"WHITE",keyword:"WHITE",name:"WHITE",color:"#e2e8f0"},
+            {id:"RED",keyword:"RED",name:"RED MARQUEE",color:"#ef4444"},
+            {id:"FIELD",keyword:"HEAVEN",name:"HEAVEN",color:"#eab308"},
+            {id:"AVALON",keyword:"AVALON",name:"AVALON",color:"#d946ef"},
+            {id:"CRYSTAL",keyword:"CRYSTAL",name:"CRYSTAL",color:"#8b5cf6"},
+            {id:"PALACE",keyword:"PALACE",name:"PALACE",color:"#f97316"},
+            {id:"ROOKIE",keyword:"ROOKIE",name:"ROOKIE",color:"#06b6d4"},
+            {id:"DAY",keyword:"DAY",name:"DAY DREAM",color:"#f43f5e"},
+            {id:"PYRAMID",keyword:"PYRAMID",name:"PYRAMID",color:"#10b981"},
+            {id:"CAFE",keyword:"CAFE",name:"CAFÉ",color:"#ec4899"}
+        ];
+        var STAGES = [];
+
+        function buildStagesFromData(data){
+            var m=new Map();
+            data.forEach(function(item){
+                var sn=(item.stage||"").trim(); if(!sn)return;
+                var known=KNOWN_STAGES.find(function(s){return sn.toUpperCase().includes(s.keyword);});
+                if(known){if(!m.has(known.id))m.set(known.id,{id:known.id,keyword:known.keyword,name:known.name,color:known.color,visible:true});}
+                else{var sid="S_"+sn.replace(/[^a-zA-Z0-9\u4e00-\u9fff]/g,"_");if(!m.has(sid))m.set(sid,{id:sid,keyword:sn,name:sn,color:"#64748b",visible:true});}
+            });
+            STAGES=Array.from(m.values());
+        }
+
+        function loadData(){
+            try{
+                if(serverData.error){document.getElementById('loading-overlay').innerText="❌ "+serverData.error;return;}
+                masterData=serverData.fullSchedule||[];
+                userWantedList=serverData.wantedList||[];
+                buildStagesFromData(masterData);
+                document.getElementById('loading-overlay').style.display='none';
+                initApp();
+            }catch(err){document.getElementById('loading-overlay').innerText="❌ "+err;}
+        }
+
+        function timeToGridRow(ts){
+            if(!ts||!ts.includes(':'))return 2;
+            var p=ts.split(':'),h=parseInt(p[0],10),m=parseInt(p[1],10);
+            if(isNaN(h)||isNaN(m))return 2;
+            if(h<11)h+=24;
+            return (h-11)*60+m+2;
+        }
+
+        function getStageInfo(sn){
+            if(!sn)return null;
+            var u=sn.toUpperCase();
+            var match=STAGES.find(function(s){return u.includes(s.keyword.toUpperCase());});
+            if(!match||!match.visible)return null;
+            var active=STAGES.filter(function(s){return s.visible;});
+            var col=active.findIndex(function(s){return s.id===match.id;})+2;
+            return{col:col,stage:match};
+        }
+
+        function toggleScheduleMode(){
+            scheduleMode=scheduleMode==='personal'?'full':'personal';
+            var btn=document.getElementById('btn-schedule-mode');
+            btn.innerHTML=scheduleMode==='full'?'🌐 全展時刻':'👤 專屬排版';
+            if(scheduleMode==='full')btn.classList.remove('btn-highlight');else btn.classList.add('btn-highlight');
+            renderApp();
+        }
+        function toggleViewMode(){
+            viewMode=viewMode==='grid'?'list':'grid';
+            document.getElementById('btn-view-mode').innerText=viewMode==='list'?'🎛️ 網格':'📋 列表';
+            document.getElementById('scroll-container').style.display=viewMode==='list'?'none':'block';
+            document.getElementById('list-view').style.display=viewMode==='list'?'flex':'none';
+            document.getElementById('fab-jump').style.display=viewMode==='list'?'none':'flex';
+            renderApp();
+        }
+
+        function renderListView(){
+            var c=document.getElementById('list-view');c.innerHTML='';
+            var events=masterData.filter(function(item){
+                if(item.day!==currentDay)return false;
+                if(scheduleMode==='personal')return userWantedList.includes(item.name.toLowerCase().trim());
+                return true;
+            });
+            events.sort(function(a,b){return timeToGridRow(a.start)-timeToGridRow(b.start);});
+            if(events.length===0){c.innerHTML='<div style="text-align:center;color:#666;padding:40px 20px;">'+(scheduleMode==='personal'?'📭 這天還沒有收藏的藝人<br><small>回 LINE 點「演出情報」加入必看吧！</small>':'📭 這天沒有演出資料')+'</div>';return;}
+            events.forEach(function(item){
+                var si=getStageInfo(item.stage);var color=si?si.stage.color:"#64748b";var sName=si?si.stage.name:item.stage;
+                var isW=userWantedList.includes(item.name.toLowerCase().trim());
+                var bl=document.createElement('div');
+                bl.className='list-item'+(scheduleMode==='full'&&!isW?' dimmed':'');
+                bl.style.borderLeftColor=color;
+                bl.innerHTML='<div class="list-item-header"><span>🕒 '+item.start+' - '+item.end+'</span><span style="color:'+color+';font-weight:bold;">📍 '+sName+'</span></div><div class="list-item-title">'+item.name+(isW&&scheduleMode==='full'?' ★':'')+'</div>';
+                c.appendChild(bl);
+            });
+        }
+
+        function renderGridLines(){
+            var grid=document.getElementById('timetable');grid.innerHTML='';
+            var active=STAGES.filter(function(s){return s.visible;});
+            if(active.length===0){grid.innerHTML='<div style="text-align:center;color:#666;padding:40px;">沒有可顯示的舞台</div>';return;}
+
+            // ✅ 修正：設定 grid 欄位，第一欄固定 50px
+            grid.style.gridTemplateColumns='50px repeat('+active.length+', minmax(90px, 1fr))';
+            // 設定最小寬度確保可以水平捲動
+            grid.style.minWidth=(50+active.length*90)+'px';
+
+            // 左上角固定格
+            var corner=document.createElement('div');
+            corner.className='top-left-corner';
+            grid.appendChild(corner);
+
+            // 舞台標題
+            active.forEach(function(s,i){
+                var h=document.createElement('div');
+                h.className='stage-header';
+                h.style.gridColumn=i+2;
+                h.style.borderBottomColor=s.color;
+                h.style.color=s.color;
+                h.innerText=s.name;
+                grid.appendChild(h);
+            });
+
+            // ✅ 修正：時間軸背景列（確保 sticky left 有背景遮蓋）
+            var bg=document.createElement('div');
+            bg.className='time-col-bg';
+            grid.appendChild(bg);
+
+            // 時間格線與標籤
+            for(var i=0;i<=36;i++){
+                var hour=11+Math.floor(i/2);
+                var min=(i%2===0)?"00":"30";
+                var dh=hour>=24?(hour-24<10?'0'+(hour-24):hour-24):hour;
+                var r=(i*30)+2;
+
+                var l=document.createElement('div');
+                l.className='grid-line '+(min==="30"?"half-hour":"");
+                l.style.gridRow=r;
+                l.style.gridColumn='2 / span '+active.length;
+                grid.appendChild(l);
+
+                if(min==="00"){
+                    var lbl=document.createElement('div');
+                    lbl.className='time-label';
+                    lbl.style.gridRow=r;
+                    lbl.innerText=dh+':'+min;
+                    grid.appendChild(lbl);
+                }
+            }
+        }
+
+        function renderEvents(){
+            var grid=document.getElementById('timetable');
+            var evts=masterData.filter(function(item){
+                if(item.day!==currentDay)return false;
+                if(scheduleMode==='personal')return userWantedList.includes(item.name.toLowerCase().trim());
+                return true;
+            });
+            if(evts.length===0&&scheduleMode==='personal'){
+                var hint=document.createElement('div');
+                hint.style.cssText='grid-column:2/-1;grid-row:30;text-align:center;color:#666;padding:20px;';
+                hint.innerHTML='📭 這天還沒有收藏的藝人<br><small>回 LINE 點「演出情報」加入必看吧！</small>';
+                grid.appendChild(hint);return;
+            }
+            evts.forEach(function(item){
+                var sD=getStageInfo(item.stage);if(!sD)return;
+                var isW=userWantedList.includes(item.name.toLowerCase().trim());
+                var startRow=timeToGridRow(item.start);
+                var endRow=item.end?timeToGridRow(item.end):startRow+60;
+                var bl=document.createElement('div');
+                bl.className='event-block'+(scheduleMode==='full'&&!isW?' dimmed':'');
+                bl.style.gridRow=startRow+' / '+endRow;
+                bl.style.gridColumn=sD.col;
+                bl.style.borderLeftColor=sD.stage.color;
+                bl.innerHTML='<div class="event-time">'+item.start+' - '+(item.end||'?')+'</div><div class="event-artist">'+item.name+(isW&&scheduleMode==='full'?' ★':'')+'</div>';
+                grid.appendChild(bl);
+            });
+        }
+
+        function updateCurrentTimeLine(){
+            if(viewMode==='list')return;
+            var now=new Date(),h=now.getHours(),m=now.getMinutes();
+            if(h>=0&&h<5)h+=24;
+            if(h>=11&&h<=29){
+                var r=(h-11)*60+m+2;
+                var tL=document.getElementById('current-time-line');
+                if(!tL){tL=document.createElement('div');tL.id='current-time-line';tL.className='current-time-line';var d=document.createElement('div');d.className='current-time-dot';tL.appendChild(d);}
+                var g=document.getElementById('timetable');
+                var active=STAGES.filter(function(s){return s.visible;});
+                if(g&&active.length>0){g.appendChild(tL);tL.style.gridRow=r;tL.style.gridColumn='2 / span '+active.length;tL.style.display='block';}
+            }
+        }
+
+        function scrollToNow(){
+            var n=new Date(),h=n.getHours();if(h>=0&&h<5)h+=24;
+            if(h>=11&&h<=29){document.getElementById('scroll-container').scrollTo({top:Math.max(0,(((h-11)*60+n.getMinutes())*2)-100),behavior:'smooth'});}
+            else{alert("非演出時間");}
+        }
+
+        function openFilterModal(){
+            var c=document.getElementById('stage-chips-container');c.innerHTML='';
+            STAGES.forEach(function(s){
+                var b=document.createElement('button');b.className='stage-chip'+(s.visible?' active':'');b.style.borderColor=s.color;
+                if(s.visible)b.style.backgroundColor=s.color;b.innerText=s.name;
+                b.onclick=function(){s.visible=!s.visible;b.classList.toggle('active');b.style.backgroundColor=s.visible?s.color:'transparent';};
+                c.appendChild(b);
+            });
+            document.getElementById('filter-modal').style.display='flex';
+        }
+
+        function selectAllStages(v){STAGES.forEach(function(s){s.visible=v;});openFilterModal();}
+        function applyStageFilter(){document.getElementById('filter-modal').style.display='none';renderApp();}
+        function renderApp(){if(viewMode==='grid'){renderGridLines();renderEvents();updateCurrentTimeLine();}else{renderListView();}}
+        function changeDay(idx){currentDay=days[idx];document.querySelectorAll('.day-btn').forEach(function(b,i){b.classList.toggle('active',i===idx);});document.getElementById('watermark').innerText='2026 FUJI ROCK - '+dayLabels[idx];renderApp();if(viewMode==='grid')document.getElementById('scroll-container').scrollTop=0;}
+        function toggleScreenshotMode(){document.body.classList.toggle('screenshot-mode');if(document.body.classList.contains('screenshot-mode'))window.scrollTo(0,0);}
+        function initApp(){
+            var dC=document.getElementById('day-selector');dC.innerHTML='';
+            dayLabels.forEach(function(l,i){var b=document.createElement('button');b.className='day-btn'+(i===0?' active':'');b.innerText=l;b.onclick=function(){changeDay(i);};dC.appendChild(b);});
+            changeDay(0);setInterval(updateCurrentTimeLine,60000);
+        }
+        window.onload=loadData;
+    </script>
+</body>
+</html>
