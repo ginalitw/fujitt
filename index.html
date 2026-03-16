@@ -60,11 +60,35 @@
         .watermark{display:none;text-align:center;font-size:1.2rem;font-weight:800;padding:16px 0;letter-spacing:2px;}
         body.ss-mode .watermark{display:block;}
         #loading{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;}
+        /* ===== SS-MODE EXIT ===== */
+        .ss-exit-btn{display:none;position:fixed;top:12px;right:12px;z-index:9999;background:rgba(20,20,20,.85);color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 16px;border-radius:20px;font-size:.85rem;cursor:pointer;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.5);}
+        body.ss-mode .ss-exit-btn{display:block;}
+        /* ===== SPOTIFY PANEL ===== */
+        #sp-overlay{display:none;position:fixed;inset:0;z-index:1990;background:rgba(0,0,0,.45);}
+        #sp-panel{position:fixed;bottom:0;left:0;right:0;background:#121212;border-radius:16px 16px 0 0;border-top:1px solid #282828;z-index:2000;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);}
+        #sp-panel.open{transform:translateY(0);}
+        .sp-drag{width:36px;height:4px;background:#444;border-radius:2px;margin:10px auto;}
+        .sp-head{display:flex;justify-content:space-between;align-items:center;padding:4px 16px 10px;}
+        .sp-title{font-size:1rem;font-weight:700;max-width:75%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;}
+        .sp-x{background:none;border:none;color:#777;font-size:1.2rem;cursor:pointer;padding:4px 8px;}
+        #sp-body{padding:0 12px 24px;}
+        #sp-body iframe{width:100%;height:152px;border-radius:12px;border:none;display:block;}
+        .sp-link{display:block;text-align:center;margin:8px auto;max-width:240px;background:#1DB954;color:#000;text-decoration:none;padding:12px;border-radius:25px;font-weight:700;font-size:.9rem;}
+        .sp-connect{display:block;margin:8px auto;max-width:240px;background:#1DB954;color:#000;border:none;padding:12px;border-radius:25px;font-weight:700;font-size:.9rem;cursor:pointer;width:100%;}
+        .sp-hint{color:#555;font-size:.72rem;text-align:center;margin-top:6px;}
+        /* ===== SPOTIFY ICON ON EVENTS ===== */
+        .ev-sp{position:absolute;bottom:2px;right:3px;font-size:.7rem;color:#1DB954;opacity:.5;background:none;border:none;cursor:pointer;padding:2px;line-height:1;z-index:11;}
+        .ev-sp:active,.ev-sp:hover{opacity:1;}
+        /* ===== POPULARITY GLOW ===== */
+        .ev.glow-md{box-shadow:0 0 8px rgba(234,179,8,.3),0 2px 5px rgba(0,0,0,.5);}
+        .ev.glow-hi{box-shadow:0 0 16px rgba(234,179,8,.6),0 2px 5px rgba(0,0,0,.5);}
+        .ev.selected.glow-hi{box-shadow:0 0 0 2px #eab308,0 0 14px rgba(234,179,8,.5),0 2px 8px rgba(234,179,8,.3);}
     </style>
 </head>
 <body>
     <div id="loading">🤘 苗場資料讀取中...</div>
     <div class="toast" id="toast"></div>
+    <button class="ss-exit-btn" onclick="toggleSS()">✕ 返回主畫面</button>
     <header>
         <div class="header-top">
             <h1>🎵 My Timetable</h1>
@@ -83,11 +107,29 @@
     <div class="list-view" id="listview"></div>
     <button class="fab" onclick="jumpNow()" id="fab">📍</button>
     <div class="modal-bg" id="filterModal"><div class="modal"><div class="modal-title">選擇舞台</div><div class="chips" id="filterChips"></div><div class="modal-actions"><button class="btn" onclick="allStages(true)">全選</button><button class="btn" onclick="allStages(false)">全不選</button><button class="btn btn-primary" onclick="applyFilter()">確定</button></div></div></div>
+    <div id="sp-overlay" onclick="closeSpotify()"></div>
+    <div id="sp-panel">
+        <div class="sp-drag"></div>
+        <div class="sp-head">
+            <span class="sp-title" id="sp-aname"></span>
+            <button class="sp-x" onclick="closeSpotify()">✕</button>
+        </div>
+        <div id="sp-body"></div>
+    </div>
 
 <script>
 // ====== CONFIG ======
 var GAS_URL = "https://script.google.com/macros/s/AKfycbxrwj7fuanwtwa19rlCIuYdnl1kuaobuJOcoF5gWGHMSXIS0Pg3r6k0t5p3hSu0DnFmbw/exec";
 var uid = new URLSearchParams(location.search).get("uid");
+
+// ====== SPOTIFY CONFIG ======
+// 步驟：前往 developer.spotify.com → 建立應用程式 → 取得 Client ID
+// 在應用程式設定裡，把你的網頁 URL（不含 ?uid=...）加入 Redirect URIs
+var SPOTIFY_CLIENT_ID = ""; // 填入你的 Spotify Client ID
+var _spTok = sessionStorage.getItem("sp_tok")||"";
+var _spExp = parseInt(sessionStorage.getItem("sp_exp")||"0");
+var _spPop = {}; // artistName -> popularity score (0-100)
+var _spAid = {}; // artistName -> spotify artist id
 
 var master = [], lineWanted = [], mySelection = [];
 var DAYS = ["Day 1","Day 2","Day 3"], DAY_LABELS = ["Day 1 (7/24)","Day 2 (7/25)","Day 3 (7/26)"];
@@ -109,6 +151,88 @@ var KNOWN = [
 var STAGES = [];
 
 function toast(msg){var t=document.getElementById("toast");t.innerText=msg;t.style.display="block";setTimeout(function(){t.style.display="none";},2200);}
+
+// ====== SPOTIFY ======
+async function _spSearch(name){
+    if(!_spTok||Date.now()>_spExp)return null;
+    if(_spAid[name]!==undefined)return{id:_spAid[name],pop:_spPop[name]};
+    try{
+        var r=await fetch("https://api.spotify.com/v1/search?q="+encodeURIComponent(name)+"&type=artist&limit=1",{headers:{"Authorization":"Bearer "+_spTok}});
+        if(r.status===401){_spTok="";sessionStorage.removeItem("sp_tok");return null;}
+        var d=await r.json();
+        var a=d.artists&&d.artists.items&&d.artists.items[0];
+        if(a){_spAid[name]=a.id;_spPop[name]=a.popularity;return{id:a.id,pop:a.popularity};}
+    }catch(e){}
+    return null;
+}
+async function _spAuthStart(){
+    var arr=crypto.getRandomValues(new Uint8Array(32));
+    var chars=[];for(var i=0;i<arr.length;i++)chars.push(String.fromCharCode(arr[i]));
+    var verifier=btoa(chars.join("")).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"");
+    var buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(verifier));
+    var hArr=Array.from(new Uint8Array(buf));
+    var challenge=btoa(hArr.map(function(b){return String.fromCharCode(b);}).join("")).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"");
+    sessionStorage.setItem("sp_ver",verifier);
+    if(uid)sessionStorage.setItem("sp_uid",uid);
+    var p=new URLSearchParams({client_id:SPOTIFY_CLIENT_ID,response_type:"code",redirect_uri:location.origin+location.pathname,code_challenge_method:"S256",code_challenge:challenge});
+    location.href="https://accounts.spotify.com/authorize?"+p;
+}
+async function _spHandleCb(){
+    var code=new URLSearchParams(location.search).get("code");
+    if(!code||!SPOTIFY_CLIENT_ID)return;
+    var ver=sessionStorage.getItem("sp_ver");if(!ver)return;
+    sessionStorage.removeItem("sp_ver");
+    try{
+        var r=await fetch("https://accounts.spotify.com/api/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:SPOTIFY_CLIENT_ID,grant_type:"authorization_code",code:code,redirect_uri:location.origin+location.pathname,code_verifier:ver})});
+        var d=await r.json();
+        if(d.access_token){_spTok=d.access_token;_spExp=Date.now()+(d.expires_in-60)*1000;sessionStorage.setItem("sp_tok",_spTok);sessionStorage.setItem("sp_exp",String(_spExp));}
+    }catch(e){}
+    var savedUid=sessionStorage.getItem("sp_uid")||"";
+    history.replaceState({},"",location.pathname+(savedUid?"?uid="+savedUid:""));
+    if(savedUid)uid=savedUid;
+}
+async function _spFetchAll(){
+    if(!_spTok||!SPOTIFY_CLIENT_ID)return;
+    var names=[...new Set(master.map(function(it){return it.name;}))];
+    for(var i=0;i<names.length;i++){
+        var n=names[i];
+        if(_spPop[n]!==undefined)continue;
+        var info=await _spSearch(n);
+        if(info){
+            document.querySelectorAll(".ev").forEach(function(el){if(el.dataset.artist===n)_applyGlow(el,info.pop);});
+        }
+        if(i<names.length-1)await new Promise(function(r){setTimeout(r,150);});
+    }
+}
+function _applyGlow(el,pop){
+    el.classList.remove("glow-md","glow-hi");
+    if(pop>=75)el.classList.add("glow-hi");
+    else if(pop>=50)el.classList.add("glow-md");
+}
+function openSpotify(name){
+    document.getElementById("sp-aname").textContent=name;
+    var body=document.getElementById("sp-body");
+    body.innerHTML='<div style="text-align:center;padding:16px;color:#9ca3af;font-size:.85rem">🎵 載入中…</div>';
+    document.getElementById("sp-panel").classList.add("open");
+    document.getElementById("sp-overlay").style.display="block";
+    if(SPOTIFY_CLIENT_ID&&_spTok&&Date.now()<_spExp){
+        _spSearch(name).then(function(info){
+            if(info&&info.id){
+                body.innerHTML='<iframe src="https://open.spotify.com/embed/artist/'+info.id+'?utm_source=generator&theme=0" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+            }else{_spFallback(name,body);}
+        });
+    }else if(SPOTIFY_CLIENT_ID){
+        body.innerHTML='<div style="text-align:center;padding:8px 0"><button class="sp-connect" onclick="_spAuthStart()">🔗 連結 Spotify 帳號</button><p class="sp-hint">連結後可在 Timetable 直接試聽藝人 30 秒預覽</p></div>';
+    }else{_spFallback(name,body);}
+}
+function _spFallback(name,body){
+    body.innerHTML='<a class="sp-link" href="https://open.spotify.com/search/'+encodeURIComponent(name)+'" target="_blank">🎵 在 Spotify 搜尋 '+name+'</a>';
+}
+function closeSpotify(){
+    document.getElementById("sp-panel").classList.remove("open");
+    document.getElementById("sp-overlay").style.display="none";
+    setTimeout(function(){document.getElementById("sp-body").innerHTML="";},400);
+}
 
 // ====== JSONP Helper (bypasses CORS) ======
 var _jsonpId = 0;
@@ -222,7 +346,12 @@ function renderGrid(){
         bl.style.gridRow=timeToRow(it.start)+"/"+(it.end?timeToRow(it.end):timeToRow(it.start)+60);
         bl.style.gridColumn=si.col;bl.style.borderLeftColor=si.stage.color;
         bl.innerHTML='<div class="ev-time">'+it.start+" - "+(it.end||"?")+'</div><div class="ev-name">'+it.name+"</div>";
+        bl.dataset.artist=it.name;
+        if(_spPop[it.name]!==undefined)_applyGlow(bl,_spPop[it.name]);
         bl.onclick=function(){toggleSelection(it.name);};
+        var spb=document.createElement("button");spb.className="ev-sp";spb.textContent="♪";spb.title="Spotify";
+        (function(n){spb.onclick=function(e){e.stopPropagation();openSpotify(n);};})(it.name);
+        bl.appendChild(spb);
         g.appendChild(bl);
     });
     updateTimeLine();
@@ -239,7 +368,7 @@ function renderList(){
         var bl=document.createElement("div");
         bl.className="list-item"+(schedMode==="full"&&!sel?" dimmed":"")+(sel?" selected":"");
         bl.style.borderLeftColor=color;
-        bl.innerHTML='<div class="list-hdr"><span>🕒 '+it.start+" - "+it.end+"</span><span style=\"color:"+color+";font-weight:bold\">"+sName+"</span></div><div class=\"list-title\">"+it.name+(sel?" ⭐":"")+"</div>";
+        bl.innerHTML='<div class="list-hdr"><span>🕒 '+it.start+" - "+it.end+"</span><span style=\"color:"+color+";font-weight:bold\">"+sName+"</span></div><div class="list-title" style="display:flex;justify-content:space-between;align-items:center"><span>'+it.name+(sel?" ⭐":"")+'</span><button class="ev-sp" style="font-size:.85rem;opacity:.6;flex-shrink:0" onclick="event.stopPropagation();openSpotify(\''+it.name.replace(/'/g,"\\'")+'\')" title="Spotify">♪</button></div>';
         bl.onclick=function(){toggleSelection(it.name);};
         c.appendChild(bl);
     });
@@ -300,6 +429,8 @@ function initApp(){
     // 自選數量顯示
     updateSelCount();
     changeDay(0);setInterval(updateTimeLine,60000);
+    // 背景載入 Spotify 熱門度（需設定 SPOTIFY_CLIENT_ID 並完成連結）
+    if(SPOTIFY_CLIENT_ID&&_spTok&&Date.now()<_spExp)setTimeout(_spFetchAll,2000);
 }
 
 function updateSelCount(){
@@ -308,7 +439,13 @@ function updateSelCount(){
     b.innerHTML=(schedMode==="full"?"🌐 全展":"👤 專屬")+'<span class="count-badge">'+cnt+"</span>";
 }
 
-window.onload=loadData;
+window.onload=async function(){
+    // Spotify PKCE callback（從 Spotify 跳轉回來時先完成 token 交換）
+    if(SPOTIFY_CLIENT_ID&&new URLSearchParams(location.search).get("code")){
+        await _spHandleCb();
+    }
+    loadData();
+};
 </script>
 </body>
 </html>
