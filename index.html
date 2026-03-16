@@ -76,6 +76,9 @@
         .sp-link{display:block;text-align:center;margin:8px auto;max-width:240px;background:#1DB954;color:#000;text-decoration:none;padding:12px;border-radius:25px;font-weight:700;font-size:.9rem;}
         .sp-connect{display:block;margin:8px auto;max-width:240px;background:#1DB954;color:#000;border:none;padding:12px;border-radius:25px;font-weight:700;font-size:.9rem;cursor:pointer;width:100%;}
         .sp-hint{color:#555;font-size:.72rem;text-align:center;margin-top:6px;}
+        .sp-sel{padding:6px 12px;border-radius:16px;font-size:.78rem;font-weight:700;border:none;cursor:pointer;white-space:nowrap;transition:.15s;}
+        .sp-sel.add{background:#eab308;color:#000;}
+        .sp-sel.remove{background:#ef4444;color:#fff;}
         /* ===== SPOTIFY ICON ON EVENTS ===== */
         .ev-sp{position:absolute;bottom:2px;right:3px;font-size:.7rem;color:#1DB954;opacity:.5;background:none;border:none;cursor:pointer;padding:2px;line-height:1;z-index:11;}
         .ev-sp:active,.ev-sp:hover{opacity:1;}
@@ -112,7 +115,10 @@
         <div class="sp-drag"></div>
         <div class="sp-head">
             <span class="sp-title" id="sp-aname"></span>
-            <button class="sp-x" onclick="closeSpotify()">✕</button>
+            <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+                <button id="sp-sel-btn" class="sp-sel add" onclick="spToggleSel()">⭐ 加入</button>
+                <button class="sp-x" onclick="closeSpotify()">✕</button>
+            </div>
         </div>
         <div id="sp-body"></div>
     </div>
@@ -130,6 +136,7 @@ var _spTok = sessionStorage.getItem("sp_tok")||"";
 var _spExp = parseInt(sessionStorage.getItem("sp_exp")||"0");
 var _spPop = {}; // artistName -> popularity score (0-100)
 var _spAid = {}; // artistName -> spotify artist id
+var _spCurArtist = ""; // 目前面板顯示的藝人
 
 var master = [], lineWanted = [], mySelection = [];
 var DAYS = ["Day 1","Day 2","Day 3"], DAY_LABELS = ["Day 1 (7/24)","Day 2 (7/25)","Day 3 (7/26)"];
@@ -209,8 +216,21 @@ function _applyGlow(el,pop){
     if(pop>=75)el.classList.add("glow-hi");
     else if(pop>=50)el.classList.add("glow-md");
 }
+function _updateSpSelBtn(){
+    var btn=document.getElementById("sp-sel-btn");if(!btn)return;
+    var sel=isSelected(_spCurArtist);
+    btn.textContent=sel?"❌ 移除排表":"⭐ 加入排表";
+    btn.className="sp-sel "+(sel?"remove":"add");
+}
+function spToggleSel(){
+    if(!_spCurArtist)return;
+    toggleSelection(_spCurArtist);
+    _updateSpSelBtn();
+}
 function openSpotify(name){
+    _spCurArtist=name;
     document.getElementById("sp-aname").textContent=name;
+    _updateSpSelBtn();
     var body=document.getElementById("sp-body");
     body.innerHTML='<div style="text-align:center;padding:16px;color:#9ca3af;font-size:.85rem">🎵 載入中…</div>';
     document.getElementById("sp-panel").classList.add("open");
@@ -337,7 +357,7 @@ function renderGrid(){
         if(schedMode==="personal")return isSelected(it.name);
         return true;
     });
-    if(!evts.length&&schedMode==="personal"){var hint=document.createElement("div");hint.style.cssText="grid-column:2/-1;grid-row:30;text-align:center;color:#666;padding:20px;";hint.innerHTML="📭 點擊「🌐 全展」後，<br>點選色塊加入你的排表！";g.appendChild(hint);return;}
+    if(!evts.length&&schedMode==="personal"){var hint=document.createElement("div");hint.style.cssText="grid-column:2/-1;grid-row:30;text-align:center;color:#666;padding:20px;";hint.innerHTML="📭 切換到「🌐 全展」，<br>點選色塊 → 在面板中加入排表！";g.appendChild(hint);return;}
     evts.forEach(function(it){
         var si=stageInfo(it.stage);if(!si)return;
         var sel=isSelected(it.name);
@@ -348,10 +368,7 @@ function renderGrid(){
         bl.innerHTML='<div class="ev-time">'+it.start+" - "+(it.end||"?")+'</div><div class="ev-name">'+it.name+"</div>";
         bl.dataset.artist=it.name;
         if(_spPop[it.name]!==undefined)_applyGlow(bl,_spPop[it.name]);
-        bl.onclick=function(){toggleSelection(it.name);};
-        var spb=document.createElement("button");spb.className="ev-sp";spb.textContent="♪";spb.title="Spotify";
-        (function(n){spb.onclick=function(e){e.stopPropagation();openSpotify(n);};})(it.name);
-        bl.appendChild(spb);
+        (function(n){bl.onclick=function(){openSpotify(n);};})(it.name);
         g.appendChild(bl);
     });
     updateTimeLine();
@@ -368,8 +385,8 @@ function renderList(){
         var bl=document.createElement("div");
         bl.className="list-item"+(schedMode==="full"&&!sel?" dimmed":"")+(sel?" selected":"");
         bl.style.borderLeftColor=color;
-        bl.innerHTML='<div class="list-hdr"><span>🕒 '+it.start+" - "+it.end+"</span><span style=\"color:"+color+";font-weight:bold\">"+sName+"</span></div><div class="list-title" style="display:flex;justify-content:space-between;align-items:center"><span>'+it.name+(sel?" ⭐":"")+'</span><button class="ev-sp" style="font-size:.85rem;opacity:.6;flex-shrink:0" onclick="event.stopPropagation();openSpotify(\''+it.name.replace(/'/g,"\\'")+'\')" title="Spotify">♪</button></div>';
-        bl.onclick=function(){toggleSelection(it.name);};
+        bl.innerHTML='<div class="list-hdr"><span>🕒 '+it.start+" - "+it.end+"</span><span style="color:'+color+';font-weight:bold">'+sName+'</span></div><div class="list-title">'+it.name+(sel?" ⭐":"")+'</div>';
+        (function(n){bl.onclick=function(){openSpotify(n);};})(it.name);
         c.appendChild(bl);
     });
 }
