@@ -213,6 +213,8 @@ var STAGES = [];
 function toast(msg){var t=document.getElementById("toast");t.innerText=msg;t.style.display="block";setTimeout(function(){t.style.display="none";},2200);}
 // ====== ADMIN MODE ======
 var ADMIN_PASSWORD = "fujitt2026"; // ★ 修改為你的密碼
+var OWNER_UID = "Uaad7f6d86f0316d7ddf10f660ade5205";
+function isOwner(){ return new URLSearchParams(window.location.search).get("uid")===OWNER_UID; }
 var _adminSettings = JSON.parse(localStorage.getItem("fujitt_admin")||'{"conflict":true,"countdown":true,"festival":false,"phase":"auto"}');
 var _adminTaps = 0, _adminTapTimer = null;
 
@@ -239,8 +241,9 @@ function openAdminPanel(){
     document.getElementById("adminModal").style.display="flex";
 }
 function initAdmin(){
-    // 點標題 5 下進入管理員模式
+    // 點標題 5 下進入管理員模式（僅限擁有者 UID）
     document.querySelector("h1").addEventListener("click",function(){
+        if(!isOwner()) return; // 非擁有者連結，完全無反應
         _adminTaps++;
         clearTimeout(_adminTapTimer);
         _adminTapTimer=setTimeout(function(){_adminTaps=0;},2000);
