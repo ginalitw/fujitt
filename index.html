@@ -131,7 +131,7 @@ var uid = new URLSearchParams(location.search).get("uid");
 // ====== SPOTIFY CONFIG ======
 // 步驟：前往 developer.spotify.com → 建立應用程式 → 取得 Client ID
 // 在應用程式設定裡，把你的網頁 URL（不含 ?uid=...）加入 Redirect URIs
-var SPOTIFY_CLIENT_ID = ""; // 填入你的 Spotify Client ID
+var SPOTIFY_CLIENT_ID = "b0898c67b1c842eb8343e7f83e810e76";
 var _spTok = sessionStorage.getItem("sp_tok")||"";
 var _spExp = parseInt(sessionStorage.getItem("sp_exp")||"0");
 var _spPop = {}; // artistName -> popularity score (0-100)
