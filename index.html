@@ -122,26 +122,20 @@
         </div>
         <div id="sp-body"></div>
     </div>
-
 <script>
 // ====== CONFIG ======
 var GAS_URL = "https://script.google.com/macros/s/AKfycbxrwj7fuanwtwa19rlCIuYdnl1kuaobuJOcoF5gWGHMSXIS0Pg3r6k0t5p3hSu0DnFmbw/exec";
 var uid = new URLSearchParams(location.search).get("uid");
-
 // ====== SPOTIFY CONFIG ======
-// 步驟：前往 developer.spotify.com → 建立應用程式 → 取得 Client ID
-// 在應用程式設定裡，把你的網頁 URL（不含 ?uid=...）加入 Redirect URIs
-var SPOTIFY_CLIENT_ID = ""; // 填入你的 Spotify Client ID
+var SPOTIFY_CLIENT_ID = "";
 var _spTok = sessionStorage.getItem("sp_tok")||"";
 var _spExp = parseInt(sessionStorage.getItem("sp_exp")||"0");
-var _spPop = {}; // artistName -> popularity score (0-100)
-var _spAid = {}; // artistName -> spotify artist id
-var _spCurArtist = ""; // 目前面板顯示的藝人
-
+var _spPop = {};
+var _spAid = {};
+var _spCurArtist = "";
 var master = [], lineWanted = [], mySelection = [];
 var DAYS = ["Day 1","Day 2","Day 3"], DAY_LABELS = ["Day 1 (7/24)","Day 2 (7/25)","Day 3 (7/26)"];
 var curDay = DAYS[0], viewMode = "grid", schedMode = "personal";
-
 var KNOWN = [
     {id:"GREEN",kw:"GREEN",name:"GREEN",color:"#22c55e"},
     {id:"WHITE",kw:"WHITE",name:"WHITE",color:"#e2e8f0"},
@@ -156,9 +150,7 @@ var KNOWN = [
     {id:"CAFE",kw:"CAFE",name:"CAFÉ",color:"#ec4899"}
 ];
 var STAGES = [];
-
 function toast(msg){var t=document.getElementById("toast");t.innerText=msg;t.style.display="block";setTimeout(function(){t.style.display="none";},2200);}
-
 // ====== SPOTIFY ======
 async function _spSearch(name){
     if(!_spTok||Date.now()>_spExp)return null;
@@ -253,8 +245,7 @@ function closeSpotify(){
     document.getElementById("sp-overlay").style.display="none";
     setTimeout(function(){document.getElementById("sp-body").innerHTML="";},400);
 }
-
-// ====== JSONP Helper (bypasses CORS) ======
+// ====== JSONP Helper ======
 var _jsonpId = 0;
 function jsonp(url) {
   return new Promise(function(resolve, reject) {
@@ -269,7 +260,6 @@ function jsonp(url) {
     document.head.appendChild(s);
   });
 }
-
 // ====== DATA ======
 async function loadData(){
     if(!uid){document.getElementById("loading").innerText="❌ UID 遺失，請從 LINE 開啟";return;}
@@ -278,14 +268,11 @@ async function loadData(){
         if(data.error){document.getElementById("loading").innerText="❌ "+data.error;return;}
         master = data.fullSchedule||[];
         lineWanted = data.wantedList||[];
-        // 載入自選
         try{var d2=await jsonp(GAS_URL+"?action=getSelection&uid="+uid);mySelection=d2.selection||[];}catch(e){mySelection=[];}
-        // 如果自選為空，用 LINE 收藏初始化
         if(mySelection.length===0) mySelection = lineWanted.map(function(n){return n;});
         buildStages(); document.getElementById("loading").style.display="none"; initApp();
     }catch(e){document.getElementById("loading").innerText="❌ 連線失敗："+e.message;}
 }
-
 function buildStages(){
     var m=new Map();
     master.forEach(function(it){
@@ -296,9 +283,7 @@ function buildStages(){
     });
     STAGES=Array.from(m.values());
 }
-
 function isSelected(name){return mySelection.indexOf(name.toLowerCase().trim())>=0;}
-
 function toggleSelection(name){
     var key=name.toLowerCase().trim();
     var idx=mySelection.indexOf(key);
@@ -306,11 +291,9 @@ function toggleSelection(name){
     else{mySelection.push(key);toast("⭐ 已加入："+name);}
     saveSelection(); render();
 }
-
 async function saveSelection(){
     try{await jsonp(GAS_URL+"?action=saveSelection&uid="+uid+"&selection="+encodeURIComponent(JSON.stringify(mySelection)));}catch(e){}
 }
-
 async function syncFromLine(){
     try{
         toast("🔄 同步中...");
@@ -322,7 +305,6 @@ async function syncFromLine(){
         toast("✅ 同步完成！新增 "+added+" 組");
     }catch(e){toast("❌ 同步失敗");}
 }
-
 // ====== RENDER ======
 function stageInfo(sn){
     if(!sn)return null;var u=sn.toUpperCase();
@@ -331,13 +313,11 @@ function stageInfo(sn){
     var active=STAGES.filter(function(s){return s.vis;});
     return{col:active.findIndex(function(s){return s.id===match.id;})+2,stage:match};
 }
-
 function timeToRow(ts){
     if(!ts||!ts.includes(":"))return 2;
     var p=ts.split(":"),h=parseInt(p[0]),m=parseInt(p[1]);
     if(isNaN(h)||isNaN(m))return 2;if(h<11)h+=24;return(h-11)*60+m+2;
 }
-
 function renderGrid(){
     var g=document.getElementById("grid");g.innerHTML="";
     var active=STAGES.filter(function(s){return s.vis;});
@@ -351,7 +331,6 @@ function renderGrid(){
         var l=document.createElement("div");l.className="grid-line"+(min==="30"?" half":"");l.style.gridRow=r;l.style.gridColumn="2/span "+active.length;g.appendChild(l);
         if(min==="00"){var lb=document.createElement("div");lb.className="time-lbl";lb.style.gridRow=r;lb.innerText=dh+":"+min;g.appendChild(lb);}
     }
-    // Events
     var evts=master.filter(function(it){
         if(it.day!==curDay)return false;
         if(schedMode==="personal")return isSelected(it.name);
@@ -365,7 +344,7 @@ function renderGrid(){
         bl.className="ev"+(schedMode==="full"&&!sel?" dimmed":"")+(sel?" selected":"");
         bl.style.gridRow=timeToRow(it.start)+"/"+(it.end?timeToRow(it.end):timeToRow(it.start)+60);
         bl.style.gridColumn=si.col;bl.style.borderLeftColor=si.stage.color;
-        bl.innerHTML='<div class="ev-time">'+it.start+" - "+(it.end||"?")+'</div><div class="ev-name">'+it.name+"</div>";
+        bl.innerHTML='<div class="ev-time">'+it.start+' - '+(it.end||'?')+'</div><div class="ev-name">'+it.name+'</div>';
         bl.dataset.artist=it.name;
         if(_spPop[it.name]!==undefined)_applyGlow(bl,_spPop[it.name]);
         (function(n){bl.onclick=function(){openSpotify(n);};})(it.name);
@@ -373,7 +352,6 @@ function renderGrid(){
     });
     updateTimeLine();
 }
-
 function renderList(){
     var c=document.getElementById("listview");c.innerHTML="";
     var evts=master.filter(function(it){if(it.day!==curDay)return false;if(schedMode==="personal")return isSelected(it.name);return true;});
@@ -383,16 +361,15 @@ function renderList(){
         var si=stageInfo(it.stage);var color=si?si.stage.color:"#64748b";var sName=si?si.stage.name:it.stage;
         var sel=isSelected(it.name);
         var bl=document.createElement("div");
-        bl.className="list-item"+(schedMode==="full"&&!sel?" dimmed":"")+(sel?" selected":"");
+        bl.className='list-item'+(schedMode==='full'&&!sel?' dimmed':'')+(sel?' selected':'');
         bl.style.borderLeftColor=color;
-        bl.innerHTML='<div class="list-hdr"><span>🕒 '+it.start+" - "+it.end+"</span><span style="color:'+color+';font-weight:bold">'+sName+'</span></div><div class="list-title">'+it.name+(sel?" ⭐":"")+'</div>';
+        // ✅ 修正：使用單引號包住含雙引號的 HTML，避免語法錯誤
+        bl.innerHTML='<div class="list-hdr"><span>🕒 '+it.start+' - '+it.end+'</span><span style="color:'+color+';font-weight:bold">'+sName+'</span></div><div class="list-title">'+it.name+(sel?' ⭐':'')+'</div>';
         (function(n){bl.onclick=function(){openSpotify(n);};})(it.name);
         c.appendChild(bl);
     });
 }
-
 function render(){if(viewMode==="grid")renderGrid();else renderList();}
-
 function updateTimeLine(){
     if(viewMode!=="grid")return;
     var now=new Date(),h=now.getHours(),m=now.getMinutes();if(h>=0&&h<5)h+=24;
@@ -402,7 +379,6 @@ function updateTimeLine(){
         if(g&&active.length){g.appendChild(tl);tl.style.gridRow=r;tl.style.gridColumn="2/span "+active.length;tl.style.display="block";}
     }
 }
-
 // ====== CONTROLS ======
 function toggleMode(){
     schedMode=schedMode==="personal"?"full":"personal";
@@ -439,25 +415,19 @@ function openFilter(){
 function allStages(v){STAGES.forEach(function(s){s.vis=v;});openFilter();}
 function applyFilter(){document.getElementById("filterModal").style.display="none";render();}
 function toggleSS(){document.body.classList.toggle("ss-mode");}
-
 function initApp(){
     var dc=document.getElementById("days");dc.innerHTML="";
     DAY_LABELS.forEach(function(l,i){var b=document.createElement("button");b.className="day-btn"+(i===0?" active":"");b.innerText=l;b.onclick=function(){changeDay(i);};dc.appendChild(b);});
-    // 自選數量顯示
     updateSelCount();
     changeDay(0);setInterval(updateTimeLine,60000);
-    // 背景載入 Spotify 熱門度（需設定 SPOTIFY_CLIENT_ID 並完成連結）
     if(SPOTIFY_CLIENT_ID&&_spTok&&Date.now()<_spExp)setTimeout(_spFetchAll,2000);
 }
-
 function updateSelCount(){
     var b=document.getElementById("btn-mode");
     var cnt=mySelection.length;
     b.innerHTML=(schedMode==="full"?"🌐 全展":"👤 專屬")+'<span class="count-badge">'+cnt+"</span>";
 }
-
 window.onload=async function(){
-    // Spotify PKCE callback（從 Spotify 跳轉回來時先完成 token 交換）
     if(SPOTIFY_CLIENT_ID&&new URLSearchParams(location.search).get("code")){
         await _spHandleCb();
     }
