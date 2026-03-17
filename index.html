@@ -86,7 +86,36 @@
         .ev.glow-md{box-shadow:0 0 8px rgba(234,179,8,.3),0 2px 5px rgba(0,0,0,.5);}
         .ev.glow-hi{box-shadow:0 0 16px rgba(234,179,8,.6),0 2px 5px rgba(0,0,0,.5);}
         .ev.selected.glow-hi{box-shadow:0 0 0 2px #eab308,0 0 14px rgba(234,179,8,.5),0 2px 8px rgba(234,179,8,.3);}
+        /* ===== CONFLICT WARNING ===== */
+        .ev.conflict{outline:2px solid #ff3b30;outline-offset:-2px;}
+        .ev-warn{font-size:.6rem;color:#ff3b30;font-weight:700;margin-top:2px;}
+        .list-item.conflict{outline:2px solid #ff3b30;}
+        /* ===== COUNTDOWN ===== */
+        .ev-cd{font-size:.6rem;color:#6b7280;margin-top:2px;}
+        .ev-cd.soon{color:#eab308;font-weight:700;}
+        .ev-cd.live{color:#22c55e;font-weight:700;}
+        .ev-cd.done{color:#4b5563;}
+        /* ===== SCREENSHOT DOWNLOAD ===== */
+        .ss-dl-btn{display:none;position:fixed;bottom:20px;left:20px;background:#22c55e;color:#000;width:46px;height:46px;border-radius:50%;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 4px 10px rgba(0,0,0,.5);z-index:9998;border:none;cursor:pointer;}
+        body.ss-mode .ss-dl-btn{display:flex;}
+        /* ===== ADMIN MODE ===== */
+        .admin-badge{display:none;position:fixed;top:8px;left:50%;transform:translateX(-50%);background:#7c3aed;color:#fff;padding:3px 12px;border-radius:10px;font-size:.7rem;font-weight:700;z-index:1002;pointer-events:none;}
+        body.admin-on .admin-badge{display:block;}
+        .admin-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
+        .admin-row:last-child{border-bottom:none;}
+        .admin-label{font-size:.9rem;}
+        .admin-sub{font-size:.72rem;color:var(--muted);margin-top:2px;}
+        .toggle-sw{position:relative;width:44px;height:24px;flex-shrink:0;}
+        .toggle-sw input{opacity:0;width:0;height:0;}
+        .toggle-sw .slider{position:absolute;inset:0;background:#333;border-radius:24px;cursor:pointer;transition:.3s;}
+        .toggle-sw input:checked+.slider{background:#7c3aed;}
+        .toggle-sw .slider:before{content:"";position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;}
+        .toggle-sw input:checked+.slider:before{transform:translateX(20px);}
+        .phase-btns{display:flex;gap:6px;}
+        .phase-btn{padding:5px 10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.78rem;cursor:pointer;}
+        .phase-btn.active{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:700;}
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <div id="loading">🤘 苗場資料讀取中...</div>
@@ -109,6 +138,38 @@
     <div class="scroll-container" id="scroll"><div class="tt-grid" id="grid"></div></div>
     <div class="list-view" id="listview"></div>
     <button class="fab" onclick="jumpNow()" id="fab">📍</button>
+    <button class="ss-dl-btn" onclick="downloadScreenshot()" title="下載截圖">💾</button>
+    <div class="admin-badge">⚙️ 管理員模式</div>
+    <!-- Admin Panel -->
+    <div class="modal-bg" id="adminModal">
+      <div class="modal" style="max-height:80vh;overflow-y:auto;">
+        <div class="modal-title">⚙️ 管理員設定</div>
+        <div class="admin-row">
+          <div><div class="admin-label">資料階段</div><div class="admin-sub">決定預設顯示模式</div></div>
+          <div class="phase-btns">
+            <button class="phase-btn" id="ph-auto" onclick="setPhase('auto')">自動</button>
+            <button class="phase-btn" id="ph-list" onclick="setPhase('list')">列表</button>
+            <button class="phase-btn" id="ph-grid" onclick="setPhase('grid')">格子</button>
+          </div>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">衝堂警告</div><div class="admin-sub">選到時間重疊的藝人時顯示</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-conflict" onchange="saveSetting('conflict',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">演出倒數</div><div class="admin-sub">在每個色塊顯示倒數時間</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-countdown" onchange="saveSetting('countdown',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">音樂祭節流模式</div><div class="admin-sub">強制開啟（無視日期）</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-festival" onchange="saveSetting('festival',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="modal-actions" style="margin-top:16px;">
+          <button class="btn btn-primary" onclick="applyAdminSettings()">套用</button>
+          <button class="btn" onclick="document.getElementById('adminModal').style.display='none'">關閉</button>
+        </div>
+      </div>
+    </div>
     <div class="modal-bg" id="filterModal"><div class="modal"><div class="modal-title">選擇舞台</div><div class="chips" id="filterChips"></div><div class="modal-actions"><button class="btn" onclick="allStages(true)">全選</button><button class="btn" onclick="allStages(false)">全不選</button><button class="btn btn-primary" onclick="applyFilter()">確定</button></div></div></div>
     <div id="sp-overlay" onclick="closeSpotify()"></div>
     <div id="sp-panel">
@@ -150,7 +211,138 @@ var KNOWN = [
 ];
 var STAGES = [];
 function toast(msg){var t=document.getElementById("toast");t.innerText=msg;t.style.display="block";setTimeout(function(){t.style.display="none";},2200);}
+// ====== ADMIN MODE ======
+var ADMIN_PASSWORD = "fujitt2026"; // ★ 修改為你的密碼
+var _adminSettings = JSON.parse(localStorage.getItem("fujitt_admin")||'{"conflict":true,"countdown":true,"festival":false,"phase":"auto"}');
+var _adminTaps = 0, _adminTapTimer = null;
+
+function saveSetting(key,val){_adminSettings[key]=val;localStorage.setItem("fujitt_admin",JSON.stringify(_adminSettings));}
+function setPhase(v){
+    _adminSettings.phase=v;
+    localStorage.setItem("fujitt_admin",JSON.stringify(_adminSettings));
+    document.querySelectorAll(".phase-btn").forEach(function(b){b.classList.remove("active");});
+    document.getElementById("ph-"+v).classList.add("active");
+}
+function applyAdminSettings(){
+    document.getElementById("adminModal").style.display="none";
+    toast("✅ 設定已套用");
+    render();
+}
+function openAdminPanel(){
+    // 同步 UI 狀態
+    document.getElementById("sw-conflict").checked=!!_adminSettings.conflict;
+    document.getElementById("sw-countdown").checked=!!_adminSettings.countdown;
+    document.getElementById("sw-festival").checked=!!_adminSettings.festival;
+    var ph=_adminSettings.phase||"auto";
+    document.querySelectorAll(".phase-btn").forEach(function(b){b.classList.remove("active");});
+    document.getElementById("ph-"+ph).classList.add("active");
+    document.getElementById("adminModal").style.display="flex";
+}
+function initAdmin(){
+    // 點標題 5 下進入管理員模式
+    document.querySelector("h1").addEventListener("click",function(){
+        _adminTaps++;
+        clearTimeout(_adminTapTimer);
+        _adminTapTimer=setTimeout(function(){_adminTaps=0;},2000);
+        if(_adminTaps>=5){
+            _adminTaps=0;
+            if(document.body.classList.contains("admin-on")){
+                document.body.classList.remove("admin-on");
+                toast("已退出管理員模式");
+            }else{
+                var pwd=prompt("管理員密碼：");
+                if(pwd===ADMIN_PASSWORD){document.body.classList.add("admin-on");toast("🔓 管理員模式已開啟");openAdminPanel();}
+                else if(pwd!==null){alert("密碼錯誤");}
+            }
+        }
+    });
+    // 已在管理員模式則顯示設定按鈕
+    if(document.body.classList.contains("admin-on")) openAdminPanel();
+}
+
+// ====== DATA PHASE（預設視圖切換）======
+function getDataPhase(){
+    var override=_adminSettings.phase||"auto";
+    if(override!=="auto")return override;
+    var now=new Date();
+    var jst=new Date(now.getTime()+(9*60-now.getTimezoneOffset())*60000);
+    var d=jst.toISOString().slice(0,10);
+    if(d>="2026-07-01")return "grid";  // 完整時間公布後 → 格子視圖
+    return "list";                      // 目前測試中 / 六月初 → 列表視圖
+}
+
+// ====== CONFLICT DETECTION ======
+var _conflicts = new Set();
+function updateConflicts(){
+    _conflicts.clear();
+    if(!_adminSettings.conflict)return;
+    ["Day 1","Day 2","Day 3"].forEach(function(day){
+        var evts=master.filter(function(it){return it.day===day&&isSelected(it.name)&&it.start&&it.end;});
+        for(var i=0;i<evts.length;i++){
+            for(var j=i+1;j<evts.length;j++){
+                var a=evts[i],b=evts[j];
+                if(timeToRow(a.start)<timeToRow(b.end)&&timeToRow(b.start)<timeToRow(a.end)){
+                    _conflicts.add(a.name+"|"+day);
+                    _conflicts.add(b.name+"|"+day);
+                }
+            }
+        }
+    });
+}
+
+// ====== COUNTDOWN ======
+var DAY_DATES={"Day 1":"2026-07-24","Day 2":"2026-07-25","Day 3":"2026-07-26"};
+function getCountdown(day,start,end){
+    if(!_adminSettings.countdown||!start||!DAY_DATES[day])return null;
+    var ds=DAY_DATES[day];
+    // 處理跨夜時間（如 26:00 = 隔天 02:00）
+    function toDate(timeStr){
+        var p=timeStr.split(":"),h=parseInt(p[0]),m=parseInt(p[1]||0);
+        var d=new Date(ds+"T00:00:00+09:00");
+        d.setHours(d.getHours()+h,m);return d;
+    }
+    var now=new Date(),sdt=toDate(start),edt=end?toDate(end):null;
+    var diff=sdt-now;
+    if(edt&&now>=sdt&&now<=edt)return{text:"🔴 演出中",cls:"live"};
+    if(diff<0)return{text:"已結束",cls:"done"};
+    var h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000);
+    if(h<1)return{text:"⏰ "+m+"分後開演",cls:"soon"};
+    if(h<24)return{text:"⏱ "+h+"h"+m+"m 後",cls:h<3?"soon":""};
+    var days=Math.floor(h/24);
+    return{text:"📅 "+days+"天後",cls:""};
+}
+function updateAllCountdowns(){
+    if(!_adminSettings.countdown)return;
+    document.querySelectorAll(".ev[data-start]").forEach(function(el){
+        var cd=el.querySelector(".ev-cd");
+        if(!cd)return;
+        var result=getCountdown(el.dataset.day,el.dataset.start,el.dataset.end||"");
+        if(result){cd.textContent=result.text;cd.className="ev-cd "+result.cls;}
+    });
+}
+
+// ====== SCREENSHOT DOWNLOAD ======
+function downloadScreenshot(){
+    toast("📸 截圖產生中...");
+    var target=viewMode==="list"?document.getElementById("listview"):document.getElementById("scroll");
+    html2canvas(document.body,{backgroundColor:"#000",scale:2,useCORS:true,allowTaint:true}).then(function(canvas){
+        var a=document.createElement("a");
+        a.download="fujirock-timetable-"+curDay.replace(" ","")+".png";
+        a.href=canvas.toDataURL("image/png");
+        a.click();
+        toast("✅ 已儲存！");
+    }).catch(function(){toast("❌ 截圖失敗，請用手機截圖功能");});
+}
+
 // ====== SPOTIFY（路線B：GAS 預載快取，無需用戶登入）======
+// ====== 音樂祭模式：7/24~7/27 鎖定試聽，節省行動數據 ======
+function isFestivalMode(){
+    if(_adminSettings.festival)return true; // 管理員強制開啟
+    var now = new Date();
+    var jst = new Date(now.getTime() + (9*60 - now.getTimezoneOffset())*60000);
+    var y = jst.getUTCFullYear(), m = jst.getUTCMonth()+1, d = jst.getUTCDate();
+    return y===2026 && m===7 && d>=24 && d<=27;
+}
 async function loadSpotifyData(){
     try{
         var data=await jsonp(GAS_URL+"?action=getSpotifyData");
@@ -192,6 +384,16 @@ function openSpotify(name){
     var body=document.getElementById("sp-body");
     document.getElementById("sp-panel").classList.add("open");
     document.getElementById("sp-overlay").style.display="block";
+    // 🎪 音樂祭期間（7/24~7/27）鎖定試聽，節省行動數據
+    if(isFestivalMode()){
+        body.innerHTML=
+            '<div style="text-align:center;padding:20px 12px 8px;font-size:2rem">🎪</div>'+
+            '<div style="text-align:center;padding:0 16px 8px;color:#e2e8f0;font-size:.95rem;font-weight:700">音樂祭進行中！</div>'+
+            '<div style="text-align:center;padding:0 16px 16px;color:#9ca3af;font-size:.82rem;line-height:1.5">試聽功能已暫停<br>節省你的行動數據，<br>到現場盡情享受吧！</div>'+
+            '<a class="sp-link" href="https://open.spotify.com/search/'+encodeURIComponent(name)+'" target="_blank" style="margin-top:4px">🎵 開啟 Spotify App</a>'+
+            '<p class="sp-hint" style="margin-top:8px">建議連接 WiFi 後再使用試聽</p>';
+        return;
+    }
     var aid=_spAid[name];
     if(aid){
         body.innerHTML='<iframe src="https://open.spotify.com/embed/artist/'+aid+'?utm_source=generator&theme=0" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
@@ -299,15 +501,20 @@ function renderGrid(){
         return true;
     });
     if(!evts.length&&schedMode==="personal"){var hint=document.createElement("div");hint.style.cssText="grid-column:2/-1;grid-row:30;text-align:center;color:#666;padding:20px;";hint.innerHTML="📭 切換到「🌐 全展」，<br>點選色塊 → 在面板中加入排表！";g.appendChild(hint);return;}
+    updateConflicts();
     evts.forEach(function(it){
         var si=stageInfo(it.stage);if(!si)return;
         var sel=isSelected(it.name);
+        var isConflict=_conflicts.has(it.name+"|"+curDay);
         var bl=document.createElement("div");
-        bl.className="ev"+(schedMode==="full"&&!sel?" dimmed":"")+(sel?" selected":"");
+        bl.className="ev"+(schedMode==="full"&&!sel?" dimmed":"")+(sel?" selected":"")+(isConflict?" conflict":"");
         bl.style.gridRow=timeToRow(it.start)+"/"+(it.end?timeToRow(it.end):timeToRow(it.start)+60);
         bl.style.gridColumn=si.col;bl.style.borderLeftColor=si.stage.color;
-        bl.innerHTML='<div class="ev-time">'+it.start+' - '+(it.end||'?')+'</div><div class="ev-name">'+it.name+'</div>';
-        bl.dataset.artist=it.name;
+        var cdResult=getCountdown(it.day||curDay,it.start,it.end);
+        var cdHtml=cdResult?'<div class="ev-cd '+cdResult.cls+'">'+cdResult.text+'</div>':"";
+        var warnHtml=isConflict?'<div class="ev-warn">⚠️ 衝堂</div>':"";
+        bl.innerHTML='<div class="ev-time">'+it.start+' - '+(it.end||'?')+'</div><div class="ev-name">'+it.name+'</div>'+cdHtml+warnHtml;
+        bl.dataset.artist=it.name;bl.dataset.start=it.start||"";bl.dataset.end=it.end||"";bl.dataset.day=it.day||curDay;
         if(_spPop[it.name]!==undefined)_applyGlow(bl,_spPop[it.name]);
         (function(n){bl.onclick=function(){openSpotify(n);};})(it.name);
         g.appendChild(bl);
@@ -319,14 +526,19 @@ function renderList(){
     var evts=master.filter(function(it){if(it.day!==curDay)return false;if(schedMode==="personal")return isSelected(it.name);return true;});
     evts.sort(function(a,b){return timeToRow(a.start)-timeToRow(b.start);});
     if(!evts.length){c.innerHTML='<div style="text-align:center;color:#666;padding:40px">'+(schedMode==="personal"?"📭 點「🌐 全展」加入藝人":"📭 無資料")+"</div>";return;}
+    updateConflicts();
     evts.forEach(function(it){
-        var si=stageInfo(it.stage);var color=si?si.stage.color:"#64748b";var sName=si?si.stage.name:it.stage;
+        var si=stageInfo(it.stage);var color=si?si.stage.color:"#64748b";var sName=si?si.stage.name:(it.stage||"未定");
         var sel=isSelected(it.name);
+        var isConflict=_conflicts.has(it.name+"|"+curDay);
         var bl=document.createElement("div");
-        bl.className='list-item'+(schedMode==='full'&&!sel?' dimmed':'')+(sel?' selected':'');
+        bl.className='list-item'+(schedMode==='full'&&!sel?' dimmed':'')+(sel?' selected':'')+(isConflict?' conflict':'');
         bl.style.borderLeftColor=color;
-        // ✅ 修正：使用單引號包住含雙引號的 HTML，避免語法錯誤
-        bl.innerHTML='<div class="list-hdr"><span>🕒 '+it.start+' - '+it.end+'</span><span style="color:'+color+';font-weight:bold">'+sName+'</span></div><div class="list-title">'+it.name+(sel?' ⭐':'')+'</div>';
+        var cdResult=getCountdown(it.day||curDay,it.start,it.end);
+        var cdHtml=cdResult?'<div class="ev-cd '+cdResult.cls+'" style="margin-top:4px">'+cdResult.text+'</div>':"";
+        var warnHtml=isConflict?'<span style="color:#ff3b30;font-size:.75rem;font-weight:700;margin-left:6px">⚠️ 衝堂</span>':"";
+        var timeStr=it.start?(it.start+(it.end?' - '+it.end:'')):'時間未定';
+        bl.innerHTML='<div class="list-hdr"><span>🕒 '+timeStr+'</span><span style="color:'+color+';font-weight:bold">'+sName+'</span></div><div class="list-title">'+it.name+(sel?' ⭐':'')+warnHtml+'</div>'+cdHtml;
         (function(n){bl.onclick=function(){openSpotify(n);};})(it.name);
         c.appendChild(bl);
     });
@@ -381,9 +593,27 @@ function initApp(){
     var dc=document.getElementById("days");dc.innerHTML="";
     DAY_LABELS.forEach(function(l,i){var b=document.createElement("button");b.className="day-btn"+(i===0?" active":"");b.innerText=l;b.onclick=function(){changeDay(i);};dc.appendChild(b);});
     updateSelCount();
-    changeDay(0);setInterval(updateTimeLine,60000);
+    // 根據資料階段設定預設視圖
+    var phase=getDataPhase();
+    if(phase==="list"&&viewMode==="grid"){
+        viewMode="list";
+        document.getElementById("btn-view").innerText="🎛️";
+        document.getElementById("scroll").style.display="none";
+        document.getElementById("listview").style.display="flex";
+        document.getElementById("fab").style.display="none";
+        // 顯示提示橫幅
+        var phaseBanner=document.createElement("div");
+        phaseBanner.style.cssText="background:#1e3a5f;color:#93c5fd;text-align:center;padding:5px 12px;font-size:.75rem;";
+        phaseBanner.innerHTML="📋 目前以條列式顯示 · 舞台時間確認後將自動切換為格子視圖";
+        document.querySelector("header").after(phaseBanner);
+    }
+    changeDay(0);
+    setInterval(updateTimeLine,60000);
+    setInterval(updateAllCountdowns,30000);
     // Spotify 快取已於 window.onload 預載，這裡直接套用光暈
     if(_spLoaded)setTimeout(_applyAllGlows,300);
+    // 初始化管理員功能
+    initAdmin();
 }
 function updateSelCount(){
     var b=document.getElementById("btn-mode");
@@ -391,6 +621,13 @@ function updateSelCount(){
     b.innerHTML=(schedMode==="full"?"🌐 全展":"👤 專屬")+'<span class="count-badge">'+cnt+"</span>";
 }
 window.onload=async function(){
+    // 音樂祭期間顯示節流提示橫幅
+    if(isFestivalMode()){
+        var banner=document.createElement("div");
+        banner.style.cssText="background:#854d0e;color:#fef08a;text-align:center;padding:6px 12px;font-size:.78rem;font-weight:700;position:sticky;top:0;z-index:1001;";
+        banner.innerHTML="🎪 音樂祭進行中！試聽已暫停以節省行動數據 · 加入／移除排表功能正常使用";
+        document.body.insertBefore(banner,document.body.firstChild);
+    }
     // 預載 Spotify 快取（不需用戶登入，無人數限制）
     await loadSpotifyData();
     loadData();
