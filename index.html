@@ -127,12 +127,11 @@
 var GAS_URL = "https://script.google.com/macros/s/AKfycbxrwj7fuanwtwa19rlCIuYdnl1kuaobuJOcoF5gWGHMSXIS0Pg3r6k0t5p3hSu0DnFmbw/exec";
 var uid = new URLSearchParams(location.search).get("uid");
 // ====== SPOTIFY CONFIG ======
-var SPOTIFY_CLIENT_ID = "";
-var _spTok = sessionStorage.getItem("sp_tok")||"";
-var _spExp = parseInt(sessionStorage.getItem("sp_exp")||"0");
-var _spPop = {};
-var _spAid = {};
+// 路線B：由 GAS 預載所有藝人 ID，無需用戶登入，無人數限制
+var _spPop = {};      // artistName -> popularity
+var _spAid = {};      // artistName -> spotify artist id
 var _spCurArtist = "";
+var _spLoaded = false;
 var master = [], lineWanted = [], mySelection = [];
 var DAYS = ["Day 1","Day 2","Day 3"], DAY_LABELS = ["Day 1 (7/24)","Day 2 (7/25)","Day 3 (7/26)"];
 var curDay = DAYS[0], viewMode = "grid", schedMode = "personal";
@@ -151,57 +150,24 @@ var KNOWN = [
 ];
 var STAGES = [];
 function toast(msg){var t=document.getElementById("toast");t.innerText=msg;t.style.display="block";setTimeout(function(){t.style.display="none";},2200);}
-// ====== SPOTIFY ======
-async function _spSearch(name){
-    if(!_spTok||Date.now()>_spExp)return null;
-    if(_spAid[name]!==undefined)return{id:_spAid[name],pop:_spPop[name]};
+// ====== SPOTIFY（路線B：GAS 預載快取，無需用戶登入）======
+async function loadSpotifyData(){
     try{
-        var r=await fetch("https://api.spotify.com/v1/search?q="+encodeURIComponent(name)+"&type=artist&limit=1",{headers:{"Authorization":"Bearer "+_spTok}});
-        if(r.status===401){_spTok="";sessionStorage.removeItem("sp_tok");return null;}
-        var d=await r.json();
-        var a=d.artists&&d.artists.items&&d.artists.items[0];
-        if(a){_spAid[name]=a.id;_spPop[name]=a.popularity;return{id:a.id,pop:a.popularity};}
-    }catch(e){}
-    return null;
-}
-async function _spAuthStart(){
-    var arr=crypto.getRandomValues(new Uint8Array(32));
-    var chars=[];for(var i=0;i<arr.length;i++)chars.push(String.fromCharCode(arr[i]));
-    var verifier=btoa(chars.join("")).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"");
-    var buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(verifier));
-    var hArr=Array.from(new Uint8Array(buf));
-    var challenge=btoa(hArr.map(function(b){return String.fromCharCode(b);}).join("")).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"");
-    sessionStorage.setItem("sp_ver",verifier);
-    if(uid)sessionStorage.setItem("sp_uid",uid);
-    var p=new URLSearchParams({client_id:SPOTIFY_CLIENT_ID,response_type:"code",redirect_uri:location.origin+location.pathname,code_challenge_method:"S256",code_challenge:challenge});
-    location.href="https://accounts.spotify.com/authorize?"+p;
-}
-async function _spHandleCb(){
-    var code=new URLSearchParams(location.search).get("code");
-    if(!code||!SPOTIFY_CLIENT_ID)return;
-    var ver=sessionStorage.getItem("sp_ver");if(!ver)return;
-    sessionStorage.removeItem("sp_ver");
-    try{
-        var r=await fetch("https://accounts.spotify.com/api/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:SPOTIFY_CLIENT_ID,grant_type:"authorization_code",code:code,redirect_uri:location.origin+location.pathname,code_verifier:ver})});
-        var d=await r.json();
-        if(d.access_token){_spTok=d.access_token;_spExp=Date.now()+(d.expires_in-60)*1000;sessionStorage.setItem("sp_tok",_spTok);sessionStorage.setItem("sp_exp",String(_spExp));}
-    }catch(e){}
-    var savedUid=sessionStorage.getItem("sp_uid")||"";
-    history.replaceState({},"",location.pathname+(savedUid?"?uid="+savedUid:""));
-    if(savedUid)uid=savedUid;
-}
-async function _spFetchAll(){
-    if(!_spTok||!SPOTIFY_CLIENT_ID)return;
-    var names=[...new Set(master.map(function(it){return it.name;}))];
-    for(var i=0;i<names.length;i++){
-        var n=names[i];
-        if(_spPop[n]!==undefined)continue;
-        var info=await _spSearch(n);
-        if(info){
-            document.querySelectorAll(".ev").forEach(function(el){if(el.dataset.artist===n)_applyGlow(el,info.pop);});
-        }
-        if(i<names.length-1)await new Promise(function(r){setTimeout(r,150);});
+        var data=await jsonp(GAS_URL+"?action=getSpotifyData");
+        Object.keys(data).forEach(function(name){
+            _spAid[name]=data[name].id;
+            _spPop[name]=data[name].pop;
+        });
+        _spLoaded=true;
+    }catch(e){
+        console.warn("Spotify 快取載入失敗，改用外連搜尋");
     }
+}
+function _applyAllGlows(){
+    document.querySelectorAll(".ev[data-artist]").forEach(function(el){
+        var pop=_spPop[el.dataset.artist];
+        if(pop!==undefined)_applyGlow(el,pop);
+    });
 }
 function _applyGlow(el,pop){
     el.classList.remove("glow-md","glow-hi");
@@ -224,18 +190,14 @@ function openSpotify(name){
     document.getElementById("sp-aname").textContent=name;
     _updateSpSelBtn();
     var body=document.getElementById("sp-body");
-    body.innerHTML='<div style="text-align:center;padding:16px;color:#9ca3af;font-size:.85rem">🎵 載入中…</div>';
     document.getElementById("sp-panel").classList.add("open");
     document.getElementById("sp-overlay").style.display="block";
-    if(SPOTIFY_CLIENT_ID&&_spTok&&Date.now()<_spExp){
-        _spSearch(name).then(function(info){
-            if(info&&info.id){
-                body.innerHTML='<iframe src="https://open.spotify.com/embed/artist/'+info.id+'?utm_source=generator&theme=0" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
-            }else{_spFallback(name,body);}
-        });
-    }else if(SPOTIFY_CLIENT_ID){
-        body.innerHTML='<div style="text-align:center;padding:8px 0"><button class="sp-connect" onclick="_spAuthStart()">🔗 連結 Spotify 帳號</button><p class="sp-hint">連結後可在 Timetable 直接試聽藝人 30 秒預覽</p></div>';
-    }else{_spFallback(name,body);}
+    var aid=_spAid[name];
+    if(aid){
+        body.innerHTML='<iframe src="https://open.spotify.com/embed/artist/'+aid+'?utm_source=generator&theme=0" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+    }else{
+        _spFallback(name,body);
+    }
 }
 function _spFallback(name,body){
     body.innerHTML='<a class="sp-link" href="https://open.spotify.com/search/'+encodeURIComponent(name)+'" target="_blank">🎵 在 Spotify 搜尋 '+name+'</a>';
@@ -420,7 +382,8 @@ function initApp(){
     DAY_LABELS.forEach(function(l,i){var b=document.createElement("button");b.className="day-btn"+(i===0?" active":"");b.innerText=l;b.onclick=function(){changeDay(i);};dc.appendChild(b);});
     updateSelCount();
     changeDay(0);setInterval(updateTimeLine,60000);
-    if(SPOTIFY_CLIENT_ID&&_spTok&&Date.now()<_spExp)setTimeout(_spFetchAll,2000);
+    // Spotify 快取已於 window.onload 預載，這裡直接套用光暈
+    if(_spLoaded)setTimeout(_applyAllGlows,300);
 }
 function updateSelCount(){
     var b=document.getElementById("btn-mode");
@@ -428,9 +391,8 @@ function updateSelCount(){
     b.innerHTML=(schedMode==="full"?"🌐 全展":"👤 專屬")+'<span class="count-badge">'+cnt+"</span>";
 }
 window.onload=async function(){
-    if(SPOTIFY_CLIENT_ID&&new URLSearchParams(location.search).get("code")){
-        await _spHandleCb();
-    }
+    // 預載 Spotify 快取（不需用戶登入，無人數限制）
+    await loadSpotifyData();
     loadData();
 };
 </script>
