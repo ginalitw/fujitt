@@ -254,32 +254,21 @@ function closeSpotify(){
     setTimeout(function(){document.getElementById("sp-body").innerHTML="";},400);
 }
 
-// ====== JSONP Helper (bypasses CORS) ======
-var _jsonpId = 0;
-function jsonp(url) {
-  return new Promise(function(resolve, reject) {
-    var cbName = "_jsonp_cb_" + (++_jsonpId) + "_" + Date.now();
-    var timeout = setTimeout(function() { cleanup(); reject(new Error("Timeout")); }, 15000);
-    function cleanup() { clearTimeout(timeout); delete window[cbName]; var s = document.getElementById(cbName); if (s) s.remove(); }
-    window[cbName] = function(data) { cleanup(); resolve(data); };
-    var s = document.createElement("script");
-    s.id = cbName;
-    s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cbName;
-    s.onerror = function() { cleanup(); reject(new Error("Load failed")); };
-    document.head.appendChild(s);
-  });
+// ====== Fetch Helper ======
+function gasGet(url) {
+  return fetch(url).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); });
 }
 
 // ====== DATA ======
 async function loadData(){
     if(!uid){document.getElementById("loading").innerText="❌ UID 遺失，請從 LINE 開啟";return;}
     try{
-        var data = await jsonp(GAS_URL+"?action=getData&uid="+uid);
+        var data = await gasGet(GAS_URL+"?action=getData&uid="+uid);
         if(data.error){document.getElementById("loading").innerText="❌ "+data.error;return;}
         master = data.fullSchedule||[];
         lineWanted = data.wantedList||[];
         // 載入自選
-        try{var d2=await jsonp(GAS_URL+"?action=getSelection&uid="+uid);mySelection=d2.selection||[];}catch(e){mySelection=[];}
+        try{var d2=await gasGet(GAS_URL+"?action=getSelection&uid="+uid);mySelection=d2.selection||[];}catch(e){mySelection=[];}
         // 如果自選為空，用 LINE 收藏初始化
         if(mySelection.length===0) mySelection = lineWanted.map(function(n){return n;});
         buildStages(); document.getElementById("loading").style.display="none"; initApp();
@@ -308,13 +297,13 @@ function toggleSelection(name){
 }
 
 async function saveSelection(){
-    try{await jsonp(GAS_URL+"?action=saveSelection&uid="+uid+"&selection="+encodeURIComponent(JSON.stringify(mySelection)));}catch(e){}
+    try{await gasGet(GAS_URL+"?action=saveSelection&uid="+uid+"&selection="+encodeURIComponent(JSON.stringify(mySelection)));}catch(e){}
 }
 
 async function syncFromLine(){
     try{
         toast("🔄 同步中...");
-        var d=await jsonp(GAS_URL+"?action=syncFromLine&uid="+uid);
+        var d=await gasGet(GAS_URL+"?action=syncFromLine&uid="+uid);
         var newList=(d.wantedList||[]).map(function(n){return n.toLowerCase().trim();});
         var added=0;
         newList.forEach(function(n){if(mySelection.indexOf(n)<0){mySelection.push(n);added++;}});
