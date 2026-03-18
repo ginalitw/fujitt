@@ -16,6 +16,22 @@
         .btn-primary{background:var(--accent);border-color:var(--accent);font-weight:bold;}
         .btn-highlight{background:#eab308;border-color:#eab308;color:#000;font-weight:bold;}
         .btn-sync{background:#22c55e;border-color:#22c55e;font-weight:bold;}
+        /* ===== TOOLBAR DRAWER ===== */
+        .menu-toggle{background:var(--surface);color:var(--text);border:1px solid var(--border);width:36px;height:36px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.2s;}
+        .menu-toggle.open{background:var(--accent);border-color:var(--accent);}
+        .toolbar-drawer{display:none;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 0 2px;animation:drawerIn .18s ease;}
+        .toolbar-drawer.show{display:grid;}
+        @keyframes drawerIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+        .tbr-btn{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:7px 4px;font-size:.72rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:.2s;line-height:1.2;}
+        .tbr-btn .ico{font-size:1.1rem;line-height:1;}
+        .tbr-btn.active{background:#1e3a5f;border-color:var(--accent);color:#93c5fd;}
+        .tbr-btn.hl{background:#422006;border-color:#eab308;color:#eab308;}
+        .tbr-btn.green{background:#052e16;border-color:#22c55e;color:#22c55e;}
+        /* ===== STATS BAR ===== */
+        .stats-bar{display:none;background:#111;border-bottom:1px solid var(--border);padding:5px 16px;font-size:.78rem;color:var(--muted);gap:12px;align-items:center;}
+        .stats-bar.show{display:flex;}
+        .stat-pill{display:inline-flex;align-items:center;gap:4px;}
+        .stat-conflict{color:#ff3b30;font-weight:700;cursor:pointer;}
         .day-selector{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;}
         .day-btn{background:transparent;color:var(--muted);border:none;font-size:0.95rem;font-weight:600;padding:4px 8px;cursor:pointer;white-space:nowrap;}
         .day-btn.active{color:var(--text);border-bottom:2px solid var(--accent);}
@@ -90,7 +106,45 @@
         body.clean-hdr .stage-hdr{opacity:0;pointer-events:none;}
         body.clean-hdr .corner{opacity:0;}
         body.clean-hdr .list-hdr span:last-child{display:none;}
+        /* ===== CONFLICT WARNING ===== */
+        .ev.conflict{outline:2px solid #ff3b30;outline-offset:-2px;}
+        .ev-warn{font-size:.6rem;color:#ff3b30;font-weight:700;margin-top:2px;}
+        .list-item.conflict{outline:2px solid #ff3b30;}
+        /* ===== NOW BANNER ===== */
+        .now-banner{display:none;background:linear-gradient(90deg,#052e16,#14532d);border-bottom:1px solid #22c55e44;padding:6px 16px;overflow:hidden;position:relative;}
+        .now-banner.show{display:block;}
+        .now-inner{display:flex;gap:16px;align-items:center;animation:marquee 20s linear infinite;}
+        .now-inner:hover{animation-play-state:paused;}
+        @keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+        .now-label{color:#22c55e;font-size:.7rem;font-weight:700;white-space:nowrap;flex-shrink:0;}
+        .now-item{color:#d1fae5;font-size:.72rem;white-space:nowrap;border-left:2px solid #22c55e;padding-left:8px;cursor:pointer;}
+        .now-item strong{color:#fff;}
+        /* ===== COUNTDOWN ===== */
+        .ev-cd{font-size:.6rem;color:#6b7280;margin-top:2px;}
+        .ev-cd.soon{color:#eab308;font-weight:700;}
+        .ev-cd.live{color:#22c55e;font-weight:700;}
+        .ev-cd.done{color:#4b5563;}
+        /* ===== SCREENSHOT DOWNLOAD ===== */
+        .ss-dl-btn{display:none;position:fixed;bottom:20px;left:20px;background:#22c55e;color:#000;width:46px;height:46px;border-radius:50%;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 4px 10px rgba(0,0,0,.5);z-index:9998;border:none;cursor:pointer;}
+        body.ss-mode .ss-dl-btn{display:flex;}
+        /* ===== ADMIN MODE ===== */
+        .admin-badge{display:none;position:fixed;top:8px;left:50%;transform:translateX(-50%);background:#7c3aed;color:#fff;padding:3px 12px;border-radius:10px;font-size:.7rem;font-weight:700;z-index:1002;pointer-events:none;}
+        body.admin-on .admin-badge{display:block;}
+        .admin-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
+        .admin-row:last-child{border-bottom:none;}
+        .admin-label{font-size:.9rem;}
+        .admin-sub{font-size:.72rem;color:var(--muted);margin-top:2px;}
+        .toggle-sw{position:relative;width:44px;height:24px;flex-shrink:0;}
+        .toggle-sw input{opacity:0;width:0;height:0;}
+        .toggle-sw .slider{position:absolute;inset:0;background:#333;border-radius:24px;cursor:pointer;transition:.3s;}
+        .toggle-sw input:checked+.slider{background:#7c3aed;}
+        .toggle-sw .slider:before{content:"";position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;}
+        .toggle-sw input:checked+.slider:before{transform:translateX(20px);}
+        .phase-btns{display:flex;gap:6px;}
+        .phase-btn{padding:5px 10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.78rem;cursor:pointer;}
+        .phase-btn.active{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:700;}
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <div id="loading">🤘 苗場資料讀取中...</div>
@@ -99,21 +153,83 @@
     <header>
         <div class="header-top">
             <h1>🎵 My Timetable</h1>
-            <div class="toolbar">
-                <button class="btn btn-highlight" onclick="toggleMode()" id="btn-mode">👤 專屬</button>
-                <button class="btn" onclick="toggleView()" id="btn-view">📋</button>
-                <button class="btn" onclick="openFilter()">⚙️</button>
-                <button class="btn" onclick="toggleCleanHdr()" id="btn-hdr" style="display:none">🏷️</button>
-                <button class="btn btn-sync" onclick="syncFromLine()">🔄 同步</button>
-                <button class="btn btn-primary" onclick="toggleSS()">📸</button>
-            </div>
+            <button class="menu-toggle" id="menu-toggle-btn" onclick="toggleToolbar()" title="選單">☰</button>
+        </div>
+        <!-- 收合式工具列 -->
+        <div class="toolbar-drawer" id="toolbar-drawer">
+            <button class="tbr-btn hl" id="tbr-mode" onclick="toggleMode()"><span class="ico">👤</span>專屬</button>
+            <button class="tbr-btn" id="tbr-view" onclick="toggleView()"><span class="ico">📋</span>列表</button>
+            <button class="tbr-btn" id="tbr-stage" onclick="openFilter()"><span class="ico">🏟️</span>舞台</button>
+            <button class="tbr-btn green" onclick="syncFromLine()"><span class="ico">🔄</span>同步</button>
+            <button class="tbr-btn" onclick="toggleSS()"><span class="ico">📸</span>截圖</button>
+            <button class="tbr-btn admin-only" id="btn-hdr" onclick="toggleCleanHdr()" style="display:none"><span class="ico">🏷️</span>舞台標記</button>
+            <button class="tbr-btn admin-only" id="tbr-admin" onclick="openAdminPanel()" style="display:none"><span class="ico">⚙️</span>管理員</button>
         </div>
         <div class="day-selector" id="days"></div>
     </header>
+    <!-- 選取統計列 -->
+    <div class="stats-bar" id="stats-bar">
+        <span class="stat-pill">⭐ 已選 <strong id="stat-count">0</strong> 組</span>
+        <span class="stat-pill" id="stat-conflict-wrap" style="display:none">
+            <span class="stat-conflict" onclick="scrollToFirstConflict()">⚠️ <strong id="stat-conflict">0</strong> 衝堂</span>
+        </span>
+    </div>
+    <!-- NOW 正在演出 Banner（音樂祭期間） -->
+    <div class="now-banner" id="now-banner">
+        <div class="now-inner" id="now-inner"></div>
+    </div>
     <div class="watermark" id="wm">2026 FUJI ROCK MY TT</div>
     <div class="scroll-container" id="scroll"><div class="tt-grid" id="grid"></div></div>
     <div class="list-view" id="listview"></div>
     <button class="fab" onclick="jumpNow()" id="fab">📍</button>
+    <button class="ss-dl-btn" onclick="downloadScreenshot()" title="下載截圖">💾</button>
+    <div class="admin-badge">⚙️ 管理員模式</div>
+    <!-- Admin Panel -->
+    <div class="modal-bg" id="adminModal">
+      <div class="modal" style="max-height:80vh;overflow-y:auto;">
+        <div class="modal-title">⚙️ 管理員設定</div>
+        <div class="admin-row">
+          <div><div class="admin-label">資料階段</div><div class="admin-sub">決定預設顯示模式</div></div>
+          <div class="phase-btns">
+            <button class="phase-btn" id="ph-auto" onclick="setPhase('auto')">自動</button>
+            <button class="phase-btn" id="ph-list" onclick="setPhase('list')">列表</button>
+            <button class="phase-btn" id="ph-grid" onclick="setPhase('grid')">格子</button>
+          </div>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">衝堂警告</div><div class="admin-sub">選到時間重疊的藝人時顯示</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-conflict" onchange="saveSetting('conflict',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">演出倒數</div><div class="admin-sub">在每個色塊顯示倒數時間</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-countdown" onchange="saveSetting('countdown',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">音樂祭節流模式</div><div class="admin-sub">強制開啟（無視日期）</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-festival" onchange="saveSetting('festival',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">顯示「👤 專屬」按鈕</div><div class="admin-sub">隱藏時固定為全展模式</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showPersonal" onchange="saveAndSyncUI('showPersonal',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">顯示「格子」視圖按鈕</div><div class="admin-sub">隱藏時固定為列表模式</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showGrid" onchange="saveAndSyncUI('showGrid',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">顯示「🏟️ 舞台」篩選按鈕</div><div class="admin-sub">隱藏時顯示全部舞台</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showStage" onchange="saveAndSyncUI('showStage',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">顯示演出時間別</div><div class="admin-sub">隱藏時間欄（時間未定時使用）</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showTime" onchange="saveAndSyncUI('showTime',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="modal-actions" style="margin-top:16px;">
+          <button class="btn btn-primary" onclick="applyAdminSettings()">套用</button>
+          <button class="btn" onclick="document.getElementById('adminModal').style.display='none'">關閉</button>
+        </div>
+      </div>
+    </div>
     <div class="modal-bg" id="filterModal"><div class="modal"><div class="modal-title">選擇舞台</div><div class="chips" id="filterChips"></div><div class="modal-actions"><button class="btn" onclick="allStages(true)">全選</button><button class="btn" onclick="allStages(false)">全不選</button><button class="btn btn-primary" onclick="applyFilter()">確定</button></div></div></div>
     <div id="sp-overlay" onclick="closeSpotify()"></div>
     <div id="sp-panel">
@@ -127,26 +243,19 @@
         </div>
         <div id="sp-body"></div>
     </div>
-
 <script>
 // ====== CONFIG ======
 var GAS_URL = "https://script.google.com/macros/s/AKfycbxrwj7fuanwtwa19rlCIuYdnl1kuaobuJOcoF5gWGHMSXIS0Pg3r6k0t5p3hSu0DnFmbw/exec";
 var uid = new URLSearchParams(location.search).get("uid");
-
 // ====== SPOTIFY CONFIG ======
-// 步驟：前往 developer.spotify.com → 建立應用程式 → 取得 Client ID
-// 在應用程式設定裡，把你的網頁 URL（不含 ?uid=...）加入 Redirect URIs
-var SPOTIFY_CLIENT_ID = "b0898c67b1c842eb8343e7f83e810e76";
-var _spTok = sessionStorage.getItem("sp_tok")||"";
-var _spExp = parseInt(sessionStorage.getItem("sp_exp")||"0");
-var _spPop = {}; // artistName -> popularity score (0-100)
-var _spAid = {}; // artistName -> spotify artist id
-var _spCurArtist = ""; // 目前面板顯示的藝人
-
+// 路線B：由 GAS 預載所有藝人 ID，無需用戶登入，無人數限制
+var _spPop = {};      // artistName -> popularity
+var _spAid = {};      // artistName -> spotify artist id
+var _spCurArtist = "";
+var _spLoaded = false;
 var master = [], lineWanted = [], mySelection = [];
 var DAYS = ["Day 1","Day 2","Day 3"], DAY_LABELS = ["Day 1 (7/24)","Day 2 (7/25)","Day 3 (7/26)"];
 var curDay = DAYS[0], viewMode = "grid", schedMode = "personal";
-
 var KNOWN = [
     {id:"GREEN",kw:"GREEN",name:"GREEN",color:"#22c55e"},
     {id:"WHITE",kw:"WHITE",name:"WHITE",color:"#e2e8f0"},
@@ -161,60 +270,232 @@ var KNOWN = [
     {id:"CAFE",kw:"CAFE",name:"CAFÉ",color:"#ec4899"}
 ];
 var STAGES = [];
-
 function toast(msg){var t=document.getElementById("toast");t.innerText=msg;t.style.display="block";setTimeout(function(){t.style.display="none";},2200);}
+// ====== ADMIN MODE ======
+var ADMIN_PASSWORD = "fujitt2026"; // ★ 修改為你的密碼
+var OWNER_UID = "Uaad7f6d86f0316d7ddf10f660ade5205";
+function isOwner(){ return new URLSearchParams(window.location.search).get("uid")===OWNER_UID; }
+var _adminSettings = JSON.parse(localStorage.getItem("fujitt_admin")||'{"conflict":true,"countdown":true,"festival":false,"phase":"auto","showPersonal":false,"showGrid":false,"showStage":false,"showTime":false}');
+// 向舊版 localStorage 補齊缺少的 key
+if(_adminSettings.showPersonal===undefined)_adminSettings.showPersonal=false;
+if(_adminSettings.showGrid===undefined)_adminSettings.showGrid=false;
+if(_adminSettings.showStage===undefined)_adminSettings.showStage=false;
+if(_adminSettings.showTime===undefined)_adminSettings.showTime=false;
+var _adminTaps = 0, _adminTapTimer = null;
 
-// ====== SPOTIFY ======
-async function _spSearch(name){
-    if(!_spTok||Date.now()>_spExp)return null;
-    if(_spAid[name]!==undefined)return{id:_spAid[name],pop:_spPop[name]};
-    try{
-        var r=await fetch("https://api.spotify.com/v1/search?q="+encodeURIComponent(name)+"&type=artist&limit=1",{headers:{"Authorization":"Bearer "+_spTok}});
-        if(r.status===401){_spTok="";sessionStorage.removeItem("sp_tok");return null;}
-        var d=await r.json();
-        var a=d.artists&&d.artists.items&&d.artists.items[0];
-        if(a){_spAid[name]=a.id;_spPop[name]=a.popularity;return{id:a.id,pop:a.popularity};}
-    }catch(e){}
-    return null;
+function saveSetting(key,val){_adminSettings[key]=val;localStorage.setItem("fujitt_admin",JSON.stringify(_adminSettings));}
+
+// 儲存後立即同步工具列顯示
+function saveAndSyncUI(key,val){
+    saveSetting(key,val);
+    syncToolbarVisibility();
 }
-async function _spAuthStart(){
-    var arr=crypto.getRandomValues(new Uint8Array(32));
-    var chars=[];for(var i=0;i<arr.length;i++)chars.push(String.fromCharCode(arr[i]));
-    var verifier=btoa(chars.join("")).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"");
-    var buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(verifier));
-    var hArr=Array.from(new Uint8Array(buf));
-    var challenge=btoa(hArr.map(function(b){return String.fromCharCode(b);}).join("")).replace(/\+/g,"-").replace(/\//g,"_").replace(/=/g,"");
-    sessionStorage.setItem("sp_ver",verifier);
-    if(uid)sessionStorage.setItem("sp_uid",uid);
-    var p=new URLSearchParams({client_id:SPOTIFY_CLIENT_ID,response_type:"code",redirect_uri:location.origin+location.pathname,code_challenge_method:"S256",code_challenge:challenge});
-    location.href="https://accounts.spotify.com/authorize?"+p;
-}
-async function _spHandleCb(){
-    var code=new URLSearchParams(location.search).get("code");
-    if(!code||!SPOTIFY_CLIENT_ID)return;
-    var ver=sessionStorage.getItem("sp_ver");if(!ver)return;
-    sessionStorage.removeItem("sp_ver");
-    try{
-        var r=await fetch("https://accounts.spotify.com/api/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:SPOTIFY_CLIENT_ID,grant_type:"authorization_code",code:code,redirect_uri:location.origin+location.pathname,code_verifier:ver})});
-        var d=await r.json();
-        if(d.access_token){_spTok=d.access_token;_spExp=Date.now()+(d.expires_in-60)*1000;sessionStorage.setItem("sp_tok",_spTok);sessionStorage.setItem("sp_exp",String(_spExp));}
-    }catch(e){}
-    var savedUid=sessionStorage.getItem("sp_uid")||"";
-    history.replaceState({},"",location.pathname+(savedUid?"?uid="+savedUid:""));
-    if(savedUid)uid=savedUid;
-}
-async function _spFetchAll(){
-    if(!_spTok||!SPOTIFY_CLIENT_ID)return;
-    var names=[...new Set(master.map(function(it){return it.name;}))];
-    for(var i=0;i<names.length;i++){
-        var n=names[i];
-        if(_spPop[n]!==undefined)continue;
-        var info=await _spSearch(n);
-        if(info){
-            document.querySelectorAll(".ev").forEach(function(el){if(el.dataset.artist===n)_applyGlow(el,info.pop);});
-        }
-        if(i<names.length-1)await new Promise(function(r){setTimeout(r,150);});
+
+// 根據 adminSettings 同步工具列按鈕顯示
+function syncToolbarVisibility(){
+    var showP=!!_adminSettings.showPersonal;
+    var showG=!!_adminSettings.showGrid;
+    var showS=!!_adminSettings.showStage;
+    // 專屬按鈕
+    var bm=document.getElementById("tbr-mode");
+    if(bm) bm.style.display=showP?"flex":"none";
+    // 格子按鈕
+    var bv=document.getElementById("tbr-view");
+    if(bv) bv.style.display=showG?"flex":"none";
+    // 舞台按鈕
+    var bs=document.getElementById("tbr-stage");
+    if(bs) bs.style.display=showS?"flex":"none";
+    // 隱藏時強制回預設模式
+    if(!showP&&schedMode==="personal"){ schedMode="full"; render(); }
+    if(!showG&&viewMode==="grid"){
+        viewMode="list";
+        if(bv){bv.innerHTML='<span class="ico">📋</span>列表';bv.classList.remove("active");}
+        document.getElementById("scroll").style.display="none";
+        document.getElementById("listview").style.display="flex";
+        document.getElementById("fab").style.display="none";
     }
+    // 時間別切換後重繪列表
+    render();
+}
+function setPhase(v){
+    _adminSettings.phase=v;
+    localStorage.setItem("fujitt_admin",JSON.stringify(_adminSettings));
+    document.querySelectorAll(".phase-btn").forEach(function(b){b.classList.remove("active");});
+    document.getElementById("ph-"+v).classList.add("active");
+}
+function applyAdminSettings(){
+    document.getElementById("adminModal").style.display="none";
+    toast("✅ 設定已套用");
+    render();
+}
+function openAdminPanel(){
+    // 同步 UI 狀態
+    document.getElementById("sw-conflict").checked=!!_adminSettings.conflict;
+    document.getElementById("sw-countdown").checked=!!_adminSettings.countdown;
+    document.getElementById("sw-festival").checked=!!_adminSettings.festival;
+    document.getElementById("sw-showPersonal").checked=!!_adminSettings.showPersonal;
+    document.getElementById("sw-showGrid").checked=!!_adminSettings.showGrid;
+    document.getElementById("sw-showStage").checked=!!_adminSettings.showStage;
+    document.getElementById("sw-showTime").checked=!!_adminSettings.showTime;
+    var ph=_adminSettings.phase||"auto";
+    document.querySelectorAll(".phase-btn").forEach(function(b){b.classList.remove("active");});
+    document.getElementById("ph-"+ph).classList.add("active");
+    document.getElementById("adminModal").style.display="flex";
+}
+function initAdmin(){
+    // 點標題 5 下進入管理員模式（僅限擁有者 UID）
+    document.querySelector("h1").addEventListener("click",function(){
+        if(!isOwner()) return; // 非擁有者連結，完全無反應
+        _adminTaps++;
+        clearTimeout(_adminTapTimer);
+        _adminTapTimer=setTimeout(function(){_adminTaps=0;},2000);
+        if(_adminTaps>=5){
+            _adminTaps=0;
+            if(document.body.classList.contains("admin-on")){
+                document.body.classList.remove("admin-on");
+                syncAdminBtn();
+                toast("已退出管理員模式");
+            }else{
+                var pwd=prompt("管理員密碼：");
+                if(pwd===ADMIN_PASSWORD){document.body.classList.add("admin-on");syncAdminBtn();toast("🔓 管理員模式已開啟");openAdminPanel();}
+                else if(pwd!==null){alert("密碼錯誤");}
+            }
+        }
+    });
+    // 退出管理員模式也同步按鈕
+    var origToggle=document.body.classList.toggle.bind(document.body.classList);
+    // 已在管理員模式則顯示設定按鈕
+    syncAdminBtn();
+    if(document.body.classList.contains("admin-on")) openAdminPanel();
+}
+
+// ====== DATA PHASE（預設視圖切換）======
+function getDataPhase(){
+    var override=_adminSettings.phase||"auto";
+    if(override!=="auto")return override;
+    var now=new Date();
+    var jst=new Date(now.getTime()+(9*60-now.getTimezoneOffset())*60000);
+    var d=jst.toISOString().slice(0,10);
+    if(d>="2026-07-01")return "grid";  // 完整時間公布後 → 格子視圖
+    return "list";                      // 目前測試中 / 六月初 → 列表視圖
+}
+
+// ====== CONFLICT DETECTION ======
+var _conflicts = new Set();
+function updateConflicts(){
+    _conflicts.clear();
+    if(!_adminSettings.conflict)return;
+    ["Day 1","Day 2","Day 3"].forEach(function(day){
+        var evts=master.filter(function(it){return it.day===day&&isSelected(it.name)&&it.start&&it.end;});
+        for(var i=0;i<evts.length;i++){
+            for(var j=i+1;j<evts.length;j++){
+                var a=evts[i],b=evts[j];
+                if(timeToRow(a.start)<timeToRow(b.end)&&timeToRow(b.start)<timeToRow(a.end)){
+                    _conflicts.add(a.name+"|"+day);
+                    _conflicts.add(b.name+"|"+day);
+                }
+            }
+        }
+    });
+}
+
+// ====== COUNTDOWN ======
+var DAY_DATES={"Day 1":"2026-07-24","Day 2":"2026-07-25","Day 3":"2026-07-26"};
+function getCountdown(day,start,end){
+    if(!_adminSettings.countdown||!start||!DAY_DATES[day])return null;
+    var ds=DAY_DATES[day];
+    // 處理跨夜時間（如 26:00 = 隔天 02:00）
+    function toDate(timeStr){
+        var p=timeStr.split(":"),h=parseInt(p[0]),m=parseInt(p[1]||0);
+        var d=new Date(ds+"T00:00:00+09:00");
+        d.setHours(d.getHours()+h,m);return d;
+    }
+    var now=new Date(),sdt=toDate(start),edt=end?toDate(end):null;
+    var diff=sdt-now;
+    if(edt&&now>=sdt&&now<=edt)return{text:"🔴 演出中",cls:"live"};
+    if(diff<0)return{text:"已結束",cls:"done"};
+    var h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000);
+    if(h<1)return{text:"⏰ "+m+"分後開演",cls:"soon"};
+    if(h<24)return{text:"⏱ "+h+"h"+m+"m 後",cls:h<3?"soon":""};
+    var days=Math.floor(h/24);
+    return{text:"📅 "+days+"天後",cls:""};
+}
+function updateAllCountdowns(){
+    if(!_adminSettings.countdown)return;
+    document.querySelectorAll(".ev[data-start]").forEach(function(el){
+        var cd=el.querySelector(".ev-cd");
+        if(!cd)return;
+        var result=getCountdown(el.dataset.day,el.dataset.start,el.dataset.end||"");
+        if(result){cd.textContent=result.text;cd.className="ev-cd "+result.cls;}
+    });
+}
+
+// ====== SCREENSHOT DOWNLOAD ======
+function isMobile(){
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+           ('ontouchstart' in window && navigator.maxTouchPoints > 0 && window.innerWidth < 1024);
+}
+function downloadScreenshot(){
+    toast("📸 截圖產生中...");
+    html2canvas(document.body,{backgroundColor:"#000",scale:2,useCORS:true,allowTaint:true,ignoreElements:function(el){return el.classList&&(el.classList.contains("ss-dl-btn")||el.id==="sp-overlay"||el.id==="sp-panel");}}).then(function(canvas){
+        if(isMobile()){
+            // 手機：優先 Web Share API（可存到相簿），否則顯示長按提示
+            canvas.toBlob(function(blob){
+                var file=new File([blob],"fujirock-timetable.png",{type:"image/png"});
+                if(navigator.canShare && navigator.canShare({files:[file]})){
+                    navigator.share({files:[file],title:"Fuji Rock 2026 My Timetable"})
+                        .catch(function(){ _showImgOverlay(canvas.toDataURL("image/png")); });
+                }else{
+                    _showImgOverlay(canvas.toDataURL("image/png"));
+                }
+            },"image/png");
+        }else{
+            // 電腦：直接觸發下載，不跳 overlay
+            var a=document.createElement("a");
+            a.href=canvas.toDataURL("image/png");
+            a.download="fujirock-timetable.png";
+            a.click();
+            toast("✅ 截圖已下載！");
+        }
+    }).catch(function(){toast("❌ 截圖失敗");});
+}
+function _showImgOverlay(imgUrl){
+    // 手機專用：長按圖片儲存提示
+    var ov=document.createElement("div");
+    ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:12px;";
+    ov.innerHTML=
+        '<p style="color:#9ca3af;font-size:.85rem;text-align:center;line-height:1.7">📱 長按圖片 → <b style="color:#fff">儲存到相簿</b></p>'+
+        '<img src="'+imgUrl+'" style="max-width:100%;max-height:68vh;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.8);">'+
+        '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="background:#333;color:#fff;border:none;padding:10px 28px;border-radius:20px;font-size:.9rem;cursor:pointer;">✕ 關閉</button>';
+    document.body.appendChild(ov);
+}
+
+// ====== SPOTIFY（路線B：GAS 預載快取，無需用戶登入）======
+// ====== 音樂祭模式：7/24~7/27 鎖定試聽，節省行動數據 ======
+function isFestivalMode(){
+    if(_adminSettings.festival)return true; // 管理員強制開啟
+    var now = new Date();
+    var jst = new Date(now.getTime() + (9*60 - now.getTimezoneOffset())*60000);
+    var y = jst.getUTCFullYear(), m = jst.getUTCMonth()+1, d = jst.getUTCDate();
+    return y===2026 && m===7 && d>=24 && d<=27;
+}
+async function loadSpotifyData(){
+    try{
+        var data=await jsonp(GAS_URL+"?action=getSpotifyData");
+        Object.keys(data).forEach(function(name){
+            _spAid[name]=data[name].id;
+            _spPop[name]=data[name].pop;
+        });
+        _spLoaded=true;
+    }catch(e){
+        console.warn("Spotify 快取載入失敗，改用外連搜尋");
+    }
+}
+function _applyAllGlows(){
+    document.querySelectorAll(".ev[data-artist]").forEach(function(el){
+        var pop=_spPop[el.dataset.artist];
+        if(pop!==undefined)_applyGlow(el,pop);
+    });
 }
 function _applyGlow(el,pop){
     el.classList.remove("glow-md","glow-hi");
@@ -237,18 +518,24 @@ function openSpotify(name){
     document.getElementById("sp-aname").textContent=name;
     _updateSpSelBtn();
     var body=document.getElementById("sp-body");
-    body.innerHTML='<div style="text-align:center;padding:16px;color:#9ca3af;font-size:.85rem">🎵 載入中…</div>';
     document.getElementById("sp-panel").classList.add("open");
     document.getElementById("sp-overlay").style.display="block";
-    if(SPOTIFY_CLIENT_ID&&_spTok&&Date.now()<_spExp){
-        _spSearch(name).then(function(info){
-            if(info&&info.id){
-                body.innerHTML='<iframe src="https://open.spotify.com/embed/artist/'+info.id+'?utm_source=generator&theme=0" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
-            }else{_spFallback(name,body);}
-        });
-    }else if(SPOTIFY_CLIENT_ID){
-        body.innerHTML='<div style="text-align:center;padding:8px 0"><button class="sp-connect" onclick="_spAuthStart()">🔗 連結 Spotify 帳號</button><p class="sp-hint">連結後可在 Timetable 直接試聽藝人 30 秒預覽</p></div>';
-    }else{_spFallback(name,body);}
+    // 🎪 音樂祭期間（7/24~7/27）鎖定試聽，節省行動數據
+    if(isFestivalMode()){
+        body.innerHTML=
+            '<div style="text-align:center;padding:20px 12px 8px;font-size:2rem">🎪</div>'+
+            '<div style="text-align:center;padding:0 16px 8px;color:#e2e8f0;font-size:.95rem;font-weight:700">音樂祭進行中！</div>'+
+            '<div style="text-align:center;padding:0 16px 16px;color:#9ca3af;font-size:.82rem;line-height:1.5">試聽功能已暫停<br>節省你的行動數據，<br>到現場盡情享受吧！</div>'+
+            '<a class="sp-link" href="https://open.spotify.com/search/'+encodeURIComponent(name)+'" target="_blank" style="margin-top:4px">🎵 開啟 Spotify App</a>'+
+            '<p class="sp-hint" style="margin-top:8px">建議連接 WiFi 後再使用試聽</p>';
+        return;
+    }
+    var aid=_spAid[name];
+    if(aid){
+        body.innerHTML='<iframe src="https://open.spotify.com/embed/artist/'+aid+'?utm_source=generator&theme=0" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+    }else{
+        _spFallback(name,body);
+    }
 }
 function _spFallback(name,body){
     body.innerHTML='<a class="sp-link" href="https://open.spotify.com/search/'+encodeURIComponent(name)+'" target="_blank">🎵 在 Spotify 搜尋 '+name+'</a>';
@@ -263,7 +550,6 @@ function closeSpotify(){
 function gasGet(url) {
   return fetch(url).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); });
 }
-
 // ====== DATA ======
 async function loadData(){
     if(!uid){document.getElementById("loading").innerText="❌ UID 遺失，請從 LINE 開啟";return;}
@@ -282,7 +568,6 @@ async function loadData(){
         buildStages(); document.getElementById("loading").style.display="none"; initApp();
     }catch(e){document.getElementById("loading").innerText="❌ 連線失敗："+e.message;}
 }
-
 function buildStages(){
     var m=new Map();
     master.forEach(function(it){
@@ -293,9 +578,7 @@ function buildStages(){
     });
     STAGES=Array.from(m.values());
 }
-
 function isSelected(name){return mySelection.indexOf(name.toLowerCase().trim())>=0;}
-
 function toggleSelection(name){
     var key=name.toLowerCase().trim();
     var idx=mySelection.indexOf(key);
@@ -303,11 +586,9 @@ function toggleSelection(name){
     else{mySelection.push(key);toast("⭐ 已加入："+name);}
     saveSelection(); render();
 }
-
 async function saveSelection(){
     try{await gasGet(GAS_URL+"?action=saveSelection&uid="+uid+"&selection="+encodeURIComponent(JSON.stringify(mySelection)));}catch(e){}
 }
-
 async function syncFromLine(){
     try{
         toast("🔄 同步中...");
@@ -323,7 +604,6 @@ async function syncFromLine(){
         toast("✅ 雙向同步完成！新增 "+added+" 組");
     }catch(e){toast("❌ 同步失敗");}
 }
-
 // ====== RENDER ======
 function stageInfo(sn){
     if(!sn)return null;var u=sn.toUpperCase();
@@ -332,13 +612,11 @@ function stageInfo(sn){
     var active=STAGES.filter(function(s){return s.vis;});
     return{col:active.findIndex(function(s){return s.id===match.id;})+2,stage:match};
 }
-
 function timeToRow(ts){
     if(!ts||!ts.includes(":"))return 2;
     var p=ts.split(":"),h=parseInt(p[0]),m=parseInt(p[1]);
     if(isNaN(h)||isNaN(m))return 2;if(h<11)h+=24;return(h-11)*60+m+2;
 }
-
 function renderGrid(){
     var g=document.getElementById("grid");g.innerHTML="";
     var active=STAGES.filter(function(s){return s.vis;});
@@ -352,48 +630,111 @@ function renderGrid(){
         var l=document.createElement("div");l.className="grid-line"+(min==="30"?" half":"");l.style.gridRow=r;l.style.gridColumn="2/span "+active.length;g.appendChild(l);
         if(min==="00"){var lb=document.createElement("div");lb.className="time-lbl";lb.style.gridRow=r;lb.innerText=dh+":"+min;g.appendChild(lb);}
     }
-    // Events
     var evts=master.filter(function(it){
         if(it.day!==curDay)return false;
         if(schedMode==="personal")return isSelected(it.name);
         return true;
     });
     if(!evts.length&&schedMode==="personal"){var hint=document.createElement("div");hint.style.cssText="grid-column:2/-1;grid-row:30;text-align:center;color:#666;padding:20px;";hint.innerHTML="📭 切換到「🌐 全展」，<br>點選色塊 → 在面板中加入排表！";g.appendChild(hint);return;}
+    updateConflicts();
     evts.forEach(function(it){
         var si=stageInfo(it.stage);if(!si)return;
         var sel=isSelected(it.name);
+        var isConflict=_conflicts.has(it.name+"|"+curDay);
         var bl=document.createElement("div");
-        bl.className="ev"+(schedMode==="full"&&!sel?" dimmed":"")+(sel?" selected":"");
+        bl.className="ev"+(schedMode==="full"&&!sel?" dimmed":"")+(sel?" selected":"")+(isConflict?" conflict":"");
         bl.style.gridRow=timeToRow(it.start)+"/"+(it.end?timeToRow(it.end):timeToRow(it.start)+60);
         bl.style.gridColumn=si.col;bl.style.borderLeftColor=si.stage.color;
-        bl.innerHTML='<div class="ev-time">'+it.start+" - "+(it.end||"?")+'</div><div class="ev-name">'+it.name+"</div>";
-        bl.dataset.artist=it.name;
+        var cdResult=getCountdown(it.day||curDay,it.start,it.end);
+        var cdHtml=cdResult?'<div class="ev-cd '+cdResult.cls+'">'+cdResult.text+'</div>':"";
+        var warnHtml=isConflict?'<div class="ev-warn">⚠️ 衝堂</div>':"";
+        bl.innerHTML='<div class="ev-time">'+it.start+' - '+(it.end||'?')+'</div><div class="ev-name">'+it.name+'</div>'+cdHtml+warnHtml;
+        bl.dataset.artist=it.name;bl.dataset.start=it.start||"";bl.dataset.end=it.end||"";bl.dataset.day=it.day||curDay;
         if(_spPop[it.name]!==undefined)_applyGlow(bl,_spPop[it.name]);
         (function(n){bl.onclick=function(){openSpotify(n);};})(it.name);
         g.appendChild(bl);
     });
     updateTimeLine();
 }
-
+// 時段分組（依 JST 時間段）
+function getTimeslot(startStr){
+    if(!startStr) return "其他";
+    var h=parseInt(startStr.split(":")[0],10);
+    if(h<5) h+=24; // 跨午夜
+    if(h>=11&&h<14) return "☀️ 早場 (11:00~14:00)";
+    if(h>=14&&h<18) return "🌤 午後 (14:00~18:00)";
+    if(h>=18&&h<22) return "🌆 晚場 (18:00~22:00)";
+    if(h>=22||h<5)  return "🌙 深夜 (22:00~)";
+    return "其他";
+}
 function renderList(){
     var c=document.getElementById("listview");c.innerHTML="";
     var evts=master.filter(function(it){if(it.day!==curDay)return false;if(schedMode==="personal")return isSelected(it.name);return true;});
     evts.sort(function(a,b){return timeToRow(a.start)-timeToRow(b.start);});
-    if(!evts.length){c.innerHTML='<div style="text-align:center;color:#666;padding:40px">'+(schedMode==="personal"?"📭 點「🌐 全展」加入藝人":"📭 無資料")+"</div>";return;}
+    if(!evts.length){c.innerHTML='<div style="text-align:center;color:#666;padding:40px">'+(schedMode==="personal"?"📭 點選單「👤 專屬」切換模式加入藝人":"📭 無資料")+"</div>";return;}
+    updateConflicts();
+    var lastSlot="";
     evts.forEach(function(it){
-        var si=stageInfo(it.stage);var color=si?si.stage.color:"#64748b";var sName=si?si.stage.name:it.stage;
+        var si=stageInfo(it.stage);var color=si?si.stage.color:"#64748b";var sName=si?si.stage.name:(it.stage||"未定");
         var sel=isSelected(it.name);
+        var isConflict=_conflicts.has(it.name+"|"+curDay);
+        // 時段分組 header（只有開啟時間別時才顯示）
+        if(_adminSettings.showTime){
+            var slot=getTimeslot(it.start);
+            if(slot!==lastSlot){
+                lastSlot=slot;
+                var hdr=document.createElement("div");
+                hdr.style.cssText="font-size:.72rem;font-weight:700;color:#6b7280;padding:10px 2px 4px;letter-spacing:.5px;";
+                hdr.innerText=slot;
+                c.appendChild(hdr);
+            }
+        }
         var bl=document.createElement("div");
-        bl.className="list-item"+(schedMode==="full"&&!sel?" dimmed":"")+(sel?" selected":"");
+        bl.className='list-item'+(schedMode==='full'&&!sel?' dimmed':'')+(sel?' selected':'')+(isConflict?' conflict':'');
         bl.style.borderLeftColor=color;
-        bl.innerHTML='<div class="list-hdr"><span>🕒 '+it.start+" - "+it.end+"</span><span style="color:'+color+';font-weight:bold">'+sName+'</span></div><div class="list-title">'+it.name+(sel?" ⭐":"")+'</div>';
+        var cdResult=getCountdown(it.day||curDay,it.start,it.end);
+        var cdHtml=cdResult?'<div class="ev-cd '+cdResult.cls+'" style="margin-top:4px">'+cdResult.text+'</div>':"";
+        var warnHtml=isConflict?'<span style="color:#ff3b30;font-size:.75rem;font-weight:700;margin-left:6px">⚠️ 衝堂</span>':"";
+        var timeStr=it.start?(it.start+(it.end?' - '+it.end:'')):'';
+        var timeHtml=(_adminSettings.showTime&&timeStr)?'<span>🕒 '+timeStr+'</span>':'';
+        bl.innerHTML='<div class="list-hdr">'+timeHtml+'<span style="color:'+color+';font-weight:bold">'+sName+'</span></div><div class="list-title">'+it.name+(sel?' ⭐':'')+warnHtml+'</div>'+cdHtml;
         (function(n){bl.onclick=function(){openSpotify(n);};})(it.name);
         c.appendChild(bl);
     });
 }
-
 function render(){if(viewMode==="grid")renderGrid();else renderList();}
-
+// ====== NOW PLAYING BANNER ======
+function updateNowBanner(){
+    var banner=document.getElementById("now-banner");
+    var inner=document.getElementById("now-inner");
+    if(!isFestivalMode()||!master.length){banner.classList.remove("show");return;}
+    var now=new Date();
+    var jst=new Date(now.getTime()+(9*60-now.getTimezoneOffset())*60000);
+    var h=jst.getUTCHours(),m=jst.getUTCMinutes();
+    var totalMin=h*60+m;
+    // 找出所有正在演出的藝人
+    var playing=master.filter(function(it){
+        if(!it.start||!it.end)return false;
+        var sh=parseInt(it.start.split(":")[0],10),sm=parseInt(it.start.split(":")[1],10);
+        var eh=parseInt(it.end.split(":")[0],10),em=parseInt(it.end.split(":")[1],10);
+        if(sh<5)sh+=24;if(eh<5)eh+=24; // 跨午夜
+        var stMin=sh*60+sm,enMin=eh*60+em;
+        var nowAdj=(h<5)?totalMin+1440:totalMin;
+        return nowAdj>=stMin&&nowAdj<enMin;
+    });
+    if(!playing.length){banner.classList.remove("show");return;}
+    // 建立跑馬燈內容（重複兩份實現循環）
+    var items=playing.map(function(it){
+        var si=stageInfo(it.stage);var sName=si?si.stage.name:(it.stage||"");
+        return '<span class="now-item" onclick="changeDay(DAYS.indexOf(it.day||\'Day 1\'))">'
+            +'<strong>'+it.name+'</strong>'+(sName?' @ '+sName:'')+'</span>';
+    }).join('<span style="color:#166534;padding:0 8px">·</span>');
+    // 跑馬燈需要重複內容
+    inner.innerHTML='<span class="now-label">🟢 NOW</span>'+items
+        +'<span style="padding:0 20px"></span>'
+        +'<span class="now-label">🟢 NOW</span>'+items;
+    banner.classList.add("show");
+}
 function updateTimeLine(){
     if(viewMode!=="grid")return;
     var now=new Date(),h=now.getHours(),m=now.getMinutes();if(h>=0&&h<5)h+=24;
@@ -403,21 +744,19 @@ function updateTimeLine(){
         if(g&&active.length){g.appendChild(tl);tl.style.gridRow=r;tl.style.gridColumn="2/span "+active.length;tl.style.display="block";}
     }
 }
-
 // ====== CONTROLS ======
 function toggleMode(){
     schedMode=schedMode==="personal"?"full":"personal";
-    var b=document.getElementById("btn-mode");
-    b.innerText=schedMode==="full"?"🌐 全展":"👤 專屬";
-    if(schedMode==="full")b.classList.remove("btn-highlight");else b.classList.add("btn-highlight");
     if(schedMode==="full"){toast("💡 點擊色塊可加入/移除自選");}
-    else{document.body.classList.remove("clean-hdr");document.getElementById("btn-hdr").classList.remove("btn-primary");}
+    else{document.body.classList.remove("clean-hdr");document.getElementById("btn-hdr").classList.remove("active");}
     document.getElementById("btn-hdr").style.display=schedMode==="full"?"":"none";
+    updateSelCount();
     render();
 }
 function toggleView(){
     viewMode=viewMode==="grid"?"list":"grid";
-    document.getElementById("btn-view").innerText=viewMode==="list"?"🎛️":"📋";
+    var tbv=document.getElementById("tbr-view");
+    if(tbv){tbv.innerHTML='<span class="ico">'+(viewMode==="list"?"🎛️":"📋")+'</span>'+(viewMode==="list"?"格子":"列表");tbv.classList.toggle("active",viewMode==="list");}
     document.getElementById("scroll").style.display=viewMode==="list"?"none":"block";
     document.getElementById("listview").style.display=viewMode==="list"?"flex":"none";
     document.getElementById("fab").style.display=viewMode==="list"?"none":"flex";
@@ -444,30 +783,84 @@ function applyFilter(){document.getElementById("filterModal").style.display="non
 function toggleSS(){document.body.classList.toggle("ss-mode");}
 function toggleCleanHdr(){
     var on=document.body.classList.toggle("clean-hdr");
-    document.getElementById("btn-hdr").classList.toggle("btn-primary",on);
+    document.getElementById("btn-hdr").classList.toggle("active",on);
 }
 
 function initApp(){
     var dc=document.getElementById("days");dc.innerHTML="";
     DAY_LABELS.forEach(function(l,i){var b=document.createElement("button");b.className="day-btn"+(i===0?" active":"");b.innerText=l;b.onclick=function(){changeDay(i);};dc.appendChild(b);});
-    // 自選數量顯示
     updateSelCount();
-    changeDay(0);setInterval(updateTimeLine,60000);
-    // 背景載入 Spotify 熱門度（需設定 SPOTIFY_CLIENT_ID 並完成連結）
-    if(SPOTIFY_CLIENT_ID&&_spTok&&Date.now()<_spExp)setTimeout(_spFetchAll,2000);
-}
-
-function updateSelCount(){
-    var b=document.getElementById("btn-mode");
-    var cnt=mySelection.length;
-    b.innerHTML=(schedMode==="full"?"🌐 全展":"👤 專屬")+'<span class="count-badge">'+cnt+"</span>";
-}
-
-window.onload=async function(){
-    // Spotify PKCE callback（從 Spotify 跳轉回來時先完成 token 交換）
-    if(SPOTIFY_CLIENT_ID&&new URLSearchParams(location.search).get("code")){
-        await _spHandleCb();
+    // 根據資料階段設定預設視圖
+    var phase=getDataPhase();
+    if(phase==="list"&&viewMode==="grid"){
+        viewMode="list";
+        var tbv=document.getElementById("tbr-view");
+        if(tbv){tbv.innerHTML='<span class="ico">🎛️</span>格子';tbv.classList.add("active");}
+        document.getElementById("scroll").style.display="none";
+        document.getElementById("listview").style.display="flex";
+        document.getElementById("fab").style.display="none";
     }
+    changeDay(0);
+    setInterval(updateTimeLine,60000);
+    setInterval(updateAllCountdowns,30000);
+    updateNowBanner();
+    setInterval(updateNowBanner,60000);
+    // Spotify 快取已於 window.onload 預載，這裡直接套用光暈
+    if(_spLoaded)setTimeout(_applyAllGlows,300);
+    // 初始化管理員功能
+    initAdmin();
+    // 依設定同步工具列顯示
+    syncToolbarVisibility();
+}
+// ====== TOOLBAR TOGGLE ======
+function toggleToolbar(){
+    var d=document.getElementById("toolbar-drawer");
+    var t=document.getElementById("menu-toggle-btn");
+    var show=!d.classList.contains("show");
+    d.classList.toggle("show",show);
+    t.classList.toggle("open",show);
+    t.innerHTML=show?"✕":"☰";
+}
+// 管理員模式時顯示管理員按鈕
+function syncAdminBtn(){
+    var btn=document.getElementById("tbr-admin");
+    if(btn) btn.style.display=document.body.classList.contains("admin-on")?"flex":"none";
+}
+
+// ====== STATS BAR ======
+function updateSelCount(){
+    var cnt=mySelection.length;
+    // 更新 toolbar drawer 按鈕
+    var tm=document.getElementById("tbr-mode");
+    if(tm) tm.innerHTML='<span class="ico">'+(schedMode==="full"?"🌐":"👤")+'</span>'+(schedMode==="full"?"全展":"專屬");
+    if(schedMode==="full") tm&&tm.classList.remove("hl"); else tm&&tm.classList.add("hl");
+    // 統計列
+    document.getElementById("stat-count").innerText=cnt;
+    var conflictN=_conflicts.size>0?Math.round(_conflicts.size/2):0;
+    var cw=document.getElementById("stat-conflict-wrap");
+    cw.style.display=conflictN>0?"inline-flex":"none";
+    document.getElementById("stat-conflict").innerText=conflictN;
+    // 有選取時才顯示統計列
+    var sb=document.getElementById("stats-bar");
+    sb.classList.toggle("show",cnt>0);
+}
+
+// ====== SCROLL TO FIRST CONFLICT ======
+function scrollToFirstConflict(){
+    var first=document.querySelector(".conflict");
+    if(first){first.scrollIntoView({behavior:"smooth",block:"center"});}
+    else{toast("⚠️ 請切換到對應日期查看衝堂");}
+}
+window.onload=async function(){
+    // 音樂祭期間顯示節流提示橫幅
+    if(isFestivalMode()){
+        var banner=document.createElement("div");
+        banner.style.cssText="background:#854d0e;color:#fef08a;text-align:center;padding:6px 12px;font-size:.78rem;font-weight:700;position:sticky;top:0;z-index:1001;";
+        banner.innerHTML="🎪 音樂祭進行中！試聽已暫停以節省行動數據 · 加入／移除排表功能正常使用";
+        document.body.insertBefore(banner,document.body.firstChild);
+    }
+    // 預載 Spotify 快取（不需用戶登入，無人數限制）
+    await loadSpotifyData();
     loadData();
 };
 </script>
