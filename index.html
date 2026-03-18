@@ -225,13 +225,17 @@
           <div><div class="admin-label">顯示演出時間別</div><div class="admin-sub">隱藏時間欄（時間未定時使用）</div></div>
           <label class="toggle-sw"><input type="checkbox" id="sw-showTime" onchange="saveAndSyncUI('showTime',this.checked)"><span class="slider"></span></label>
         </div>
+        <div class="admin-row">
+          <div><div class="admin-label">顯示舞台列表</div><div class="admin-sub">隱藏時色塊左側色條與舞台名稱</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showStageLbl" onchange="saveAndSyncUI('showStageLbl',this.checked)"><span class="slider"></span></label>
+        </div>
         <div class="modal-actions" style="margin-top:16px;">
           <button class="btn btn-primary" onclick="applyAdminSettings()">套用</button>
           <button class="btn" onclick="document.getElementById('adminModal').style.display='none'">關閉</button>
         </div>
       </div>
     </div>
-    <div class="modal-bg" id="filterModal"><div class="modal"><div class="modal-title">選擇舞台</div><div class="chips" id="filterChips"></div><div class="modal-actions" style="flex-direction:column;gap:8px;"><label style="display:flex;align-items:center;gap:8px;font-size:.85rem;cursor:pointer;"><input type="checkbox" id="chk-hdr" onchange="toggleCleanHdr(this.checked)" style="width:16px;height:16px;">顯示舞台標記</label><div style="display:flex;gap:8px;"><button class="btn" onclick="allStages(true)">全選</button><button class="btn" onclick="allStages(false)">全不選</button><button class="btn btn-primary" onclick="applyFilter()">確定</button></div></div></div></div>
+    <div class="modal-bg" id="filterModal"><div class="modal"><div class="modal-title">選擇舞台</div><div class="chips" id="filterChips"></div><div class="modal-actions"><button class="btn" onclick="allStages(true)">全選</button><button class="btn" onclick="allStages(false)">全不選</button><button class="btn btn-primary" onclick="applyFilter()">確定</button></div></div></div>
     <div id="sp-overlay" onclick="closeSpotify()"></div>
     <div id="sp-panel">
         <div class="sp-drag"></div>
@@ -276,12 +280,13 @@ function toast(msg){var t=document.getElementById("toast");t.innerText=msg;t.sty
 var ADMIN_PASSWORD = "fujitt2026"; // ★ 修改為你的密碼
 var OWNER_UID = "Uaad7f6d86f0316d7ddf10f660ade5205";
 function isOwner(){ return new URLSearchParams(window.location.search).get("uid")===OWNER_UID; }
-var _adminSettings = JSON.parse(localStorage.getItem("fujitt_admin")||'{"conflict":true,"countdown":true,"festival":false,"phase":"auto","showPersonal":false,"showGrid":false,"showStage":false,"showTime":false}');
+var _adminSettings = JSON.parse(localStorage.getItem("fujitt_admin")||'{"conflict":true,"countdown":true,"festival":false,"phase":"auto","showPersonal":false,"showGrid":false,"showStage":false,"showTime":false,"showStageLbl":true}');
 // 向舊版 localStorage 補齊缺少的 key
 if(_adminSettings.showPersonal===undefined)_adminSettings.showPersonal=false;
 if(_adminSettings.showGrid===undefined)_adminSettings.showGrid=false;
 if(_adminSettings.showStage===undefined)_adminSettings.showStage=false;
 if(_adminSettings.showTime===undefined)_adminSettings.showTime=false;
+if(_adminSettings.showStageLbl===undefined)_adminSettings.showStageLbl=true;
 var _adminTaps = 0, _adminTapTimer = null;
 
 function saveSetting(key,val){_adminSettings[key]=val;localStorage.setItem("fujitt_admin",JSON.stringify(_adminSettings));}
@@ -306,6 +311,8 @@ function syncToolbarVisibility(){
     // 舞台按鈕
     var bs=document.getElementById("tbr-stage");
     if(bs) bs.style.display=showS?"flex":"none";
+    // 舞台列表標記
+    document.body.classList.toggle("clean-hdr",!_adminSettings.showStageLbl);
     // 隱藏時強制回預設模式
     if(!showP&&schedMode==="personal"){ schedMode="full"; render(); }
     if(!showG&&viewMode==="grid"){
@@ -338,6 +345,7 @@ function openAdminPanel(){
     document.getElementById("sw-showGrid").checked=!!_adminSettings.showGrid;
     document.getElementById("sw-showStage").checked=!!_adminSettings.showStage;
     document.getElementById("sw-showTime").checked=!!_adminSettings.showTime;
+    document.getElementById("sw-showStageLbl").checked=!!_adminSettings.showStageLbl;
     var ph=_adminSettings.phase||"auto";
     document.querySelectorAll(".phase-btn").forEach(function(b){b.classList.remove("active");});
     document.getElementById("ph-"+ph).classList.add("active");
@@ -749,7 +757,7 @@ function updateTimeLine(){
 function toggleMode(){
     schedMode=schedMode==="personal"?"full":"personal";
     if(schedMode==="full"){toast("💡 點擊色塊可加入/移除自選");}
-    else{document.body.classList.remove("clean-hdr");}
+    else{}
     updateSelCount();
     render();
 }
@@ -776,16 +784,12 @@ function jumpNow(){
 function openFilter(){
     var c=document.getElementById("filterChips");c.innerHTML="";
     STAGES.forEach(function(s){var b=document.createElement("button");b.className="chip"+(s.vis?" active":"");b.style.borderColor=s.color;if(s.vis)b.style.backgroundColor=s.color;b.innerText=s.name;b.onclick=function(){s.vis=!s.vis;b.classList.toggle("active");b.style.backgroundColor=s.vis?s.color:"transparent";};c.appendChild(b);});
-    document.getElementById("chk-hdr").checked=!document.body.classList.contains("clean-hdr");
     document.getElementById("filterModal").style.display="flex";
 }
 function allStages(v){STAGES.forEach(function(s){s.vis=v;});openFilter();}
 function applyFilter(){document.getElementById("filterModal").style.display="none";render();}
 function toggleSS(){document.body.classList.toggle("ss-mode");}
-function toggleCleanHdr(show){
-    if(show===undefined)show=document.body.classList.contains("clean-hdr");
-    document.body.classList.toggle("clean-hdr",!show);
-}
+
 
 function initApp(){
     var dc=document.getElementById("days");dc.innerHTML="";
