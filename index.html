@@ -155,7 +155,7 @@
         <div class="toolbar-drawer" id="toolbar-drawer">
             <button class="tbr-btn hl" id="tbr-mode" onclick="toggleMode()"><span class="ico">👤</span>專屬</button>
             <button class="tbr-btn" id="tbr-view" onclick="toggleView()"><span class="ico">📋</span>列表</button>
-            <button class="tbr-btn" onclick="openFilter()"><span class="ico">🏟️</span>舞台</button>
+            <button class="tbr-btn" id="tbr-stage" onclick="openFilter()"><span class="ico">🏟️</span>舞台</button>
             <button class="tbr-btn green" onclick="syncFromLine()"><span class="ico">🔄</span>同步</button>
             <button class="tbr-btn" onclick="toggleSS()"><span class="ico">📸</span>截圖</button>
             <button class="tbr-btn admin-only" id="tbr-admin" onclick="openAdminPanel()" style="display:none"><span class="ico">⚙️</span>管理員</button>
@@ -202,6 +202,18 @@
         <div class="admin-row">
           <div><div class="admin-label">音樂祭節流模式</div><div class="admin-sub">強制開啟（無視日期）</div></div>
           <label class="toggle-sw"><input type="checkbox" id="sw-festival" onchange="saveSetting('festival',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">顯示「👤 專屬」按鈕</div><div class="admin-sub">隱藏時固定為全展模式</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showPersonal" onchange="saveAndSyncUI('showPersonal',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">顯示「格子」視圖按鈕</div><div class="admin-sub">隱藏時固定為列表模式</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showGrid" onchange="saveAndSyncUI('showGrid',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">顯示「🏟️ 舞台」篩選按鈕</div><div class="admin-sub">隱藏時顯示全部舞台</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showStage" onchange="saveAndSyncUI('showStage',this.checked)"><span class="slider"></span></label>
         </div>
         <div class="modal-actions" style="margin-top:16px;">
           <button class="btn btn-primary" onclick="applyAdminSettings()">套用</button>
@@ -254,10 +266,46 @@ function toast(msg){var t=document.getElementById("toast");t.innerText=msg;t.sty
 var ADMIN_PASSWORD = "fujitt2026"; // ★ 修改為你的密碼
 var OWNER_UID = "Uaad7f6d86f0316d7ddf10f660ade5205";
 function isOwner(){ return new URLSearchParams(window.location.search).get("uid")===OWNER_UID; }
-var _adminSettings = JSON.parse(localStorage.getItem("fujitt_admin")||'{"conflict":true,"countdown":true,"festival":false,"phase":"auto"}');
+var _adminSettings = JSON.parse(localStorage.getItem("fujitt_admin")||'{"conflict":true,"countdown":true,"festival":false,"phase":"auto","showPersonal":false,"showGrid":false,"showStage":false}');
+// 向舊版 localStorage 補齊缺少的 key
+if(_adminSettings.showPersonal===undefined)_adminSettings.showPersonal=false;
+if(_adminSettings.showGrid===undefined)_adminSettings.showGrid=false;
+if(_adminSettings.showStage===undefined)_adminSettings.showStage=false;
 var _adminTaps = 0, _adminTapTimer = null;
 
 function saveSetting(key,val){_adminSettings[key]=val;localStorage.setItem("fujitt_admin",JSON.stringify(_adminSettings));}
+
+// 儲存後立即同步工具列顯示
+function saveAndSyncUI(key,val){
+    saveSetting(key,val);
+    syncToolbarVisibility();
+}
+
+// 根據 adminSettings 同步工具列按鈕顯示
+function syncToolbarVisibility(){
+    var showP=!!_adminSettings.showPersonal;
+    var showG=!!_adminSettings.showGrid;
+    var showS=!!_adminSettings.showStage;
+    // 專屬按鈕
+    var bm=document.getElementById("tbr-mode");
+    if(bm) bm.style.display=showP?"flex":"none";
+    // 格子按鈕
+    var bv=document.getElementById("tbr-view");
+    if(bv) bv.style.display=showG?"flex":"none";
+    // 舞台按鈕
+    var bs=document.getElementById("tbr-stage");
+    if(bs) bs.style.display=showS?"flex":"none";
+    // 隱藏時強制回預設模式
+    if(!showP&&schedMode==="personal"){ schedMode="full"; render(); }
+    if(!showG&&viewMode==="grid"){
+        viewMode="list";
+        if(bv){bv.innerHTML='<span class="ico">📋</span>列表';bv.classList.remove("active");}
+        document.getElementById("scroll").style.display="none";
+        document.getElementById("listview").style.display="flex";
+        document.getElementById("fab").style.display="none";
+        render();
+    }
+}
 function setPhase(v){
     _adminSettings.phase=v;
     localStorage.setItem("fujitt_admin",JSON.stringify(_adminSettings));
@@ -274,6 +322,9 @@ function openAdminPanel(){
     document.getElementById("sw-conflict").checked=!!_adminSettings.conflict;
     document.getElementById("sw-countdown").checked=!!_adminSettings.countdown;
     document.getElementById("sw-festival").checked=!!_adminSettings.festival;
+    document.getElementById("sw-showPersonal").checked=!!_adminSettings.showPersonal;
+    document.getElementById("sw-showGrid").checked=!!_adminSettings.showGrid;
+    document.getElementById("sw-showStage").checked=!!_adminSettings.showStage;
     var ph=_adminSettings.phase||"auto";
     document.querySelectorAll(".phase-btn").forEach(function(b){b.classList.remove("active");});
     document.getElementById("ph-"+ph).classList.add("active");
@@ -737,6 +788,8 @@ function initApp(){
     if(_spLoaded)setTimeout(_applyAllGlows,300);
     // 初始化管理員功能
     initAdmin();
+    // 依設定同步工具列顯示
+    syncToolbarVisibility();
 }
 // ====== TOOLBAR TOGGLE ======
 function toggleToolbar(){
