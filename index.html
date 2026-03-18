@@ -480,7 +480,7 @@ function isFestivalMode(){
 }
 async function loadSpotifyData(){
     try{
-        var data=await jsonp(GAS_URL+"?action=getSpotifyData");
+        var data=await gasGet(GAS_URL+"?action=getSpotifyData");
         Object.keys(data).forEach(function(name){
             _spAid[name]=data[name].id;
             _spPop[name]=data[name].pop;
