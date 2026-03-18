@@ -215,6 +215,10 @@
           <div><div class="admin-label">顯示「🏟️ 舞台」篩選按鈕</div><div class="admin-sub">隱藏時顯示全部舞台</div></div>
           <label class="toggle-sw"><input type="checkbox" id="sw-showStage" onchange="saveAndSyncUI('showStage',this.checked)"><span class="slider"></span></label>
         </div>
+        <div class="admin-row">
+          <div><div class="admin-label">顯示演出時間別</div><div class="admin-sub">隱藏時間欄（時間未定時使用）</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showTime" onchange="saveAndSyncUI('showTime',this.checked)"><span class="slider"></span></label>
+        </div>
         <div class="modal-actions" style="margin-top:16px;">
           <button class="btn btn-primary" onclick="applyAdminSettings()">套用</button>
           <button class="btn" onclick="document.getElementById('adminModal').style.display='none'">關閉</button>
@@ -266,11 +270,12 @@ function toast(msg){var t=document.getElementById("toast");t.innerText=msg;t.sty
 var ADMIN_PASSWORD = "fujitt2026"; // ★ 修改為你的密碼
 var OWNER_UID = "Uaad7f6d86f0316d7ddf10f660ade5205";
 function isOwner(){ return new URLSearchParams(window.location.search).get("uid")===OWNER_UID; }
-var _adminSettings = JSON.parse(localStorage.getItem("fujitt_admin")||'{"conflict":true,"countdown":true,"festival":false,"phase":"auto","showPersonal":false,"showGrid":false,"showStage":false}');
+var _adminSettings = JSON.parse(localStorage.getItem("fujitt_admin")||'{"conflict":true,"countdown":true,"festival":false,"phase":"auto","showPersonal":false,"showGrid":false,"showStage":false,"showTime":false}');
 // 向舊版 localStorage 補齊缺少的 key
 if(_adminSettings.showPersonal===undefined)_adminSettings.showPersonal=false;
 if(_adminSettings.showGrid===undefined)_adminSettings.showGrid=false;
 if(_adminSettings.showStage===undefined)_adminSettings.showStage=false;
+if(_adminSettings.showTime===undefined)_adminSettings.showTime=false;
 var _adminTaps = 0, _adminTapTimer = null;
 
 function saveSetting(key,val){_adminSettings[key]=val;localStorage.setItem("fujitt_admin",JSON.stringify(_adminSettings));}
@@ -303,8 +308,9 @@ function syncToolbarVisibility(){
         document.getElementById("scroll").style.display="none";
         document.getElementById("listview").style.display="flex";
         document.getElementById("fab").style.display="none";
-        render();
     }
+    // 時間別切換後重繪列表
+    render();
 }
 function setPhase(v){
     _adminSettings.phase=v;
@@ -325,6 +331,7 @@ function openAdminPanel(){
     document.getElementById("sw-showPersonal").checked=!!_adminSettings.showPersonal;
     document.getElementById("sw-showGrid").checked=!!_adminSettings.showGrid;
     document.getElementById("sw-showStage").checked=!!_adminSettings.showStage;
+    document.getElementById("sw-showTime").checked=!!_adminSettings.showTime;
     var ph=_adminSettings.phase||"auto";
     document.querySelectorAll(".phase-btn").forEach(function(b){b.classList.remove("active");});
     document.getElementById("ph-"+ph).classList.add("active");
@@ -667,14 +674,16 @@ function renderList(){
         var si=stageInfo(it.stage);var color=si?si.stage.color:"#64748b";var sName=si?si.stage.name:(it.stage||"未定");
         var sel=isSelected(it.name);
         var isConflict=_conflicts.has(it.name+"|"+curDay);
-        // 時段分組 header
-        var slot=getTimeslot(it.start);
-        if(slot!==lastSlot){
-            lastSlot=slot;
-            var hdr=document.createElement("div");
-            hdr.style.cssText="font-size:.72rem;font-weight:700;color:#6b7280;padding:10px 2px 4px;letter-spacing:.5px;";
-            hdr.innerText=slot;
-            c.appendChild(hdr);
+        // 時段分組 header（只有開啟時間別時才顯示）
+        if(_adminSettings.showTime){
+            var slot=getTimeslot(it.start);
+            if(slot!==lastSlot){
+                lastSlot=slot;
+                var hdr=document.createElement("div");
+                hdr.style.cssText="font-size:.72rem;font-weight:700;color:#6b7280;padding:10px 2px 4px;letter-spacing:.5px;";
+                hdr.innerText=slot;
+                c.appendChild(hdr);
+            }
         }
         var bl=document.createElement("div");
         bl.className='list-item'+(schedMode==='full'&&!sel?' dimmed':'')+(sel?' selected':'')+(isConflict?' conflict':'');
@@ -682,8 +691,9 @@ function renderList(){
         var cdResult=getCountdown(it.day||curDay,it.start,it.end);
         var cdHtml=cdResult?'<div class="ev-cd '+cdResult.cls+'" style="margin-top:4px">'+cdResult.text+'</div>':"";
         var warnHtml=isConflict?'<span style="color:#ff3b30;font-size:.75rem;font-weight:700;margin-left:6px">⚠️ 衝堂</span>':"";
-        var timeStr=it.start?(it.start+(it.end?' - '+it.end:'')):'時間未定';
-        bl.innerHTML='<div class="list-hdr"><span>🕒 '+timeStr+'</span><span style="color:'+color+';font-weight:bold">'+sName+'</span></div><div class="list-title">'+it.name+(sel?' ⭐':'')+warnHtml+'</div>'+cdHtml;
+        var timeStr=it.start?(it.start+(it.end?' - '+it.end:'')):'';
+        var timeHtml=(_adminSettings.showTime&&timeStr)?'<span>🕒 '+timeStr+'</span>':'';
+        bl.innerHTML='<div class="list-hdr">'+timeHtml+'<span style="color:'+color+';font-weight:bold">'+sName+'</span></div><div class="list-title">'+it.name+(sel?' ⭐':'')+warnHtml+'</div>'+cdHtml;
         (function(n){bl.onclick=function(){openSpotify(n);};})(it.name);
         c.appendChild(bl);
     });
