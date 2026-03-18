@@ -162,7 +162,6 @@
             <button class="tbr-btn" id="tbr-stage" onclick="openFilter()"><span class="ico">🏟️</span>舞台</button>
             <button class="tbr-btn green" onclick="syncFromLine()"><span class="ico">🔄</span>同步</button>
             <button class="tbr-btn" onclick="toggleSS()"><span class="ico">📸</span>截圖</button>
-            <button class="tbr-btn admin-only" id="btn-hdr" onclick="toggleCleanHdr()" style="display:none"><span class="ico">🏷️</span>舞台標記</button>
             <button class="tbr-btn admin-only" id="tbr-admin" onclick="openAdminPanel()" style="display:none"><span class="ico">⚙️</span>管理員</button>
         </div>
         <div class="day-selector" id="days"></div>
@@ -230,7 +229,7 @@
         </div>
       </div>
     </div>
-    <div class="modal-bg" id="filterModal"><div class="modal"><div class="modal-title">選擇舞台</div><div class="chips" id="filterChips"></div><div class="modal-actions"><button class="btn" onclick="allStages(true)">全選</button><button class="btn" onclick="allStages(false)">全不選</button><button class="btn btn-primary" onclick="applyFilter()">確定</button></div></div></div>
+    <div class="modal-bg" id="filterModal"><div class="modal"><div class="modal-title">選擇舞台</div><div class="chips" id="filterChips"></div><div class="modal-actions" style="flex-direction:column;gap:8px;"><label style="display:flex;align-items:center;gap:8px;font-size:.85rem;cursor:pointer;"><input type="checkbox" id="chk-hdr" onchange="toggleCleanHdr(this.checked)" style="width:16px;height:16px;">顯示舞台標記</label><div style="display:flex;gap:8px;"><button class="btn" onclick="allStages(true)">全選</button><button class="btn" onclick="allStages(false)">全不選</button><button class="btn btn-primary" onclick="applyFilter()">確定</button></div></div></div></div>
     <div id="sp-overlay" onclick="closeSpotify()"></div>
     <div id="sp-panel">
         <div class="sp-drag"></div>
@@ -748,8 +747,7 @@ function updateTimeLine(){
 function toggleMode(){
     schedMode=schedMode==="personal"?"full":"personal";
     if(schedMode==="full"){toast("💡 點擊色塊可加入/移除自選");}
-    else{document.body.classList.remove("clean-hdr");document.getElementById("btn-hdr").classList.remove("active");}
-    document.getElementById("btn-hdr").style.display=schedMode==="full"?"":"none";
+    else{document.body.classList.remove("clean-hdr");}
     updateSelCount();
     render();
 }
@@ -776,14 +774,15 @@ function jumpNow(){
 function openFilter(){
     var c=document.getElementById("filterChips");c.innerHTML="";
     STAGES.forEach(function(s){var b=document.createElement("button");b.className="chip"+(s.vis?" active":"");b.style.borderColor=s.color;if(s.vis)b.style.backgroundColor=s.color;b.innerText=s.name;b.onclick=function(){s.vis=!s.vis;b.classList.toggle("active");b.style.backgroundColor=s.vis?s.color:"transparent";};c.appendChild(b);});
+    document.getElementById("chk-hdr").checked=!document.body.classList.contains("clean-hdr");
     document.getElementById("filterModal").style.display="flex";
 }
 function allStages(v){STAGES.forEach(function(s){s.vis=v;});openFilter();}
 function applyFilter(){document.getElementById("filterModal").style.display="none";render();}
 function toggleSS(){document.body.classList.toggle("ss-mode");}
-function toggleCleanHdr(){
-    var on=document.body.classList.toggle("clean-hdr");
-    document.getElementById("btn-hdr").classList.toggle("active",on);
+function toggleCleanHdr(show){
+    if(show===undefined)show=document.body.classList.contains("clean-hdr");
+    document.body.classList.toggle("clean-hdr",!show);
 }
 
 function initApp(){
