@@ -86,6 +86,10 @@
         .ev.glow-md{box-shadow:0 0 8px rgba(234,179,8,.3),0 2px 5px rgba(0,0,0,.5);}
         .ev.glow-hi{box-shadow:0 0 16px rgba(234,179,8,.6),0 2px 5px rgba(0,0,0,.5);}
         .ev.selected.glow-hi{box-shadow:0 0 0 2px #eab308,0 0 14px rgba(234,179,8,.5),0 2px 8px rgba(234,179,8,.3);}
+        /* ===== CLEAN MODE ===== */
+        body.clean-hdr .stage-hdr{opacity:0;pointer-events:none;}
+        body.clean-hdr .corner{opacity:0;}
+        body.clean-hdr .list-hdr span:last-child{display:none;}
     </style>
 </head>
 <body>
@@ -99,6 +103,7 @@
                 <button class="btn btn-highlight" onclick="toggleMode()" id="btn-mode">👤 專屬</button>
                 <button class="btn" onclick="toggleView()" id="btn-view">📋</button>
                 <button class="btn" onclick="openFilter()">⚙️</button>
+                <button class="btn" onclick="toggleCleanHdr()" id="btn-hdr">🏷️</button>
                 <button class="btn btn-sync" onclick="syncFromLine()">🔄 同步</button>
                 <button class="btn btn-primary" onclick="toggleSS()">📸</button>
             </div>
@@ -263,14 +268,17 @@ function gasGet(url) {
 async function loadData(){
     if(!uid){document.getElementById("loading").innerText="❌ UID 遺失，請從 LINE 開啟";return;}
     try{
-        var data = await gasGet(GAS_URL+"?action=getData&uid="+uid);
+        // 同時發兩個請求，縮短等待時間
+        var results=await Promise.all([
+            gasGet(GAS_URL+"?action=getData&uid="+uid),
+            gasGet(GAS_URL+"?action=getSelection&uid="+uid).catch(function(){return{selection:[]};})
+        ]);
+        var data=results[0],d2=results[1];
         if(data.error){document.getElementById("loading").innerText="❌ "+data.error;return;}
-        master = data.fullSchedule||[];
-        lineWanted = data.wantedList||[];
-        // 載入自選
-        try{var d2=await gasGet(GAS_URL+"?action=getSelection&uid="+uid);mySelection=d2.selection||[];}catch(e){mySelection=[];}
-        // 如果自選為空，用 LINE 收藏初始化
-        if(mySelection.length===0) mySelection = lineWanted.map(function(n){return n;});
+        master=data.fullSchedule||[];
+        lineWanted=data.wantedList||[];
+        mySelection=d2.selection||[];
+        if(mySelection.length===0) mySelection=lineWanted.map(function(n){return n;});
         buildStages(); document.getElementById("loading").style.display="none"; initApp();
     }catch(e){document.getElementById("loading").innerText="❌ 連線失敗："+e.message;}
 }
@@ -303,12 +311,16 @@ async function saveSelection(){
 async function syncFromLine(){
     try{
         toast("🔄 同步中...");
+        // Step1: 拉取 LINE 清單
         var d=await gasGet(GAS_URL+"?action=syncFromLine&uid="+uid);
-        var newList=(d.wantedList||[]).map(function(n){return n.toLowerCase().trim();});
+        var lineList=(d.wantedList||[]).map(function(n){return n.toLowerCase().trim();});
+        // Step2: 合併 LINE → TT（只加不刪）
         var added=0;
-        newList.forEach(function(n){if(mySelection.indexOf(n)<0){mySelection.push(n);added++;}});
+        lineList.forEach(function(n){if(mySelection.indexOf(n)<0){mySelection.push(n);added++;}});
+        // Step3: 把合併後的 TT 清單推回 LINE（忽略失敗）
+        gasGet(GAS_URL+"?action=pushToLine&uid="+uid+"&selection="+encodeURIComponent(JSON.stringify(mySelection))).catch(function(){});
         saveSelection(); render();
-        toast("✅ 同步完成！新增 "+added+" 組");
+        toast("✅ 雙向同步完成！新增 "+added+" 組");
     }catch(e){toast("❌ 同步失敗");}
 }
 
@@ -428,6 +440,10 @@ function openFilter(){
 function allStages(v){STAGES.forEach(function(s){s.vis=v;});openFilter();}
 function applyFilter(){document.getElementById("filterModal").style.display="none";render();}
 function toggleSS(){document.body.classList.toggle("ss-mode");}
+function toggleCleanHdr(){
+    var on=document.body.classList.toggle("clean-hdr");
+    document.getElementById("btn-hdr").classList.toggle("btn-primary",on);
+}
 
 function initApp(){
     var dc=document.getElementById("days");dc.innerHTML="";
