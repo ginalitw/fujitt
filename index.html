@@ -102,6 +102,10 @@
         .ev.glow-md{box-shadow:0 0 8px rgba(234,179,8,.3),0 2px 5px rgba(0,0,0,.5);}
         .ev.glow-hi{box-shadow:0 0 16px rgba(234,179,8,.6),0 2px 5px rgba(0,0,0,.5);}
         .ev.selected.glow-hi{box-shadow:0 0 0 2px #eab308,0 0 14px rgba(234,179,8,.5),0 2px 8px rgba(234,179,8,.3);}
+        /* ===== CLEAN MODE ===== */
+        body.clean-hdr .stage-hdr{opacity:0;pointer-events:none;}
+        body.clean-hdr .corner{opacity:0;}
+        body.clean-hdr .list-hdr span:last-child{display:none;}
         /* ===== CONFLICT WARNING ===== */
         .ev.conflict{outline:2px solid #ff3b30;outline-offset:-2px;}
         .ev-warn{font-size:.6rem;color:#ff3b30;font-weight:700;margin-top:2px;}
@@ -158,6 +162,7 @@
             <button class="tbr-btn" id="tbr-stage" onclick="openFilter()"><span class="ico">🏟️</span>舞台</button>
             <button class="tbr-btn green" onclick="syncFromLine()"><span class="ico">🔄</span>同步</button>
             <button class="tbr-btn" onclick="toggleSS()"><span class="ico">📸</span>截圖</button>
+            <button class="tbr-btn admin-only" id="btn-hdr" onclick="toggleCleanHdr()" style="display:none"><span class="ico">🏷️</span>舞台標記</button>
             <button class="tbr-btn admin-only" id="tbr-admin" onclick="openAdminPanel()" style="display:none"><span class="ico">⚙️</span>管理員</button>
         </div>
         <div class="day-selector" id="days"></div>
@@ -540,31 +545,26 @@ function closeSpotify(){
     document.getElementById("sp-overlay").style.display="none";
     setTimeout(function(){document.getElementById("sp-body").innerHTML="";},400);
 }
-// ====== JSONP Helper ======
-var _jsonpId = 0;
-function jsonp(url) {
-  return new Promise(function(resolve, reject) {
-    var cbName = "_jsonp_cb_" + (++_jsonpId) + "_" + Date.now();
-    var timeout = setTimeout(function() { cleanup(); reject(new Error("Timeout")); }, 15000);
-    function cleanup() { clearTimeout(timeout); delete window[cbName]; var s = document.getElementById(cbName); if (s) s.remove(); }
-    window[cbName] = function(data) { cleanup(); resolve(data); };
-    var s = document.createElement("script");
-    s.id = cbName;
-    s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cbName;
-    s.onerror = function() { cleanup(); reject(new Error("Load failed")); };
-    document.head.appendChild(s);
-  });
+
+// ====== Fetch Helper ======
+function gasGet(url) {
+  return fetch(url).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); });
 }
 // ====== DATA ======
 async function loadData(){
     if(!uid){document.getElementById("loading").innerText="❌ UID 遺失，請從 LINE 開啟";return;}
     try{
-        var data = await jsonp(GAS_URL+"?action=getData&uid="+uid);
+        // 同時發兩個請求，縮短等待時間
+        var results=await Promise.all([
+            gasGet(GAS_URL+"?action=getData&uid="+uid),
+            gasGet(GAS_URL+"?action=getSelection&uid="+uid).catch(function(){return{selection:[]};})
+        ]);
+        var data=results[0],d2=results[1];
         if(data.error){document.getElementById("loading").innerText="❌ "+data.error;return;}
-        master = data.fullSchedule||[];
-        lineWanted = data.wantedList||[];
-        try{var d2=await jsonp(GAS_URL+"?action=getSelection&uid="+uid);mySelection=d2.selection||[];}catch(e){mySelection=[];}
-        if(mySelection.length===0) mySelection = lineWanted.map(function(n){return n;});
+        master=data.fullSchedule||[];
+        lineWanted=data.wantedList||[];
+        mySelection=d2.selection||[];
+        if(mySelection.length===0) mySelection=lineWanted.map(function(n){return n;});
         buildStages(); document.getElementById("loading").style.display="none"; initApp();
     }catch(e){document.getElementById("loading").innerText="❌ 連線失敗："+e.message;}
 }
@@ -587,17 +587,21 @@ function toggleSelection(name){
     saveSelection(); render();
 }
 async function saveSelection(){
-    try{await jsonp(GAS_URL+"?action=saveSelection&uid="+uid+"&selection="+encodeURIComponent(JSON.stringify(mySelection)));}catch(e){}
+    try{await gasGet(GAS_URL+"?action=saveSelection&uid="+uid+"&selection="+encodeURIComponent(JSON.stringify(mySelection)));}catch(e){}
 }
 async function syncFromLine(){
     try{
         toast("🔄 同步中...");
-        var d=await jsonp(GAS_URL+"?action=syncFromLine&uid="+uid);
-        var newList=(d.wantedList||[]).map(function(n){return n.toLowerCase().trim();});
+        // Step1: 拉取 LINE 清單
+        var d=await gasGet(GAS_URL+"?action=syncFromLine&uid="+uid);
+        var lineList=(d.wantedList||[]).map(function(n){return n.toLowerCase().trim();});
+        // Step2: 合併 LINE → TT（只加不刪）
         var added=0;
-        newList.forEach(function(n){if(mySelection.indexOf(n)<0){mySelection.push(n);added++;}});
+        lineList.forEach(function(n){if(mySelection.indexOf(n)<0){mySelection.push(n);added++;}});
+        // Step3: 把合併後的 TT 清單推回 LINE（忽略失敗）
+        gasGet(GAS_URL+"?action=pushToLine&uid="+uid+"&selection="+encodeURIComponent(JSON.stringify(mySelection))).catch(function(){});
         saveSelection(); render();
-        toast("✅ 同步完成！新增 "+added+" 組");
+        toast("✅ 雙向同步完成！新增 "+added+" 組");
     }catch(e){toast("❌ 同步失敗");}
 }
 // ====== RENDER ======
@@ -743,7 +747,9 @@ function updateTimeLine(){
 // ====== CONTROLS ======
 function toggleMode(){
     schedMode=schedMode==="personal"?"full":"personal";
-    if(schedMode==="full")toast("💡 點擊色塊可加入/移除自選");
+    if(schedMode==="full"){toast("💡 點擊色塊可加入/移除自選");}
+    else{document.body.classList.remove("clean-hdr");document.getElementById("btn-hdr").classList.remove("active");}
+    document.getElementById("btn-hdr").style.display=schedMode==="full"?"":"none";
     updateSelCount();
     render();
 }
@@ -775,6 +781,11 @@ function openFilter(){
 function allStages(v){STAGES.forEach(function(s){s.vis=v;});openFilter();}
 function applyFilter(){document.getElementById("filterModal").style.display="none";render();}
 function toggleSS(){document.body.classList.toggle("ss-mode");}
+function toggleCleanHdr(){
+    var on=document.body.classList.toggle("clean-hdr");
+    document.getElementById("btn-hdr").classList.toggle("active",on);
+}
+
 function initApp(){
     var dc=document.getElementById("days");dc.innerHTML="";
     DAY_LABELS.forEach(function(l,i){var b=document.createElement("button");b.className="day-btn"+(i===0?" active":"");b.innerText=l;b.onclick=function(){changeDay(i);};dc.appendChild(b);});
