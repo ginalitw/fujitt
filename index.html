@@ -103,7 +103,7 @@
                 <button class="btn btn-highlight" onclick="toggleMode()" id="btn-mode">👤 專屬</button>
                 <button class="btn" onclick="toggleView()" id="btn-view">📋</button>
                 <button class="btn" onclick="openFilter()">⚙️</button>
-                <button class="btn" onclick="toggleCleanHdr()" id="btn-hdr">🏷️</button>
+                <button class="btn" onclick="toggleCleanHdr()" id="btn-hdr" style="display:none">🏷️</button>
                 <button class="btn btn-sync" onclick="syncFromLine()">🔄 同步</button>
                 <button class="btn btn-primary" onclick="toggleSS()">📸</button>
             </div>
@@ -410,7 +410,9 @@ function toggleMode(){
     var b=document.getElementById("btn-mode");
     b.innerText=schedMode==="full"?"🌐 全展":"👤 專屬";
     if(schedMode==="full")b.classList.remove("btn-highlight");else b.classList.add("btn-highlight");
-    if(schedMode==="full")toast("💡 點擊色塊可加入/移除自選");
+    if(schedMode==="full"){toast("💡 點擊色塊可加入/移除自選");}
+    else{document.body.classList.remove("clean-hdr");document.getElementById("btn-hdr").classList.remove("btn-primary");}
+    document.getElementById("btn-hdr").style.display=schedMode==="full"?"":"none";
     render();
 }
 function toggleView(){
