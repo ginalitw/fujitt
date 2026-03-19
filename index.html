@@ -587,11 +587,21 @@ function closeSpotify(){
 function gasGet(url) {
   return fetch(url).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); });
 }
+// ── 日期格式 → "Day 1/2/3" 轉換 ───────────────────────
+// Firestore 存的是 "2026-07-24"，timetable 用的是 "Day 1"
+function _dateToDay(d){
+    if(!d)return "";
+    var s=String(d).trim();
+    if(s==="Day 1"||s==="7/24"||s==="2026-07-24")return "Day 1";
+    if(s==="Day 2"||s==="7/25"||s==="2026-07-25")return "Day 2";
+    if(s==="Day 3"||s==="7/26"||s==="2026-07-26")return "Day 3";
+    return s; // 其他格式原樣保留
+}
 // ── Firestore artists → master 格式轉換 helper ─────────
 function _artistsSnapToMaster(snap){
     return snap.docs.map(function(d){
         var a=d.data();
-        return {name:a.name||"",day:a.date||"",start:a.startTime||"",
+        return {name:a.name||"",day:_dateToDay(a.date),start:a.startTime||"",
                 end:a.endTime||"",stage:a.stage||"",code:a.code||"",genre:a.genre||""};
     });
 }
