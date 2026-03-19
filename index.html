@@ -615,6 +615,19 @@ function _artistsSnapToMaster(snap){
                 end:a.endTime||"",stage:a.stage||"",code:a.code||"",genre:a.genre||""};
     });
 }
+// ── LINE code ↔ 藝人名稱轉換（利用已載入的 master，不需 GAS）──
+function _codesToNames(codes){
+    return (codes||[]).map(function(code){
+        var a=master.find(function(it){return it.code===code;});
+        return a?a.name.toLowerCase().trim():null;
+    }).filter(Boolean);
+}
+function _namesToCodes(names){
+    return (names||[]).map(function(n){
+        var a=master.find(function(it){return it.name.toLowerCase().trim()===n;});
+        return a?a.code:null;
+    }).filter(Boolean);
+}
 // ── 背景靜默重整（快取命中後更新資料）─────────────────
 function _refreshDataBg(){
     // 1. Firestore artists → master（排程表，最新節目）
@@ -622,9 +635,11 @@ function _refreshDataBg(){
         if(snap.empty)return;
         master=_artistsSnapToMaster(snap);
         buildStages(); render();
-        // 2. GAS getWantedList → lineWanted（LINE 收藏，僅此需要 GAS）
-        gasGet(GAS_URL+"?action=getWantedList&uid="+uid).then(function(w){
-            lineWanted=w.wantedList||[];
+        // 2. Firestore users/{uid}.favoriteList → lineWanted（不需 GAS）
+        if(!uid)return;
+        _db.collection("users").doc(uid).get().then(function(uSnap){
+            var codes=(uSnap.exists&&uSnap.data&&uSnap.data()&&uSnap.data().favoriteList)?uSnap.data().favoriteList:[];
+            lineWanted=_codesToNames(codes);
             _setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});
         }).catch(function(){_setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});});
     }).catch(function(){});
@@ -651,25 +666,26 @@ async function loadData(){
         return;
     }
 
-    // ── 無快取：三個來源並行拉取 ─────────────────────────
-    // Firestore artists + GAS wantedList + Firestore timetable/{uid}
+    // ── 無快取：三個來源並行拉取（全部走 Firestore，不需 GAS）────
     try{
         var results=await Promise.all([
             _db.collection("artists").get(),
-            gasGet(GAS_URL+"?action=getWantedList&uid="+uid).catch(function(){return{wantedList:[]};}),
+            _db.collection("users").doc(uid).get().catch(function(){return{exists:false};}),
             _db.collection("timetable").doc(uid).get().catch(function(){return{exists:false};})
         ]);
-        var aSnap=results[0], wData=results[1], tSnap=results[2];
+        var aSnap=results[0], uSnap=results[1], tSnap=results[2];
         if(!aSnap.docs) throw new Error("Firestore 讀取失敗");
-        master     = _artistsSnapToMaster(aSnap);
-        lineWanted = wData.wantedList||[];
+        master = _artistsSnapToMaster(aSnap);
+        // LINE 收藏：Firestore users/{uid}.favoriteList（code）→ 名稱
+        var rawCodes=(uSnap.exists&&uSnap.data&&uSnap.data()&&uSnap.data().favoriteList)?uSnap.data().favoriteList:[];
+        lineWanted=_codesToNames(rawCodes);
         var fsHadData = (tSnap.exists&&tSnap.data&&tSnap.data()&&tSnap.data().selection&&tSnap.data().selection.length>0);
         mySelection= fsHadData ? tSnap.data().selection : [];
         if(mySelection.length===0) mySelection=lineWanted.map(function(n){return n;});
         _setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});
         if(mySelection.length>0) _setCache(_SEL_KEY,{selection:mySelection});
         buildStages(); document.getElementById("loading").style.display="none"; initApp();
-        // ★ 修正：Firestore 是空的但從 LINE 清單初始化了資料，寫入 Firestore
+        // Firestore 是空的但從 LINE 清單初始化了資料 → 寫入 Firestore
         if(!fsHadData && mySelection.length>0) saveSelection();
     }catch(e){document.getElementById("loading").innerText="❌ 連線失敗："+e.message;}
 }
@@ -703,17 +719,26 @@ function saveSelection(){
 async function syncFromLine(){
     try{
         toast("🔄 同步中...");
-        // Step1: 拉取 LINE 清單
-        var d=await gasGet(GAS_URL+"?action=syncFromLine&uid="+uid);
-        var lineList=(d.wantedList||[]).map(function(n){return n.toLowerCase().trim();});
-        // Step2: 合併 LINE → TT（只加不刪）
+        // Step1: 直接讀 Firestore users/{uid}.favoriteList（code 陣列）
+        var uSnap=await _db.collection("users").doc(uid).get();
+        var codes=(uSnap.exists&&uSnap.data&&uSnap.data()&&uSnap.data().favoriteList)?uSnap.data().favoriteList:[];
+        // Step2: code → 名稱（用 master，不需 GAS）
+        var lineList=_codesToNames(codes);
+        lineWanted=lineList.slice(); // 更新 lineWanted
+        // Step3: 合併 LINE → TT（只加不刪）
         var added=0;
         lineList.forEach(function(n){if(mySelection.indexOf(n)<0){mySelection.push(n);added++;}});
-        // Step3: 把合併後的 TT 清單推回 LINE（忽略失敗）
-        gasGet(GAS_URL+"?action=pushToLine&uid="+uid+"&selection="+encodeURIComponent(JSON.stringify(mySelection))).catch(function(){});
+        // Step4: TT 清單（名稱）→ code → 寫回 Firestore users/{uid}.favoriteList
+        var newCodes=_namesToCodes(mySelection);
+        await _db.collection("users").doc(uid).set({favoriteList:newCodes},{merge:true});
         saveSelection(); render();
-        toast("✅ 雙向同步完成！新增 "+added+" 組");
-    }catch(e){toast("❌ 同步失敗");}
+        _setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});
+        _setCache(_SEL_KEY,{selection:mySelection});
+        toast("✅ 雙向同步完成！新增 "+added+" 組，LINE 已更新 "+newCodes.length+" 組");
+    }catch(e){
+        console.error("syncFromLine error:",e);
+        toast("❌ 同步失敗："+e.message);
+    }
 }
 // ====== RENDER ======
 function stageInfo(sn){
