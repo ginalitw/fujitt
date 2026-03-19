@@ -97,6 +97,17 @@
         .sp-sel{padding:6px 12px;border-radius:16px;font-size:.78rem;font-weight:700;border:none;cursor:pointer;white-space:nowrap;transition:.15s;}
         .sp-sel.add{background:#eab308;color:#000;}
         .sp-sel.remove{background:#ef4444;color:#fff;}
+        /* ===== ARTIST INFO IN PANEL ===== */
+        .sp-info{padding:4px 12px 8px;}
+        .sp-img{width:100%;max-height:170px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:block;}
+        .sp-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+        .sp-tag{background:#1f2937;border-radius:20px;padding:3px 10px;font-size:.7rem;color:#93c5fd;white-space:nowrap;}
+        .sp-tag.genre{background:#312e81;color:#a5b4fc;font-weight:600;}
+        .sp-intro{color:#cbd5e1;font-size:.8rem;line-height:1.65;margin-bottom:10px;max-height:90px;overflow-y:auto;}
+        .sp-extlinks{display:flex;gap:7px;margin-bottom:4px;}
+        .sp-extlink{flex:1;text-align:center;background:#1f2937;color:#9ca3af;text-decoration:none;padding:7px 4px;border-radius:8px;font-size:.72rem;font-weight:600;}
+        .sp-extlink:active{background:#374151;color:#fff;}
+        .sp-divider{border:none;border-top:1px solid #282828;margin:4px 0 10px;}
         /* ===== SPOTIFY ICON ON EVENTS ===== */
         .ev-sp{position:absolute;bottom:2px;right:3px;font-size:.7rem;color:#1DB954;opacity:.5;background:none;border:none;cursor:pointer;padding:2px;line-height:1;z-index:11;}
         .ev-sp:active,.ev-sp:hover{opacity:1;}
@@ -560,6 +571,31 @@ function spToggleSel(){
     toggleSelection(_spCurArtist);
     _updateSpSelBtn();
 }
+function _buildArtistInfoHtml(name){
+    var art=master.find(function(it){return it.name.toLowerCase().trim()===name.toLowerCase().trim();});
+    var html='';
+    if(!art)return html;
+    var hasInfo=art.image||art.genre||art.intro||art.ig||art.yt;
+    if(!hasInfo)return html;
+    html+='<div class="sp-info">';
+    // 圖片（M欄，尚未補上時自動隱藏）
+    if(art.image) html+='<img class="sp-img" src="'+art.image+'" alt="'+name+'" loading="lazy" onerror="this.style.display=\'none\'">';
+    // 標籤：曲風 / 日期 / 舞台
+    var tags='';
+    if(art.genre) tags+='<span class="sp-tag genre">🎵 '+art.genre+'</span>';
+    if(art.day)   tags+='<span class="sp-tag">📅 '+art.day+'</span>';
+    if(art.stage) tags+='<span class="sp-tag">🏟 '+art.stage.replace(/ STAGE$/i,'').replace(/ MARQUEE$/i,'')+'</span>';
+    if(tags) html+='<div class="sp-tags">'+tags+'</div>';
+    // 中文介紹（F欄）
+    if(art.intro) html+='<div class="sp-intro">'+art.intro.replace(/\n/g,'<br>')+'</div>';
+    // 外部連結（IG / YT）
+    var links='';
+    if(art.ig) links+='<a class="sp-extlink" href="'+art.ig+'" target="_blank">📸 Instagram</a>';
+    if(art.yt) links+='<a class="sp-extlink" href="'+art.yt+'" target="_blank">▶️ YouTube</a>';
+    if(links) html+='<div class="sp-extlinks">'+links+'</div>';
+    html+='</div><hr class="sp-divider">';
+    return html;
+}
 function openSpotify(name){
     _spCurArtist=name;
     document.getElementById("sp-aname").textContent=name;
@@ -567,9 +603,10 @@ function openSpotify(name){
     var body=document.getElementById("sp-body");
     document.getElementById("sp-panel").classList.add("open");
     document.getElementById("sp-overlay").style.display="block";
+    var infoHtml=_buildArtistInfoHtml(name);
     // 🎪 音樂祭期間（7/24~7/27）鎖定試聽，節省行動數據
     if(isFestivalMode()){
-        body.innerHTML=
+        body.innerHTML=infoHtml+
             '<div style="text-align:center;padding:20px 12px 8px;font-size:2rem">🎪</div>'+
             '<div style="text-align:center;padding:0 16px 8px;color:#e2e8f0;font-size:.95rem;font-weight:700">音樂祭進行中！</div>'+
             '<div style="text-align:center;padding:0 16px 16px;color:#9ca3af;font-size:.82rem;line-height:1.5">試聽功能已暫停<br>節省你的行動數據，<br>到現場盡情享受吧！</div>'+
@@ -579,9 +616,9 @@ function openSpotify(name){
     }
     var aid=_spAid[name];
     if(aid){
-        body.innerHTML='<iframe src="https://open.spotify.com/embed/artist/'+aid+'?utm_source=generator&theme=0" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+        body.innerHTML=infoHtml+'<iframe src="https://open.spotify.com/embed/artist/'+aid+'?utm_source=generator&theme=0" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
     }else{
-        _spFallback(name,body);
+        body.innerHTML=infoHtml+'<a class="sp-link" href="https://open.spotify.com/search/'+encodeURIComponent(name)+'" target="_blank">🎵 在 Spotify 搜尋 '+name+'</a>';
     }
 }
 function _spFallback(name,body){
@@ -612,7 +649,8 @@ function _artistsSnapToMaster(snap){
     return snap.docs.map(function(d){
         var a=d.data();
         return {name:a.name||"",day:_dateToDay(a.date),start:a.startTime||"",
-                end:a.endTime||"",stage:a.stage||"",code:a.code||"",genre:a.genre||""};
+                end:a.endTime||"",stage:a.stage||"",code:a.code||"",genre:a.genre||"",
+                intro:a.intro||"",image:a.imageUrl||a.image||"",ig:a.ig||"",yt:a.yt||""};
     });
 }
 // ── LINE code ↔ 藝人名稱轉換（利用已載入的 master，不需 GAS）──
