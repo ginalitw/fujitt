@@ -644,6 +644,9 @@ async function loadData(){
         buildStages();
         document.getElementById("loading").style.display="none";
         initApp();
+        // ★ 修正：把 localStorage 的選擇同步寫回 Firestore
+        // （手機 LINE 沒有 localStorage，必須靠 Firestore 取得資料）
+        if(mySelection.length>0) saveSelection();
         _refreshDataBg(); // 背景靜默更新，不阻塞畫面
         return;
     }
@@ -660,12 +663,14 @@ async function loadData(){
         if(!aSnap.docs) throw new Error("Firestore 讀取失敗");
         master     = _artistsSnapToMaster(aSnap);
         lineWanted = wData.wantedList||[];
-        mySelection= (tSnap.exists&&tSnap.data&&tSnap.data()&&tSnap.data().selection&&tSnap.data().selection.length)
-                     ? tSnap.data().selection : [];
+        var fsHadData = (tSnap.exists&&tSnap.data&&tSnap.data()&&tSnap.data().selection&&tSnap.data().selection.length>0);
+        mySelection= fsHadData ? tSnap.data().selection : [];
         if(mySelection.length===0) mySelection=lineWanted.map(function(n){return n;});
         _setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});
         if(mySelection.length>0) _setCache(_SEL_KEY,{selection:mySelection});
         buildStages(); document.getElementById("loading").style.display="none"; initApp();
+        // ★ 修正：Firestore 是空的但從 LINE 清單初始化了資料，寫入 Firestore
+        if(!fsHadData && mySelection.length>0) saveSelection();
     }catch(e){document.getElementById("loading").innerText="❌ 連線失敗："+e.message;}
 }
 function buildStages(){
