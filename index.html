@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>2026 Fuji Rock My Timetable</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <style>
         :root { --bg:#000; --surface:#1a1a1a; --text:#fff; --muted:#9ca3af; --border:#333; --accent:#3b82f6; }
         *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
@@ -146,7 +148,6 @@
         .phase-btn{padding:5px 10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.78rem;cursor:pointer;}
         .phase-btn.active{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:700;}
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <div id="loading">🤘 苗場資料讀取中...</div>
@@ -252,6 +253,22 @@
 // ====== CONFIG ======
 var GAS_URL = "https://script.google.com/macros/s/AKfycbxrwj7fuanwtwa19rlCIuYdnl1kuaobuJOcoF5gWGHMSXIS0Pg3r6k0t5p3hSu0DnFmbw/exec";
 var uid = new URLSearchParams(location.search).get("uid");
+// ====== FIREBASE ======
+firebase.initializeApp({
+    apiKey: "AIzaSyDqHIQAIdllC5krO9gLzIIFVNB8llcyNl4",
+    authDomain: "frfhelp-66666.firebaseapp.com",
+    projectId: "frfhelp-66666",
+    storageBucket: "frfhelp-66666.firebasestorage.app",
+    messagingSenderId: "690578531619",
+    appId: "1:690578531619:web:d9113ca3351e3460851896"
+});
+var _db = firebase.firestore();
+// ====== CACHE（重複開啟秒速顯示）======
+var _CACHE_KEY  = "fujitt_sched_v3";  // artists(Firestore) + wantedList(GAS)
+var _SEL_KEY    = "fujitt_sel_v3";    // mySelection(Firestore)
+var _CACHE_TTL  = 60*60*1000;         // 1小時
+function _getCache(k,ttl){try{var c=JSON.parse(localStorage.getItem(k)||"null");if(c&&Date.now()-c.ts<ttl)return c;}catch(e){}return null;}
+function _setCache(k,data){try{var o=Object.assign({},data,{ts:Date.now()});localStorage.setItem(k,JSON.stringify(o));}catch(e){}}
 // ====== SPOTIFY CONFIG ======
 // 路線B：由 GAS 預載所有藝人 ID，無需用戶登入，無人數限制
 var _spPop = {};      // artistName -> popularity
@@ -444,8 +461,19 @@ function isMobile(){
     return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
            ('ontouchstart' in window && navigator.maxTouchPoints > 0 && window.innerWidth < 1024);
 }
-function downloadScreenshot(){
+async function downloadScreenshot(){
     toast("📸 截圖產生中...");
+    // 懶載入 html2canvas（只在點截圖時才下載，不阻塞初始渲染）
+    if(!window.html2canvas){
+        try{
+            await new Promise(function(resolve,reject){
+                var s=document.createElement("script");
+                s.src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+                s.onload=resolve; s.onerror=reject;
+                document.head.appendChild(s);
+            });
+        }catch(e){toast("❌ 截圖模組載入失敗");return;}
+    }
     html2canvas(document.body,{backgroundColor:"#000",scale:2,useCORS:true,allowTaint:true,ignoreElements:function(el){return el.classList&&(el.classList.contains("ss-dl-btn")||el.id==="sp-overlay"||el.id==="sp-panel");}}).then(function(canvas){
         if(isMobile()){
             // 手機：優先 Web Share API（可存到相簿），否則顯示長按提示
@@ -559,21 +587,64 @@ function closeSpotify(){
 function gasGet(url) {
   return fetch(url).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); });
 }
+// ── Firestore artists → master 格式轉換 helper ─────────
+function _artistsSnapToMaster(snap){
+    return snap.docs.map(function(d){
+        var a=d.data();
+        return {name:a.name||"",day:a.date||"",start:a.startTime||"",
+                end:a.endTime||"",stage:a.stage||"",code:a.code||"",genre:a.genre||""};
+    });
+}
+// ── 背景靜默重整（快取命中後更新資料）─────────────────
+function _refreshDataBg(){
+    // 1. Firestore artists → master（排程表，最新節目）
+    _db.collection("artists").get().then(function(snap){
+        if(snap.empty)return;
+        master=_artistsSnapToMaster(snap);
+        buildStages(); render();
+        // 2. GAS getWantedList → lineWanted（LINE 收藏，僅此需要 GAS）
+        gasGet(GAS_URL+"?action=getWantedList&uid="+uid).then(function(w){
+            lineWanted=w.wantedList||[];
+            _setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});
+        }).catch(function(){_setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});});
+    }).catch(function(){});
+}
 // ====== DATA ======
 async function loadData(){
     if(!uid){document.getElementById("loading").innerText="❌ UID 遺失，請從 LINE 開啟";return;}
-    try{
-        // 同時發兩個請求，縮短等待時間
-        var results=await Promise.all([
-            gasGet(GAS_URL+"?action=getData&uid="+uid),
-            gasGet(GAS_URL+"?action=getSelection&uid="+uid).catch(function(){return{selection:[]};})
-        ]);
-        var data=results[0],d2=results[1];
-        if(data.error){document.getElementById("loading").innerText="❌ "+data.error;return;}
-        master=data.fullSchedule||[];
-        lineWanted=data.wantedList||[];
-        mySelection=d2.selection||[];
+
+    // ── 快取命中：立即顯示，背景靜默更新 ──────────────────
+    var cached   = _getCache(_CACHE_KEY, _CACHE_TTL);
+    var selCache = _getCache(_SEL_KEY,   _CACHE_TTL);
+    if(cached){
+        master      = cached.master    || [];
+        lineWanted  = cached.lineWanted|| [];
+        mySelection = selCache ? (selCache.selection||[]) : [];
         if(mySelection.length===0) mySelection=lineWanted.map(function(n){return n;});
+        buildStages();
+        document.getElementById("loading").style.display="none";
+        initApp();
+        _refreshDataBg(); // 背景靜默更新，不阻塞畫面
+        return;
+    }
+
+    // ── 無快取：三個來源並行拉取 ─────────────────────────
+    // Firestore artists + GAS wantedList + Firestore timetable/{uid}
+    try{
+        var results=await Promise.all([
+            _db.collection("artists").get(),
+            gasGet(GAS_URL+"?action=getWantedList&uid="+uid).catch(function(){return{wantedList:[]};}),
+            _db.collection("timetable").doc(uid).get().catch(function(){return{exists:false};})
+        ]);
+        var aSnap=results[0], wData=results[1], tSnap=results[2];
+        if(!aSnap.docs) throw new Error("Firestore 讀取失敗");
+        master     = _artistsSnapToMaster(aSnap);
+        lineWanted = wData.wantedList||[];
+        mySelection= (tSnap.exists&&tSnap.data&&tSnap.data()&&tSnap.data().selection&&tSnap.data().selection.length)
+                     ? tSnap.data().selection : [];
+        if(mySelection.length===0) mySelection=lineWanted.map(function(n){return n;});
+        _setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});
+        if(mySelection.length>0) _setCache(_SEL_KEY,{selection:mySelection});
         buildStages(); document.getElementById("loading").style.display="none"; initApp();
     }catch(e){document.getElementById("loading").innerText="❌ 連線失敗："+e.message;}
 }
@@ -593,10 +664,16 @@ function toggleSelection(name){
     var idx=mySelection.indexOf(key);
     if(idx>=0){mySelection.splice(idx,1);toast("❌ 已移除："+name);}
     else{mySelection.push(key);toast("⭐ 已加入："+name);}
+    _setCache(_SEL_KEY,{selection:mySelection}); // 立即存 localStorage（下次秒開）
     saveSelection(); render();
 }
-async function saveSelection(){
-    try{await gasGet(GAS_URL+"?action=saveSelection&uid="+uid+"&selection="+encodeURIComponent(JSON.stringify(mySelection)));}catch(e){}
+function saveSelection(){
+    // Firestore timetable/{uid} — 背景寫入，不阻塞 UI
+    if(uid && _db){
+        _db.collection("timetable").doc(uid).set({selection:mySelection},{merge:true}).catch(function(e){
+            console.warn("Firestore saveSelection failed:", e);
+        });
+    }
 }
 async function syncFromLine(){
     try{
@@ -864,8 +941,8 @@ window.onload=async function(){
         banner.innerHTML="🎪 音樂祭進行中！試聽已暫停以節省行動數據 · 加入／移除排表功能正常使用";
         document.body.insertBefore(banner,document.body.firstChild);
     }
-    // 預載 Spotify 快取（不需用戶登入，無人數限制）
-    await loadSpotifyData();
+    // 預載 Spotify 快取（與主資料並行，不阻塞排程顯示）
+    loadSpotifyData();
     loadData();
 };
 </script>
