@@ -517,6 +517,15 @@ function isFestivalMode(){
     return y===2026 && m===7 && d>=24 && d<=27;
 }
 async function loadSpotifyData(){
+    // 先從 localStorage 取快取（Spotify ID 很少變動，用 24 小時 TTL）
+    var SP_KEY="fujitt_spotify_v1";
+    var spCached=_getCache(SP_KEY, 24*60*60*1000);
+    if(spCached && spCached.aid){
+        Object.assign(_spAid, spCached.aid);
+        Object.assign(_spPop, spCached.pop||{});
+        _spLoaded=true;
+    }
+    // 背景從 GAS 更新（不阻塞 UI）
     try{
         var data=await gasGet(GAS_URL+"?action=getSpotifyData");
         Object.keys(data).forEach(function(name){
@@ -524,6 +533,7 @@ async function loadSpotifyData(){
             _spPop[name]=data[name].pop;
         });
         _spLoaded=true;
+        _setCache(SP_KEY, {aid:_spAid, pop:_spPop});
     }catch(e){
         console.warn("Spotify 快取載入失敗，改用外連搜尋");
     }
