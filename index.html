@@ -4,23 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>2026 Fuji Rock My Timetable</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <style>
-        :root { --bg:#000; --surface:#1a1a1a; --text:#fff; --muted:#9ca3af; --border:#333; --accent:#3b82f6; }
-        /* ===== LIGHT THEME ===== */
-        body.theme-light { --bg:#f8f9fa; --surface:#fff; --text:#111827; --muted:#6b7280; --border:#e5e7eb; --accent:#2563eb; }
-        body.theme-light header{background:rgba(248,249,250,0.95);}
-        body.theme-light .ev{box-shadow:0 1px 4px rgba(0,0,0,.12);}
-        body.theme-light .ev.selected{box-shadow:0 0 0 2px #eab308,0 2px 8px rgba(234,179,8,.2);}
-        body.theme-light #loading{background:#f8f9fa;color:#111827;}
-        body.theme-light .stats-bar{background:#f1f5f9;}
-        body.theme-light .modal{background:#fff;border-color:#e5e7eb;}
-        body.theme-light .chip{color:#374151;}
-        body.theme-light .toggle-sw .slider{background:#d1d5db;}
-        body.theme-light .list-item{box-shadow:0 1px 4px rgba(0,0,0,.08);}
-        body.theme-light .list-item.dimmed{background:#f9fafb;}
+        :root { --bg:#000; --surface:#1a1a1a; --text:#fff; --muted:#9ca3af; --border:#333; --accent:#3b82f6; --header-bg:rgba(26,26,26,0.95); }
+        :root.light { --bg:#f0f4f8; --surface:#ffffff; --text:#0f172a; --muted:#64748b; --border:#cbd5e1; --accent:#2563eb; --header-bg:rgba(248,250,252,0.97); }
         *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
         body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
-        header{padding:12px 16px;background:rgba(26,26,26,0.95);backdrop-filter:blur(10px);position:sticky;top:0;z-index:1000;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px;}
+        header{padding:12px 16px;background:var(--header-bg);backdrop-filter:blur(10px);position:sticky;top:0;z-index:1000;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px;}
         .header-top{display:flex;justify-content:space-between;align-items:center;}
         h1{font-size:1.1rem;font-weight:700;white-space:nowrap;}
         .toolbar{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
@@ -70,7 +61,7 @@
         .fab{position:fixed;bottom:20px;right:20px;background:var(--accent);color:white;width:46px;height:46px;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:1.3rem;box-shadow:0 4px 10px rgba(0,0,0,.5);z-index:900;border:none;cursor:pointer;}
         .list-view{display:none;padding:16px;flex-direction:column;gap:10px;}
         .list-item{display:flex;flex-direction:column;background:var(--surface);padding:10px;border-radius:8px;border-left:4px solid;box-shadow:0 2px 5px rgba(0,0,0,.3);cursor:pointer;}
-        .list-item.dimmed{opacity:.4;background:#111;}
+        .list-item.dimmed{opacity:.35;background:transparent;}
         .list-item.selected{box-shadow:0 0 0 2px #eab308;}
         .list-hdr{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:4px;}
         .list-title{font-size:1rem;font-weight:bold;}
@@ -93,12 +84,12 @@
         body.ss-mode .ss-exit-btn{display:block;}
         /* ===== SPOTIFY PANEL ===== */
         #sp-overlay{display:none;position:fixed;inset:0;z-index:1990;background:rgba(0,0,0,.45);}
-        #sp-panel{position:fixed;bottom:0;left:0;right:0;background:#121212;border-radius:16px 16px 0 0;border-top:1px solid #282828;z-index:2000;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);}
+        #sp-panel{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-radius:16px 16px 0 0;border-top:1px solid var(--border);z-index:2000;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);}
         #sp-panel.open{transform:translateY(0);}
-        .sp-drag{width:36px;height:4px;background:#444;border-radius:2px;margin:10px auto;}
+        .sp-drag{width:36px;height:4px;background:var(--border);border-radius:2px;margin:10px auto;}
         .sp-head{display:flex;justify-content:space-between;align-items:center;padding:4px 16px 10px;}
-        .sp-title{font-size:1rem;font-weight:700;max-width:75%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;}
-        .sp-x{background:none;border:none;color:#777;font-size:1.2rem;cursor:pointer;padding:4px 8px;}
+        .sp-title{font-size:1rem;font-weight:700;max-width:75%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
+        .sp-x{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:4px 8px;}
         #sp-body{padding:0 12px 24px;}
         #sp-body iframe{width:100%;height:152px;border-radius:12px;border:none;display:block;}
         .sp-link{display:block;text-align:center;margin:8px auto;max-width:240px;background:#1DB954;color:#000;text-decoration:none;padding:12px;border-radius:25px;font-weight:700;font-size:.9rem;}
@@ -107,6 +98,23 @@
         .sp-sel{padding:6px 12px;border-radius:16px;font-size:.78rem;font-weight:700;border:none;cursor:pointer;white-space:nowrap;transition:.15s;}
         .sp-sel.add{background:#eab308;color:#000;}
         .sp-sel.remove{background:#ef4444;color:#fff;}
+        /* ===== ARTIST INFO IN PANEL ===== */
+        .sp-info{padding:4px 12px 8px;}
+        .sp-img{width:100%;max-height:170px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:block;}
+        .sp-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+        .sp-tag{background:#1f2937;border-radius:20px;padding:3px 10px;font-size:.7rem;color:#93c5fd;white-space:nowrap;}
+        .sp-tag.genre{background:#312e81;color:#a5b4fc;font-weight:600;}
+        .sp-intro{color:#cbd5e1;font-size:.8rem;line-height:1.65;margin-bottom:10px;max-height:90px;overflow-y:auto;}
+        .sp-extlinks{display:flex;gap:7px;margin-bottom:4px;}
+        .sp-extlink{flex:1;text-align:center;background:#1f2937;color:#9ca3af;text-decoration:none;padding:7px 4px;border-radius:8px;font-size:.72rem;font-weight:600;}
+        .sp-extlink:active{background:#374151;color:#fff;}
+        .sp-divider{border:none;border-top:1px solid var(--border);margin:4px 0 10px;}
+        /* light mode overrides for artist info panel */
+        :root.light .sp-tag{background:#dbeafe;color:#1e40af;}
+        :root.light .sp-tag.genre{background:#ede9fe;color:#5b21b6;}
+        :root.light .sp-intro{color:#374151;}
+        :root.light .sp-extlink{background:#f1f5f9;color:#475569;}
+        :root.light .sp-extlink:active{background:#e2e8f0;color:#0f172a;}
         /* ===== SPOTIFY ICON ON EVENTS ===== */
         .ev-sp{position:absolute;bottom:2px;right:3px;font-size:.7rem;color:#1DB954;opacity:.5;background:none;border:none;cursor:pointer;padding:2px;line-height:1;z-index:11;}
         .ev-sp:active,.ev-sp:hover{opacity:1;}
@@ -158,7 +166,6 @@
         .phase-btn{padding:5px 10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.78rem;cursor:pointer;}
         .phase-btn.active{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:700;}
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <div id="loading">🤘 苗場資料讀取中...</div>
@@ -176,6 +183,7 @@
             <button class="tbr-btn" id="tbr-stage" onclick="openFilter()"><span class="ico">🏟️</span>舞台</button>
             <button class="tbr-btn green" onclick="syncFromLine()"><span class="ico">🔄</span>同步</button>
             <button class="tbr-btn" onclick="toggleSS()"><span class="ico">📸</span>截圖</button>
+            <button class="tbr-btn" id="tbr-theme" onclick="toggleTheme()"><span class="ico" id="theme-ico">☀️</span>日夜</button>
             <button class="tbr-btn admin-only" id="tbr-admin" onclick="openAdminPanel()" style="display:none"><span class="ico">⚙️</span>管理員</button>
         </div>
         <div class="day-selector" id="days"></div>
@@ -264,6 +272,22 @@
 // ====== CONFIG ======
 var GAS_URL = "https://script.google.com/macros/s/AKfycbxrwj7fuanwtwa19rlCIuYdnl1kuaobuJOcoF5gWGHMSXIS0Pg3r6k0t5p3hSu0DnFmbw/exec";
 var uid = new URLSearchParams(location.search).get("uid");
+// ====== FIREBASE ======
+firebase.initializeApp({
+    apiKey: "AIzaSyDqHIQAIdllC5krO9gLzIIFVNB8llcyNl4",
+    authDomain: "frfhelp-66666.firebaseapp.com",
+    projectId: "frfhelp-66666",
+    storageBucket: "frfhelp-66666.firebasestorage.app",
+    messagingSenderId: "690578531619",
+    appId: "1:690578531619:web:d9113ca3351e3460851896"
+});
+var _db = firebase.firestore();
+// ====== CACHE（重複開啟秒速顯示）======
+var _CACHE_KEY  = "fujitt_sched_v3";  // artists(Firestore) + wantedList(GAS)
+var _SEL_KEY    = "fujitt_sel_v3";    // mySelection(Firestore)
+var _CACHE_TTL  = 60*60*1000;         // 1小時
+function _getCache(k,ttl){try{var c=JSON.parse(localStorage.getItem(k)||"null");if(c&&Date.now()-c.ts<ttl)return c;}catch(e){}return null;}
+function _setCache(k,data){try{var o=Object.assign({},data,{ts:Date.now()});localStorage.setItem(k,JSON.stringify(o));}catch(e){}}
 // ====== SPOTIFY CONFIG ======
 // 路線B：由 GAS 預載所有藝人 ID，無需用戶登入，無人數限制
 var _spPop = {};      // artistName -> popularity
@@ -456,8 +480,19 @@ function isMobile(){
     return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
            ('ontouchstart' in window && navigator.maxTouchPoints > 0 && window.innerWidth < 1024);
 }
-function downloadScreenshot(){
+async function downloadScreenshot(){
     toast("📸 截圖產生中...");
+    // 懶載入 html2canvas（只在點截圖時才下載，不阻塞初始渲染）
+    if(!window.html2canvas){
+        try{
+            await new Promise(function(resolve,reject){
+                var s=document.createElement("script");
+                s.src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+                s.onload=resolve; s.onerror=reject;
+                document.head.appendChild(s);
+            });
+        }catch(e){toast("❌ 截圖模組載入失敗");return;}
+    }
     html2canvas(document.body,{backgroundColor:"#000",scale:2,useCORS:true,allowTaint:true,ignoreElements:function(el){return el.classList&&(el.classList.contains("ss-dl-btn")||el.id==="sp-overlay"||el.id==="sp-panel");}}).then(function(canvas){
         if(isMobile()){
             // 手機：優先 Web Share API（可存到相簿），否則顯示長按提示
@@ -501,6 +536,15 @@ function isFestivalMode(){
     return y===2026 && m===7 && d>=24 && d<=27;
 }
 async function loadSpotifyData(){
+    // 先從 localStorage 取快取（Spotify ID 很少變動，用 24 小時 TTL）
+    var SP_KEY="fujitt_spotify_v1";
+    var spCached=_getCache(SP_KEY, 24*60*60*1000);
+    if(spCached && spCached.aid){
+        Object.assign(_spAid, spCached.aid);
+        Object.assign(_spPop, spCached.pop||{});
+        _spLoaded=true;
+    }
+    // 背景從 GAS 更新（不阻塞 UI）
     try{
         var data=await gasGet(GAS_URL+"?action=getSpotifyData");
         Object.keys(data).forEach(function(name){
@@ -508,6 +552,7 @@ async function loadSpotifyData(){
             _spPop[name]=data[name].pop;
         });
         _spLoaded=true;
+        _setCache(SP_KEY, {aid:_spAid, pop:_spPop});
     }catch(e){
         console.warn("Spotify 快取載入失敗，改用外連搜尋");
     }
@@ -534,6 +579,31 @@ function spToggleSel(){
     toggleSelection(_spCurArtist);
     _updateSpSelBtn();
 }
+function _buildArtistInfoHtml(name){
+    var art=master.find(function(it){return it.name.toLowerCase().trim()===name.toLowerCase().trim();});
+    var html='';
+    if(!art)return html;
+    var hasInfo=art.image||art.genre||art.intro||art.ig||art.yt;
+    if(!hasInfo)return html;
+    html+='<div class="sp-info">';
+    // 圖片（M欄，尚未補上時自動隱藏）
+    if(art.image) html+='<img class="sp-img" src="'+art.image+'" alt="'+name+'" loading="lazy" onerror="this.style.display=\'none\'">';
+    // 標籤：曲風 / 日期 / 舞台
+    var tags='';
+    if(art.genre) tags+='<span class="sp-tag genre">🎵 '+art.genre+'</span>';
+    if(art.day)   tags+='<span class="sp-tag">📅 '+art.day+'</span>';
+    if(art.stage) tags+='<span class="sp-tag">🏟 '+art.stage.replace(/ STAGE$/i,'').replace(/ MARQUEE$/i,'')+'</span>';
+    if(tags) html+='<div class="sp-tags">'+tags+'</div>';
+    // 中文介紹（F欄）
+    if(art.intro) html+='<div class="sp-intro">'+art.intro.replace(/\n/g,'<br>')+'</div>';
+    // 外部連結（IG / YT）
+    var links='';
+    if(art.ig) links+='<a class="sp-extlink" href="'+art.ig+'" target="_blank">📸 Instagram</a>';
+    if(art.yt) links+='<a class="sp-extlink" href="'+art.yt+'" target="_blank">▶️ YouTube</a>';
+    if(links) html+='<div class="sp-extlinks">'+links+'</div>';
+    html+='</div><hr class="sp-divider">';
+    return html;
+}
 function openSpotify(name){
     _spCurArtist=name;
     document.getElementById("sp-aname").textContent=name;
@@ -541,9 +611,10 @@ function openSpotify(name){
     var body=document.getElementById("sp-body");
     document.getElementById("sp-panel").classList.add("open");
     document.getElementById("sp-overlay").style.display="block";
+    var infoHtml=_buildArtistInfoHtml(name);
     // 🎪 音樂祭期間（7/24~7/27）鎖定試聽，節省行動數據
     if(isFestivalMode()){
-        body.innerHTML=
+        body.innerHTML=infoHtml+
             '<div style="text-align:center;padding:20px 12px 8px;font-size:2rem">🎪</div>'+
             '<div style="text-align:center;padding:0 16px 8px;color:#e2e8f0;font-size:.95rem;font-weight:700">音樂祭進行中！</div>'+
             '<div style="text-align:center;padding:0 16px 16px;color:#9ca3af;font-size:.82rem;line-height:1.5">試聽功能已暫停<br>節省你的行動數據，<br>到現場盡情享受吧！</div>'+
@@ -553,9 +624,9 @@ function openSpotify(name){
     }
     var aid=_spAid[name];
     if(aid){
-        body.innerHTML='<iframe src="https://open.spotify.com/embed/artist/'+aid+'?utm_source=generator&theme=0" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+        body.innerHTML=infoHtml+'<iframe src="https://open.spotify.com/embed/artist/'+aid+'?utm_source=generator&theme=0" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
     }else{
-        _spFallback(name,body);
+        body.innerHTML=infoHtml+'<a class="sp-link" href="https://open.spotify.com/search/'+encodeURIComponent(name)+'" target="_blank">🎵 在 Spotify 搜尋 '+name+'</a>';
     }
 }
 function _spFallback(name,body){
@@ -571,22 +642,97 @@ function closeSpotify(){
 function gasGet(url) {
   return fetch(url).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); });
 }
+// ── 日期格式 → "Day 1/2/3" 轉換 ───────────────────────
+// Firestore 存的是 "2026-07-24"，timetable 用的是 "Day 1"
+function _dateToDay(d){
+    if(!d)return "";
+    var s=String(d).trim();
+    if(s==="Day 1"||s==="7/24"||s==="2026-07-24")return "Day 1";
+    if(s==="Day 2"||s==="7/25"||s==="2026-07-25")return "Day 2";
+    if(s==="Day 3"||s==="7/26"||s==="2026-07-26")return "Day 3";
+    return s; // 其他格式原樣保留
+}
+// ── Firestore artists → master 格式轉換 helper ─────────
+function _artistsSnapToMaster(snap){
+    return snap.docs.map(function(d){
+        var a=d.data();
+        return {name:a.name||"",day:_dateToDay(a.date),start:a.startTime||"",
+                end:a.endTime||"",stage:a.stage||"",code:a.code||"",genre:a.genre||"",
+                intro:a.intro||"",image:a.imageUrl||a.image||"",ig:a.ig||"",yt:a.yt||""};
+    });
+}
+// ── LINE code ↔ 藝人名稱轉換（利用已載入的 master，不需 GAS）──
+function _codesToNames(codes){
+    return (codes||[]).map(function(code){
+        var a=master.find(function(it){return it.code===code;});
+        return a?a.name.toLowerCase().trim():null;
+    }).filter(Boolean);
+}
+function _namesToCodes(names){
+    return (names||[]).map(function(n){
+        var a=master.find(function(it){return it.name.toLowerCase().trim()===n;});
+        return a?a.code:null;
+    }).filter(Boolean);
+}
+// ── 背景靜默重整（快取命中後更新資料）─────────────────
+function _refreshDataBg(){
+    // 1. Firestore artists → master（排程表，最新節目）
+    _db.collection("artists").get().then(function(snap){
+        if(snap.empty)return;
+        master=_artistsSnapToMaster(snap);
+        buildStages(); render();
+        // 2. Firestore users/{uid}.favoriteList → lineWanted（不需 GAS）
+        if(!uid)return;
+        _db.collection("users").doc(uid).get().then(function(uSnap){
+            var codes=(uSnap.exists&&uSnap.data&&uSnap.data()&&uSnap.data().favoriteList)?uSnap.data().favoriteList:[];
+            lineWanted=_codesToNames(codes);
+            _setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});
+        }).catch(function(){_setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});});
+    }).catch(function(){});
+}
 // ====== DATA ======
 async function loadData(){
     if(!uid){document.getElementById("loading").innerText="❌ UID 遺失，請從 LINE 開啟";return;}
-    try{
-        // 同時發兩個請求，縮短等待時間
-        var results=await Promise.all([
-            gasGet(GAS_URL+"?action=getData&uid="+uid),
-            gasGet(GAS_URL+"?action=getSelection&uid="+uid).catch(function(){return{selection:[]};})
-        ]);
-        var data=results[0],d2=results[1];
-        if(data.error){document.getElementById("loading").innerText="❌ "+data.error;return;}
-        master=data.fullSchedule||[];
-        lineWanted=data.wantedList||[];
-        mySelection=d2.selection||[];
+
+    // ── 快取命中：立即顯示，背景靜默更新 ──────────────────
+    var cached   = _getCache(_CACHE_KEY, _CACHE_TTL);
+    var selCache = _getCache(_SEL_KEY,   _CACHE_TTL);
+    if(cached){
+        master      = cached.master    || [];
+        lineWanted  = cached.lineWanted|| [];
+        mySelection = selCache ? (selCache.selection||[]) : [];
         if(mySelection.length===0) mySelection=lineWanted.map(function(n){return n;});
+        buildStages();
+        document.getElementById("loading").style.display="none";
+        initApp();
+        // ★ 修正：把 localStorage 的選擇同步寫回 Firestore
+        // （手機 LINE 沒有 localStorage，必須靠 Firestore 取得資料）
+        if(mySelection.length>0) saveSelection();
+        _refreshDataBg(); // 背景靜默更新，不阻塞畫面
+        return;
+    }
+
+    // ── 無快取：三個來源並行拉取（全部走 Firestore，不需 GAS）────
+    try{
+        var results=await Promise.all([
+            _db.collection("artists").get(),
+            _db.collection("users").doc(uid).get().catch(function(){return{exists:false};}),
+            _db.collection("timetable").doc(uid).get().catch(function(){return{exists:false};})
+        ]);
+        var aSnap=results[0], uSnap=results[1], tSnap=results[2];
+        if(!aSnap.docs) throw new Error("Firestore 讀取失敗");
+        master = _artistsSnapToMaster(aSnap);
+        // LINE 收藏：Firestore users/{uid}.favoriteList（code）→ 名稱
+        var rawCodes=(uSnap.exists&&uSnap.data&&uSnap.data()&&uSnap.data().favoriteList)?uSnap.data().favoriteList:[];
+        lineWanted=_codesToNames(rawCodes);
+        var fsHadData = (tSnap.exists&&tSnap.data&&tSnap.data()&&tSnap.data().selection&&tSnap.data().selection.length>0);
+        mySelection= fsHadData ? tSnap.data().selection : [];
+        if(mySelection.length===0) mySelection=lineWanted.map(function(n){return n;});
+        _setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});
+        if(mySelection.length>0) _setCache(_SEL_KEY,{selection:mySelection});
         buildStages(); document.getElementById("loading").style.display="none"; initApp();
+        // Firestore 是空的但從 LINE 清單初始化了資料 → 寫入 Firestore
+        if(!fsHadData && mySelection.length>0) saveSelection();
     }catch(e){document.getElementById("loading").innerText="❌ 連線失敗："+e.message;}
 }
 function buildStages(){
@@ -605,25 +751,40 @@ function toggleSelection(name){
     var idx=mySelection.indexOf(key);
     if(idx>=0){mySelection.splice(idx,1);toast("❌ 已移除："+name);}
     else{mySelection.push(key);toast("⭐ 已加入："+name);}
+    _setCache(_SEL_KEY,{selection:mySelection}); // 立即存 localStorage（下次秒開）
     saveSelection(); render();
 }
-async function saveSelection(){
-    try{await gasGet(GAS_URL+"?action=saveSelection&uid="+uid+"&selection="+encodeURIComponent(JSON.stringify(mySelection)));}catch(e){}
+function saveSelection(){
+    // Firestore timetable/{uid} — 背景寫入，不阻塞 UI
+    if(uid && _db){
+        _db.collection("timetable").doc(uid).set({selection:mySelection},{merge:true}).catch(function(e){
+            console.warn("Firestore saveSelection failed:", e);
+        });
+    }
 }
 async function syncFromLine(){
     try{
         toast("🔄 同步中...");
-        // Step1: 拉取 LINE 清單
-        var d=await gasGet(GAS_URL+"?action=syncFromLine&uid="+uid);
-        var lineList=(d.wantedList||[]).map(function(n){return n.toLowerCase().trim();});
-        // Step2: 合併 LINE → TT（只加不刪）
+        // Step1: 直接讀 Firestore users/{uid}.favoriteList（code 陣列）
+        var uSnap=await _db.collection("users").doc(uid).get();
+        var codes=(uSnap.exists&&uSnap.data&&uSnap.data()&&uSnap.data().favoriteList)?uSnap.data().favoriteList:[];
+        // Step2: code → 名稱（用 master，不需 GAS）
+        var lineList=_codesToNames(codes);
+        lineWanted=lineList.slice(); // 更新 lineWanted
+        // Step3: 合併 LINE → TT（只加不刪）
         var added=0;
         lineList.forEach(function(n){if(mySelection.indexOf(n)<0){mySelection.push(n);added++;}});
-        // Step3: 把合併後的 TT 清單推回 LINE（忽略失敗）
-        gasGet(GAS_URL+"?action=pushToLine&uid="+uid+"&selection="+encodeURIComponent(JSON.stringify(mySelection))).catch(function(){});
+        // Step4: TT 清單（名稱）→ code → 寫回 Firestore users/{uid}.favoriteList
+        var newCodes=_namesToCodes(mySelection);
+        await _db.collection("users").doc(uid).set({favoriteList:newCodes},{merge:true});
         saveSelection(); render();
-        toast("✅ 雙向同步完成！新增 "+added+" 組");
-    }catch(e){toast("❌ 同步失敗");}
+        _setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});
+        _setCache(_SEL_KEY,{selection:mySelection});
+        toast("✅ 雙向同步完成！新增 "+added+" 組，LINE 已更新 "+newCodes.length+" 組");
+    }catch(e){
+        console.error("syncFromLine error:",e);
+        toast("❌ 同步失敗："+e.message);
+    }
 }
 // ====== RENDER ======
 function stageInfo(sn){
@@ -868,11 +1029,23 @@ function scrollToFirstConflict(){
     if(first){first.scrollIntoView({behavior:"smooth",block:"center"});}
     else{toast("⚠️ 請切換到對應日期查看衝堂");}
 }
-window.onload=async function(){
-    // 白底主題（?theme=light）
-    if(new URLSearchParams(location.search).get("theme")==="light"){
-        document.body.classList.add("theme-light");
+// ====== DAY / NIGHT THEME ======
+function initTheme(){
+    var saved=localStorage.getItem("fujitt_theme")||"dark";
+    if(saved==="light"){
+        document.documentElement.classList.add("light");
+        var ico=document.getElementById("theme-ico");
+        if(ico) ico.textContent="🌙";
     }
+}
+function toggleTheme(){
+    var isLight=document.documentElement.classList.toggle("light");
+    localStorage.setItem("fujitt_theme",isLight?"light":"dark");
+    var ico=document.getElementById("theme-ico");
+    if(ico) ico.textContent=isLight?"🌙":"☀️";
+}
+window.onload=async function(){
+    initTheme();
     // 音樂祭期間顯示節流提示橫幅
     if(isFestivalMode()){
         var banner=document.createElement("div");
@@ -880,8 +1053,8 @@ window.onload=async function(){
         banner.innerHTML="🎪 音樂祭進行中！試聽已暫停以節省行動數據 · 加入／移除排表功能正常使用";
         document.body.insertBefore(banner,document.body.firstChild);
     }
-    // 預載 Spotify 快取（不需用戶登入，無人數限制）
-    await loadSpotifyData();
+    // 預載 Spotify 快取（與主資料並行，不阻塞排程顯示）
+    loadSpotifyData();
     loadData();
 };
 </script>
