@@ -39,18 +39,18 @@
         .day-btn{background:transparent;color:var(--muted);border:none;font-size:0.95rem;font-weight:600;padding:4px 8px;cursor:pointer;white-space:nowrap;}
         .day-btn.active{color:var(--text);border-bottom:2px solid var(--accent);}
         .scroll-container{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;position:relative;}
-        .tt-grid{display:grid;position:relative;padding-bottom:20px;}
+        .tt-grid{display:grid;position:relative;padding-bottom:20px;grid-auto-rows:2px;}
         .time-col-bg{grid-column:1;grid-row:1/-1;position:sticky;left:0;z-index:90;background:var(--bg);border-right:1px solid var(--border);width:50px;min-width:50px;}
         .corner{grid-column:1;grid-row:1;position:sticky;top:0;left:0;z-index:200;background:var(--bg);border-bottom:2px solid var(--border);border-right:1px solid var(--border);width:50px;min-width:50px;}
         .stage-hdr{grid-row:1;position:sticky;top:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;text-align:center;border-bottom:2px solid;padding:8px 2px;}
-        .time-lbl{grid-column:1;position:sticky;left:0;z-index:95;background:var(--bg);font-size:.7rem;color:var(--muted);text-align:right;padding-right:6px;transform:translateY(-8px);width:50px;min-width:50px;}
-        .grid-line{grid-column:2/-1;border-top:1px solid var(--border);z-index:1;}
-        .grid-line.half{border-top:1px dashed #222;}
+        .time-lbl{grid-column:1;position:sticky;left:0;z-index:95;background:var(--bg);font-size:.7rem;color:var(--muted);text-align:right;padding-right:6px;transform:translateY(-8px);width:50px;min-width:50px;height:0;overflow:visible;align-self:start;}
+        .grid-line{grid-column:2/-1;height:0;border-top:1px solid var(--border);z-index:1;}
+        .grid-line.half{border-top:1px dashed var(--border);}
         .ev{margin:0 3px;border-radius:5px;padding:5px;font-size:.75rem;z-index:10;display:flex;flex-direction:column;overflow:hidden;border-left:4px solid;background:var(--surface);transition:.2s;box-shadow:0 2px 5px rgba(0,0,0,.5);cursor:pointer;-webkit-user-select:none;user-select:none;}
         .ev:active{transform:scale(0.97);}
         .ev .ev-time{font-size:.65rem;opacity:.8;margin-bottom:1px;}
         .ev .ev-name{font-weight:700;line-height:1.2;word-break:break-word;}
-        .ev.dimmed{opacity:.4;background:#111;border-left-width:2px;box-shadow:none;}
+        .ev.dimmed{opacity:.35;background:transparent;border-left-width:2px;box-shadow:none;}
         .ev.dimmed .ev-name{font-weight:normal;color:var(--muted);}
         .ev.selected{box-shadow:0 0 0 2px #eab308,0 2px 8px rgba(234,179,8,.3);}
         .ev.selected::after{content:"⭐";position:absolute;top:3px;right:5px;font-size:.7rem;}
@@ -61,7 +61,7 @@
         .fab{position:fixed;bottom:20px;right:20px;background:var(--accent);color:white;width:46px;height:46px;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:1.3rem;box-shadow:0 4px 10px rgba(0,0,0,.5);z-index:900;border:none;cursor:pointer;}
         .list-view{display:none;padding:16px;flex-direction:column;gap:10px;}
         .list-item{display:flex;flex-direction:column;background:var(--surface);padding:10px;border-radius:8px;border-left:4px solid;box-shadow:0 2px 5px rgba(0,0,0,.3);cursor:pointer;}
-        .list-item.dimmed{opacity:.4;background:#111;}
+        .list-item.dimmed{opacity:.35;background:transparent;}
         .list-item.selected{box-shadow:0 0 0 2px #eab308;}
         .list-hdr{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:4px;}
         .list-title{font-size:1rem;font-weight:bold;}
@@ -803,8 +803,8 @@ function renderGrid(){
     var g=document.getElementById("grid");g.innerHTML="";
     var active=STAGES.filter(function(s){return s.vis;});
     if(!active.length){g.innerHTML='<div style="text-align:center;color:#666;padding:40px">沒有舞台</div>';return;}
-    g.style.gridTemplateColumns="50px repeat("+active.length+",minmax(80px,1fr))";
-    g.style.minWidth=(50+active.length*80)+"px";
+    g.style.gridTemplateColumns="50px repeat("+active.length+",minmax(100px,1fr))";
+    g.style.minWidth=(50+active.length*100)+"px";
     g.appendChild(Object.assign(document.createElement("div"),{className:"corner"}));
     active.forEach(function(s,i){var h=document.createElement("div");h.className="stage-hdr";h.style.gridColumn=i+2;h.style.borderBottomColor=s.color;h.style.color=s.color;h.innerText=s.name;g.appendChild(h);});
     var bg=document.createElement("div");bg.className="time-col-bg";g.appendChild(bg);
