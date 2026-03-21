@@ -203,6 +203,8 @@
         .phase-btns{display:flex;gap:6px;}
         .phase-btn{padding:5px 10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.78rem;cursor:pointer;}
         .phase-btn.active{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:700;}
+        /* ===== ADMIN SECTION LABEL ===== */
+        .admin-section-lbl{font-size:.68rem;font-weight:800;color:#7c3aed;letter-spacing:.8px;text-transform:uppercase;padding:14px 0 4px;border-bottom:1px solid rgba(124,58,237,.2);margin-bottom:2px;}
     </style>
 </head>
 <body>
@@ -270,8 +272,68 @@
     <div class="admin-badge">⚙️ 管理員模式</div>
     <!-- Admin Panel -->
     <div class="modal-bg" id="adminModal">
-      <div class="modal" style="max-height:80vh;overflow-y:auto;">
+      <div class="modal" style="max-height:85vh;overflow-y:auto;">
         <div class="modal-title">⚙️ 管理員設定</div>
+
+        <!-- ── 工具列按鈕 ── -->
+        <div class="admin-section-lbl">🛠 工具列按鈕</div>
+        <div class="admin-row">
+          <div><div class="admin-label">👤 專屬模式按鈕</div><div class="admin-sub">隱藏時固定為全展模式</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showPersonal" onchange="saveAndSyncUI('showPersonal',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">🎛️ 視圖切換按鈕</div><div class="admin-sub">格子／舞台／列表切換</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showGrid" onchange="saveAndSyncUI('showGrid',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">⚡ 快覽按鈕</div><div class="admin-sub">Now & Next 快速瀏覽</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showNow" onchange="saveAndSyncUI('showNow',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">🏟️ 舞台篩選按鈕</div><div class="admin-sub">隱藏時顯示全部舞台</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showStage" onchange="saveAndSyncUI('showStage',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">📅 全覽日期按鈕</div><div class="admin-sub">三天總覽模式選項</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showAllDays" onchange="saveAndSyncUI('showAllDays',this.checked)"><span class="slider"></span></label>
+        </div>
+
+        <!-- ── 版面功能 ── -->
+        <div class="admin-section-lbl">🖥 版面功能</div>
+        <div class="admin-row">
+          <div><div class="admin-label">演出時間別</div><div class="admin-sub">時間欄（時間未定時關閉）</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showTime" onchange="saveAndSyncUI('showTime',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">舞台色條與名稱</div><div class="admin-sub">隱藏後只留色塊不顯示標籤</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showStageLbl" onchange="saveAndSyncUI('showStageLbl',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">📊 計畫摘要卡</div><div class="admin-sub">個人模式下顯示選取統計</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showSummary" onchange="saveAndSyncUI('showSummary',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">🔔 演出提醒按鈕</div><div class="admin-sub">藝人面板顯示提醒設定</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-showRemind" onchange="saveSetting('showRemind',this.checked)"><span class="slider"></span></label>
+        </div>
+
+        <!-- ── 演出顯示 ── -->
+        <div class="admin-section-lbl">⏱ 演出顯示</div>
+        <div class="admin-row">
+          <div><div class="admin-label">衝堂警告</div><div class="admin-sub">時間重疊時顯示警告</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-conflict" onchange="saveSetting('conflict',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">演出倒數</div><div class="admin-sub">色塊上顯示開演倒數</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-countdown" onchange="saveSetting('countdown',this.checked)"><span class="slider"></span></label>
+        </div>
+        <div class="admin-row">
+          <div><div class="admin-label">🎪 音樂祭節流模式</div><div class="admin-sub">強制開啟試聽限制（無視日期）</div></div>
+          <label class="toggle-sw"><input type="checkbox" id="sw-festival" onchange="saveSetting('festival',this.checked)"><span class="slider"></span></label>
+        </div>
+
+        <!-- ── 預設設定 ── -->
+        <div class="admin-section-lbl">⚙️ 預設設定</div>
         <div class="admin-row">
           <div><div class="admin-label">資料階段</div><div class="admin-sub">決定預設顯示模式</div></div>
           <div class="phase-btns">
@@ -280,38 +342,7 @@
             <button class="phase-btn" id="ph-grid" onclick="setPhase('grid')">格子</button>
           </div>
         </div>
-        <div class="admin-row">
-          <div><div class="admin-label">衝堂警告</div><div class="admin-sub">選到時間重疊的藝人時顯示</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-conflict" onchange="saveSetting('conflict',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">演出倒數</div><div class="admin-sub">在每個色塊顯示倒數時間</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-countdown" onchange="saveSetting('countdown',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">音樂祭節流模式</div><div class="admin-sub">強制開啟（無視日期）</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-festival" onchange="saveSetting('festival',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">顯示「👤 專屬」按鈕</div><div class="admin-sub">隱藏時固定為全展模式</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showPersonal" onchange="saveAndSyncUI('showPersonal',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">顯示「格子」視圖按鈕</div><div class="admin-sub">隱藏時固定為列表模式</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showGrid" onchange="saveAndSyncUI('showGrid',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">顯示「🏟️ 舞台」篩選按鈕</div><div class="admin-sub">隱藏時顯示全部舞台</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showStage" onchange="saveAndSyncUI('showStage',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">顯示演出時間別</div><div class="admin-sub">隱藏時間欄（時間未定時使用）</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showTime" onchange="saveAndSyncUI('showTime',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">顯示舞台列表</div><div class="admin-sub">隱藏時色塊左側色條與舞台名稱</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showStageLbl" onchange="saveAndSyncUI('showStageLbl',this.checked)"><span class="slider"></span></label>
-        </div>
+
         <div class="modal-actions" style="margin-top:16px;">
           <button class="btn btn-primary" onclick="applyAdminSettings()">套用</button>
           <button class="btn" onclick="document.getElementById('adminModal').style.display='none'">關閉</button>
@@ -410,13 +441,17 @@ function toast(msg){var t=document.getElementById("toast");t.innerText=msg;t.sty
 var ADMIN_PASSWORD = "fujitt2026"; // ★ 修改為你的密碼
 var OWNER_UID = "Uaad7f6d86f0316d7ddf10f660ade5205";
 function isOwner(){ return new URLSearchParams(window.location.search).get("uid")===OWNER_UID; }
-var _adminSettings = JSON.parse(localStorage.getItem("fujitt_admin")||'{"conflict":true,"countdown":true,"festival":false,"phase":"auto","showPersonal":false,"showGrid":false,"showStage":false,"showTime":false,"showStageLbl":true}');
+var _adminSettings = JSON.parse(localStorage.getItem("fujitt_admin")||'{"conflict":true,"countdown":true,"festival":false,"phase":"auto","showPersonal":false,"showGrid":false,"showStage":false,"showTime":false,"showStageLbl":true,"showNow":true,"showSummary":true,"showRemind":true,"showAllDays":true}');
 // 向舊版 localStorage 補齊缺少的 key
 if(_adminSettings.showPersonal===undefined)_adminSettings.showPersonal=false;
 if(_adminSettings.showGrid===undefined)_adminSettings.showGrid=false;
 if(_adminSettings.showStage===undefined)_adminSettings.showStage=false;
 if(_adminSettings.showTime===undefined)_adminSettings.showTime=false;
 if(_adminSettings.showStageLbl===undefined)_adminSettings.showStageLbl=true;
+if(_adminSettings.showNow===undefined)_adminSettings.showNow=true;
+if(_adminSettings.showSummary===undefined)_adminSettings.showSummary=true;
+if(_adminSettings.showRemind===undefined)_adminSettings.showRemind=true;
+if(_adminSettings.showAllDays===undefined)_adminSettings.showAllDays=true;
 var _adminTaps = 0, _adminTapTimer = null;
 
 function saveSetting(key,val){_adminSettings[key]=val;localStorage.setItem("fujitt_admin",JSON.stringify(_adminSettings));}
@@ -432,20 +467,26 @@ function syncToolbarVisibility(){
     var showP=!!_adminSettings.showPersonal;
     var showG=!!_adminSettings.showGrid;
     var showS=!!_adminSettings.showStage;
-    // 專屬按鈕
+    var showNow=!!_adminSettings.showNow;
+    var showAllDays=!!_adminSettings.showAllDays;
+    // 工具列按鈕顯示
     var bm=document.getElementById("tbr-mode");
     if(bm) bm.style.display=showP?"flex":"none";
-    // 格子按鈕
     var bv=document.getElementById("tbr-view");
     if(bv) bv.style.display=showG?"flex":"none";
-    // 舞台按鈕
+    var bn=document.getElementById("tbr-now");
+    if(bn) bn.style.display=showNow?"flex":"none";
     var bs=document.getElementById("tbr-stage");
     if(bs) bs.style.display=showS?"flex":"none";
+    // 全覽日期按鈕
+    var ballDays=document.querySelector(".day-btn[data-day='ALL']");
+    if(ballDays) ballDays.style.display=showAllDays?"":"none";
     // 舞台列表標記
     document.body.classList.toggle("clean-hdr",!_adminSettings.showStageLbl);
     // 隱藏時強制回預設模式
     if(!showP&&schedMode==="personal"){ schedMode="full"; }
-    if(!showG&&viewMode!=="list"&&viewMode!=="now"){ viewMode="list"; }
+    if(!showG&&!showNow&&viewMode!=="list"){ viewMode="list"; }
+    if(!showNow&&viewMode==="now"){ viewMode="list"; }
     _applyViewMode();
 }
 function setPhase(v){
@@ -460,15 +501,14 @@ function applyAdminSettings(){
     render();
 }
 function openAdminPanel(){
-    // 同步 UI 狀態
-    document.getElementById("sw-conflict").checked=!!_adminSettings.conflict;
-    document.getElementById("sw-countdown").checked=!!_adminSettings.countdown;
-    document.getElementById("sw-festival").checked=!!_adminSettings.festival;
-    document.getElementById("sw-showPersonal").checked=!!_adminSettings.showPersonal;
-    document.getElementById("sw-showGrid").checked=!!_adminSettings.showGrid;
-    document.getElementById("sw-showStage").checked=!!_adminSettings.showStage;
-    document.getElementById("sw-showTime").checked=!!_adminSettings.showTime;
-    document.getElementById("sw-showStageLbl").checked=!!_adminSettings.showStageLbl;
+    // 同步所有開關 UI 狀態
+    var sw={"conflict":true,"countdown":true,"festival":false,"showPersonal":false,"showGrid":false,
+            "showNow":true,"showStage":false,"showAllDays":true,"showTime":false,"showStageLbl":true,
+            "showSummary":true,"showRemind":true};
+    Object.keys(sw).forEach(function(k){
+        var el=document.getElementById("sw-"+k);
+        if(el) el.checked=(_adminSettings[k]!==undefined)?!!_adminSettings[k]:sw[k];
+    });
     var ph=_adminSettings.phase||"auto";
     document.querySelectorAll(".phase-btn").forEach(function(b){b.classList.remove("active");});
     document.getElementById("ph-"+ph).classList.add("active");
@@ -699,7 +739,7 @@ function openSpotify(name){
     if(remBtn){
         var art=master.find(function(it){return it.name.toLowerCase().trim()===name.toLowerCase().trim();});
         var hasTime=art&&art.start&&art.day&&DAY_DATES[art.day];
-        remBtn.style.display=hasTime?"block":"none";
+        remBtn.style.display=(hasTime&&!!_adminSettings.showRemind)?"block":"none";
         var rSaved=JSON.parse(localStorage.getItem("fujitt_reminders")||"{}");
         var rKey=name.toLowerCase().trim();
         remBtn.textContent=rSaved[rKey]?"🔕 取消提醒":"🔔 開演前 15 分鐘提醒";
@@ -1105,7 +1145,7 @@ function renderNowNext(){
 // ====== SUMMARY CARD ======
 function updateSummaryCard(){
     var card=document.getElementById("summary-card");if(!card)return;
-    if(schedMode!=="personal"||mySelection.length===0){card.classList.remove("show");return;}
+    if(schedMode!=="personal"||mySelection.length===0||!_adminSettings.showSummary){card.classList.remove("show");return;}
     card.classList.add("show");
     var stages=new Set();
     mySelection.forEach(function(n){
