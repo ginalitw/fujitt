@@ -282,7 +282,7 @@
           <label class="toggle-sw"><input type="checkbox" id="sw-showPersonal" onchange="saveAndSyncUI('showPersonal',this.checked)"><span class="slider"></span></label>
         </div>
         <div class="admin-row">
-          <div><div class="admin-label">🎛️ 視圖切換按鈕</div><div class="admin-sub">格子／舞台／列表切換</div></div>
+          <div><div class="admin-label">🎛️ 視圖切換按鈕</div><div class="admin-sub">格子／單台／列表切換</div></div>
           <label class="toggle-sw"><input type="checkbox" id="sw-showGrid" onchange="saveAndSyncUI('showGrid',this.checked)"><span class="slider"></span></label>
         </div>
         <div class="admin-row">
@@ -410,7 +410,7 @@ var KNOWN = [
 var STAGES = [];
 var VIEW_MODES = ["grid","stage","list","now"];
 // 按鈕顯示「下一個模式」的 icon 和 label
-var VIEW_LABELS = {grid:{ico:"🎯",lbl:"舞台"},stage:{ico:"📋",lbl:"列表"},list:{ico:"⚡",lbl:"快覽"},now:{ico:"🎛️",lbl:"格子"}};
+var VIEW_LABELS = {grid:{ico:"🎯",lbl:"單台"},stage:{ico:"📋",lbl:"列表"},list:{ico:"🎛️",lbl:"格子"},now:{ico:"🎛️",lbl:"格子"}};
 // ── Shared helpers ──────────────────────────────────────────────────────────
 function _matchStage(sn, kw){ return sn.toUpperCase().includes(kw.toUpperCase())||sn.includes(kw); }
 function _renderTimeGrid(g, colSpan){
