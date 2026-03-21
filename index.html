@@ -157,6 +157,36 @@
         .stage-nav-counter{font-size:.72rem;color:var(--muted);}
         .stage-nav-btn{background:var(--bg);color:var(--text);border:1px solid var(--border);padding:7px 14px;border-radius:10px;cursor:pointer;font-size:1rem;flex-shrink:0;transition:.15s;}
         .stage-nav-btn:active{background:var(--border);}
+        /* ===== SUMMARY CARD ===== */
+        .summary-card{display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;}
+        .summary-card.show{display:block;}
+        .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:8px;}
+        .summary-stat{text-align:center;background:rgba(255,255,255,.04);border-radius:8px;padding:6px 4px;}
+        .summary-num{font-size:1.25rem;font-weight:800;color:#eab308;line-height:1;}
+        .summary-lbl{font-size:.62rem;color:var(--muted);margin-top:2px;}
+        .summary-days{display:flex;gap:4px;margin-top:6px;}
+        .summary-day{flex:1;background:rgba(255,255,255,.04);border-radius:6px;padding:5px 4px;text-align:center;}
+        .summary-day strong{display:block;font-size:.9rem;font-weight:800;color:var(--text);}
+        .summary-day span{font-size:.6rem;color:var(--muted);}
+        /* ===== NOW & NEXT VIEW ===== */
+        #now-view{display:none;padding:12px 10px 80px;}
+        #now-view.show{display:block;}
+        .now-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+        .now-card{background:var(--surface);border-radius:10px;padding:9px 10px;border-left:4px solid;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer;}
+        .now-card:active{transform:scale(.98);}
+        .now-card-stage{font-size:.63rem;font-weight:700;margin-bottom:5px;letter-spacing:.3px;}
+        .now-slot{padding:3px 0;}
+        .now-slot+.now-slot{border-top:1px solid var(--border);margin-top:4px;padding-top:4px;}
+        .now-badges{display:flex;gap:3px;margin-bottom:2px;flex-wrap:wrap;}
+        .now-badge{font-size:.58rem;font-weight:700;padding:1px 5px;border-radius:6px;}
+        .now-badge.live{background:#22c55e;color:#000;}
+        .now-badge.next{background:#3b82f6;color:#fff;}
+        .now-badge.sel{background:#eab308;color:#000;}
+        .now-artist{font-size:.82rem;font-weight:700;line-height:1.2;word-break:break-word;}
+        .now-time{font-size:.63rem;color:var(--muted);margin-top:1px;}
+        /* ===== REMIND BUTTON ===== */
+        .sp-remind{display:block;width:calc(100% - 24px);margin:0 12px 6px;background:var(--surface);color:var(--text);border:1px solid var(--border);padding:9px;border-radius:20px;font-size:.82rem;cursor:pointer;text-align:center;transition:.2s;}
+        .sp-remind.set{background:#1e3a5f;border-color:#3b82f6;color:#93c5fd;}
         /* ===== ADMIN MODE ===== */
         .admin-badge{display:none;position:fixed;top:8px;left:50%;transform:translateX(-50%);background:#7c3aed;color:#fff;padding:3px 12px;border-radius:10px;font-size:.7rem;font-weight:700;z-index:1002;pointer-events:none;}
         body.admin-on .admin-badge{display:block;}
@@ -188,6 +218,7 @@
         <div class="toolbar-drawer" id="toolbar-drawer">
             <button class="tbr-btn hl" id="tbr-mode" onclick="toggleMode()"><span class="ico">👤</span>專屬</button>
             <button class="tbr-btn" id="tbr-view" onclick="toggleView()"><span class="ico">📋</span>列表</button>
+            <button class="tbr-btn" id="tbr-now" onclick="toggleNowView()"><span class="ico">⚡</span>快覽</button>
             <button class="tbr-btn" id="tbr-stage" onclick="openFilter()"><span class="ico">🏟️</span>舞台</button>
             <button class="tbr-btn green" onclick="syncFromLine()"><span class="ico">🔄</span>同步</button>
             <button class="tbr-btn" onclick="toggleSS()"><span class="ico">📸</span>截圖</button>
@@ -202,6 +233,19 @@
         <span class="stat-pill" id="stat-conflict-wrap" style="display:none">
             <span class="stat-conflict" onclick="scrollToFirstConflict()">⚠️ <strong id="stat-conflict">0</strong> 衝堂</span>
         </span>
+    </div>
+    <!-- 計畫摘要卡（個人模式） -->
+    <div class="summary-card" id="summary-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:.78rem;font-weight:700">📊 我的計畫</span>
+            <span style="font-size:.68rem;color:var(--muted)" id="sum-stage-txt"></span>
+        </div>
+        <div class="summary-grid">
+            <div class="summary-stat"><div class="summary-num" id="sum-total">0</div><div class="summary-lbl">已選組數</div></div>
+            <div class="summary-stat"><div class="summary-num" id="sum-conflict">0</div><div class="summary-lbl">衝堂</div></div>
+            <div class="summary-stat"><div class="summary-num" id="sum-stage-n">0</div><div class="summary-lbl">涵蓋舞台</div></div>
+        </div>
+        <div class="summary-days" id="sum-days"></div>
     </div>
     <!-- 舞台模式導航列 -->
     <div class="stage-nav" id="stage-nav">
@@ -219,6 +263,8 @@
     <div class="watermark" id="wm">2026 FUJI ROCK MY TT</div>
     <div class="scroll-container" id="scroll"><div class="tt-grid" id="grid"></div></div>
     <div class="list-view" id="listview"></div>
+    <!-- Now & Next 快覽 -->
+    <div id="now-view"><div class="now-cards" id="now-cards"></div></div>
     <button class="fab" onclick="jumpNow()" id="fab">📍</button>
     <button class="ss-dl-btn" onclick="downloadScreenshot()" title="下載截圖">💾</button>
     <div class="admin-badge">⚙️ 管理員模式</div>
@@ -283,6 +329,7 @@
                 <button class="sp-x" onclick="closeSpotify()">✕</button>
             </div>
         </div>
+        <button id="sp-remind-btn" class="sp-remind" onclick="toggleReminder()" style="display:none">🔔 開演前 15 分鐘提醒</button>
         <div id="sp-body"></div>
     </div>
 <script>
@@ -330,6 +377,34 @@ var KNOWN = [
     {id:"GALAXY",  kw:"GALAXY",  name:"GALAXY",       color:"#818cf8"}
 ];
 var STAGES = [];
+var VIEW_MODES = ["grid","stage","list","now"];
+// 按鈕顯示「下一個模式」的 icon 和 label
+var VIEW_LABELS = {grid:{ico:"🎯",lbl:"舞台"},stage:{ico:"📋",lbl:"列表"},list:{ico:"⚡",lbl:"快覽"},now:{ico:"🎛️",lbl:"格子"}};
+// ── Shared helpers ──────────────────────────────────────────────────────────
+function _matchStage(sn, kw){ return sn.toUpperCase().includes(kw.toUpperCase())||sn.includes(kw); }
+function _renderTimeGrid(g, colSpan){
+    var bg=document.createElement("div");bg.className="time-col-bg";g.appendChild(bg);
+    for(var i=0;i<=36;i++){
+        var hour=11+Math.floor(i/2),min=i%2===0?"00":"30",dh=hour>=24?(hour-24<10?"0"+(hour-24):hour-24):hour,r=i*30+2;
+        var l=document.createElement("div");l.className="grid-line"+(min==="30"?" half":"");l.style.gridRow=r;l.style.gridColumn=colSpan;g.appendChild(l);
+        if(min==="00"){var lb=document.createElement("div");lb.className="time-lbl";lb.style.gridRow=r;lb.innerText=dh+":"+min;g.appendChild(lb);}
+    }
+}
+function _buildEvBlock(it, stageColor, colVal){
+    var sel=isSelected(it.name),isConflict=_conflicts.has(it.name+"|"+curDay);
+    var bl=document.createElement("div");
+    bl.className="ev"+(schedMode==="full"&&!sel?" dimmed":"")+(sel?" selected":"")+(isConflict?" conflict":"");
+    bl.style.gridRow=timeToRow(it.start)+"/"+(it.end?timeToRow(it.end):timeToRow(it.start)+60);
+    bl.style.gridColumn=colVal;bl.style.borderLeftColor=stageColor;
+    var cd=getCountdown(it.day||curDay,it.start,it.end);
+    bl.innerHTML='<div class="ev-time">'+it.start+' - '+(it.end||'?')+'</div><div class="ev-name">'+it.name+'</div>'
+        +(cd?'<div class="ev-cd '+cd.cls+'">'+cd.text+'</div>':"")
+        +(isConflict?'<div class="ev-warn">⚠️ 衝堂</div>':"");
+    bl.dataset.artist=it.name;bl.dataset.start=it.start||"";bl.dataset.end=it.end||"";bl.dataset.day=it.day||curDay;
+    if(_spPop[it.name]!==undefined)_applyGlow(bl,_spPop[it.name]);
+    (function(n){bl.onclick=function(){openSpotify(n);};})(it.name);
+    return bl;
+}
 function toast(msg){var t=document.getElementById("toast");t.innerText=msg;t.style.display="block";setTimeout(function(){t.style.display="none";},2200);}
 // ====== ADMIN MODE ======
 var ADMIN_PASSWORD = "fujitt2026"; // ★ 修改為你的密碼
@@ -369,16 +444,9 @@ function syncToolbarVisibility(){
     // 舞台列表標記
     document.body.classList.toggle("clean-hdr",!_adminSettings.showStageLbl);
     // 隱藏時強制回預設模式
-    if(!showP&&schedMode==="personal"){ schedMode="full"; render(); }
-    if(!showG&&viewMode!=="list"){
-        viewMode="list";
-        document.getElementById("stage-nav").classList.remove("show");
-        document.getElementById("scroll").style.display="none";
-        document.getElementById("listview").style.display="flex";
-        document.getElementById("fab").style.display="none";
-    }
-    // 時間別切換後重繪列表
-    render();
+    if(!showP&&schedMode==="personal"){ schedMode="full"; }
+    if(!showG&&viewMode!=="list"&&viewMode!=="now"){ viewMode="list"; }
+    _applyViewMode();
 }
 function setPhase(v){
     _adminSettings.phase=v;
@@ -627,6 +695,16 @@ function openSpotify(name){
     _spCurArtist=name;
     document.getElementById("sp-aname").textContent=name;
     _updateSpSelBtn();
+    var remBtn=document.getElementById("sp-remind-btn");
+    if(remBtn){
+        var art=master.find(function(it){return it.name.toLowerCase().trim()===name.toLowerCase().trim();});
+        var hasTime=art&&art.start&&art.day&&DAY_DATES[art.day];
+        remBtn.style.display=hasTime?"block":"none";
+        var rSaved=JSON.parse(localStorage.getItem("fujitt_reminders")||"{}");
+        var rKey=name.toLowerCase().trim();
+        remBtn.textContent=rSaved[rKey]?"🔕 取消提醒":"🔔 開演前 15 分鐘提醒";
+        remBtn.classList.toggle("set",!!rSaved[rKey]);
+    }
     var body=document.getElementById("sp-body");
     document.getElementById("sp-panel").classList.add("open");
     document.getElementById("sp-overlay").style.display="block";
@@ -657,6 +735,62 @@ function closeSpotify(){
     setTimeout(function(){document.getElementById("sp-body").innerHTML="";},400);
 }
 
+// ====== REMINDER SYSTEM ======
+var _reminders = {};
+function _restoreReminders(){
+    var saved=JSON.parse(localStorage.getItem("fujitt_reminders")||"{}");
+    var now=Date.now(),clean={};
+    Object.keys(saved).forEach(function(key){
+        var ms=saved[key]-now;
+        if(ms>0){clean[key]=saved[key];_scheduleReminder(key,ms);}
+    });
+    localStorage.setItem("fujitt_reminders",JSON.stringify(clean));
+}
+function _scheduleReminder(key,ms){
+    clearTimeout(_reminders[key]);
+    _reminders[key]=setTimeout(function(){
+        var saved=JSON.parse(localStorage.getItem("fujitt_reminders")||"{}");
+        delete saved[key];
+        localStorage.setItem("fujitt_reminders",JSON.stringify(saved));
+        delete _reminders[key];
+        var art=master.find(function(it){return it.name.toLowerCase().trim()===key;});
+        var name=art?art.name:key;
+        if(typeof Notification!=="undefined"&&Notification.permission==="granted"){
+            new Notification("🎵 即將開演！",{body:name+" 還有 15 分鐘開演！"});
+        }else{toast("🔔 "+name+" 還有 15 分鐘開演！");}
+    },ms);
+}
+function toggleReminder(){
+    if(!_spCurArtist)return;
+    var key=_spCurArtist.toLowerCase().trim();
+    var saved=JSON.parse(localStorage.getItem("fujitt_reminders")||"{}");
+    var btn=document.getElementById("sp-remind-btn");
+    if(saved[key]){
+        clearTimeout(_reminders[key]);delete _reminders[key];delete saved[key];
+        localStorage.setItem("fujitt_reminders",JSON.stringify(saved));
+        if(btn){btn.textContent="🔔 開演前 15 分鐘提醒";btn.classList.remove("set");}
+        toast("🔕 已取消提醒："+_spCurArtist);return;
+    }
+    var art=master.find(function(it){return it.name.toLowerCase().trim()===key;});
+    if(!art||!art.start||!art.day||!DAY_DATES[art.day]){toast("❌ 演出時間未定，無法設定提醒");return;}
+    var p=art.start.split(":"),h=parseInt(p[0]),m=parseInt(p[1]||0);
+    var d=new Date(DAY_DATES[art.day]+"T00:00:00+09:00");
+    d.setHours(d.getHours()+h,m-15);
+    var ms=d.getTime()-Date.now();
+    if(ms<0){toast("❌ 演出時間已過");return;}
+    function doSchedule(){
+        saved[key]=d.getTime();
+        localStorage.setItem("fujitt_reminders",JSON.stringify(saved));
+        _scheduleReminder(key,ms);
+        if(btn){btn.textContent="🔕 取消提醒";btn.classList.add("set");}
+        toast("🔔 已設定："+_spCurArtist+" 開演前 15 分鐘提醒");
+    }
+    if(typeof Notification==="undefined"){doSchedule();return;}
+    if(Notification.permission==="granted"){doSchedule();}
+    else if(Notification.permission!=="denied"){
+        Notification.requestPermission().then(function(perm){if(perm==="granted")doSchedule();else toast("❌ 請允許通知權限");});
+    }else{doSchedule();toast("⚠️ 通知權限已拒絕，改用站內提示");}
+}
 // ====== Fetch Helper ======
 function gasGet(url) {
   return fetch(url).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); });
@@ -758,8 +892,7 @@ function buildStages(){
     var m=new Map();
     master.forEach(function(it){
         var sn=(it.stage||"").trim();if(!sn)return;
-        var u=sn.toUpperCase();
-        var k=KNOWN.find(function(s){return u.includes(s.kw.toUpperCase())||sn.includes(s.kw);});
+        var k=KNOWN.find(function(s){return _matchStage(sn,s.kw);});
         if(k){if(!m.has(k.id))m.set(k.id,{id:k.id,kw:k.kw,name:k.name,color:k.color,vis:true});}
         else{var sid="S_"+sn.replace(/\W/g,"_");if(!m.has(sid))m.set(sid,{id:sid,kw:sn,name:sn,color:"#64748b",vis:true});}
     });
@@ -816,8 +949,8 @@ async function syncFromLine(){
 }
 // ====== RENDER ======
 function stageInfo(sn){
-    if(!sn)return null;var u=sn.toUpperCase();
-    var match=STAGES.find(function(s){return u.includes(s.kw.toUpperCase())||sn.includes(s.kw);});
+    if(!sn)return null;
+    var match=STAGES.find(function(s){return _matchStage(sn,s.kw);});
     if(!match||!match.vis)return null;
     var active=STAGES.filter(function(s){return s.vis;});
     return{col:active.findIndex(function(s){return s.id===match.id;})+2,stage:match};
@@ -835,11 +968,7 @@ function renderGrid(){
     g.style.minWidth=(50+active.length*100)+"px";
     g.appendChild(Object.assign(document.createElement("div"),{className:"corner"}));
     active.forEach(function(s,i){var h=document.createElement("div");h.className="stage-hdr";h.style.gridColumn=i+2;h.style.borderBottomColor=s.color;h.style.color=s.color;h.innerText=s.name;g.appendChild(h);});
-    var bg=document.createElement("div");bg.className="time-col-bg";g.appendChild(bg);
-    for(var i=0;i<=36;i++){var hour=11+Math.floor(i/2),min=i%2===0?"00":"30",dh=hour>=24?(hour-24<10?"0"+(hour-24):hour-24):hour,r=i*30+2;
-        var l=document.createElement("div");l.className="grid-line"+(min==="30"?" half":"");l.style.gridRow=r;l.style.gridColumn="2/span "+active.length;g.appendChild(l);
-        if(min==="00"){var lb=document.createElement("div");lb.className="time-lbl";lb.style.gridRow=r;lb.innerText=dh+":"+min;g.appendChild(lb);}
-    }
+    _renderTimeGrid(g,"2/span "+active.length);
     var evts=master.filter(function(it){
         if(it.day!==curDay)return false;
         if(schedMode==="personal")return isSelected(it.name);
@@ -849,20 +978,7 @@ function renderGrid(){
     updateConflicts();
     evts.forEach(function(it){
         var si=stageInfo(it.stage);if(!si)return;
-        var sel=isSelected(it.name);
-        var isConflict=_conflicts.has(it.name+"|"+curDay);
-        var bl=document.createElement("div");
-        bl.className="ev"+(schedMode==="full"&&!sel?" dimmed":"")+(sel?" selected":"")+(isConflict?" conflict":"");
-        bl.style.gridRow=timeToRow(it.start)+"/"+(it.end?timeToRow(it.end):timeToRow(it.start)+60);
-        bl.style.gridColumn=si.col;bl.style.borderLeftColor=si.stage.color;
-        var cdResult=getCountdown(it.day||curDay,it.start,it.end);
-        var cdHtml=cdResult?'<div class="ev-cd '+cdResult.cls+'">'+cdResult.text+'</div>':"";
-        var warnHtml=isConflict?'<div class="ev-warn">⚠️ 衝堂</div>':"";
-        bl.innerHTML='<div class="ev-time">'+it.start+' - '+(it.end||'?')+'</div><div class="ev-name">'+it.name+'</div>'+cdHtml+warnHtml;
-        bl.dataset.artist=it.name;bl.dataset.start=it.start||"";bl.dataset.end=it.end||"";bl.dataset.day=it.day||curDay;
-        if(_spPop[it.name]!==undefined)_applyGlow(bl,_spPop[it.name]);
-        (function(n){bl.onclick=function(){openSpotify(n);};})(it.name);
-        g.appendChild(bl);
+        g.appendChild(_buildEvBlock(it,si.stage.color,si.col));
     });
     updateTimeLine();
 }
@@ -879,15 +995,32 @@ function getTimeslot(startStr){
 }
 function renderList(){
     var c=document.getElementById("listview");c.innerHTML="";
-    var evts=master.filter(function(it){if(it.day!==curDay)return false;if(schedMode==="personal")return isSelected(it.name);return true;});
-    evts.sort(function(a,b){return timeToRow(a.start)-timeToRow(b.start);});
+    var isAll=curDay==="ALL";
+    var evts=master.filter(function(it){
+        if(!isAll&&it.day!==curDay)return false;
+        if(schedMode==="personal")return isSelected(it.name);
+        return true;
+    });
+    evts.sort(function(a,b){
+        if(isAll&&a.day!==b.day)return DAYS.indexOf(a.day)-DAYS.indexOf(b.day);
+        return timeToRow(a.start)-timeToRow(b.start);
+    });
     if(!evts.length){c.innerHTML='<div style="text-align:center;color:#666;padding:40px">'+(schedMode==="personal"?"📭 點選單「👤 專屬」切換模式加入藝人":"📭 無資料")+"</div>";return;}
     updateConflicts();
-    var lastSlot="";
+    var lastSlot="",lastDay="";
     evts.forEach(function(it){
         var si=stageInfo(it.stage);var color=si?si.stage.color:"#64748b";var sName=si?si.stage.name:(it.stage||"未定");
         var sel=isSelected(it.name);
-        var isConflict=_conflicts.has(it.name+"|"+curDay);
+        var isConflict=_conflicts.has(it.name+"|"+it.day);
+        // 三天總覽：日期分組 header
+        if(isAll&&it.day!==lastDay){
+            lastDay=it.day;lastSlot="";
+            var di=DAYS.indexOf(it.day);
+            var dh=document.createElement("div");
+            dh.style.cssText="font-size:.85rem;font-weight:800;color:var(--text);padding:14px 2px 6px;border-bottom:2px solid var(--accent);margin-bottom:4px;";
+            dh.innerText=(di>=0?DAY_LABELS[di]:it.day)||it.day;
+            c.appendChild(dh);
+        }
         // 時段分組 header（只有開啟時間別時才顯示）
         if(_adminSettings.showTime){
             var slot=getTimeslot(it.start);
@@ -902,7 +1035,7 @@ function renderList(){
         var bl=document.createElement("div");
         bl.className='list-item'+(schedMode==='full'&&!sel?' dimmed':'')+(sel?' selected':'')+(isConflict?' conflict':'');
         bl.style.borderLeftColor=color;
-        var cdResult=getCountdown(it.day||curDay,it.start,it.end);
+        var cdResult=getCountdown(it.day,it.start,it.end);
         var cdHtml=cdResult?'<div class="ev-cd '+cdResult.cls+'" style="margin-top:4px">'+cdResult.text+'</div>':"";
         var warnHtml=isConflict?'<span style="color:#ff3b30;font-size:.75rem;font-weight:700;margin-left:6px">⚠️ 衝堂</span>':"";
         var timeStr=it.start?(it.start+(it.end?' - '+it.end:'')):'';
@@ -910,6 +1043,86 @@ function renderList(){
         bl.innerHTML='<div class="list-hdr">'+timeHtml+'<span style="color:'+color+';font-weight:bold">'+sName+'</span></div><div class="list-title">'+it.name+(sel?' ⭐':'')+warnHtml+'</div>'+cdHtml;
         (function(n){bl.onclick=function(){openSpotify(n);};})(it.name);
         c.appendChild(bl);
+    });
+}
+// ====== NOW & NEXT VIEW ======
+function renderNowNext(){
+    var c=document.getElementById("now-cards");c.innerHTML="";
+    var active=STAGES.filter(function(s){return s.vis;});
+    var now=new Date();
+    // For ALL day mode, pick today's JST date
+    var showDay=curDay;
+    if(curDay==="ALL"){
+        var jst=new Date(now.getTime()+(9*60-now.getTimezoneOffset())*60000);
+        showDay=_dateToDay(jst.toISOString().slice(0,10))||DAYS[0];
+    }
+    var dayDate=DAY_DATES[showDay];
+    function toMs(timeStr){
+        if(!timeStr||!dayDate)return 0;
+        var p=timeStr.split(":"),h=parseInt(p[0]),m=parseInt(p[1]||0);
+        var d=new Date(dayDate+"T00:00:00+09:00");
+        d.setHours(d.getHours()+h,m);return d.getTime();
+    }
+    active.forEach(function(stage){
+        var evts=master.filter(function(it){
+            if(it.day!==showDay)return false;
+            var si=stageInfo(it.stage);return si&&si.stage.id===stage.id;
+        }).sort(function(a,b){return timeToRow(a.start)-timeToRow(b.start);});
+        if(!evts.length)return;
+        var nowEvt=null,nextEvt=null,nowMs=now.getTime();
+        if(isFestivalMode()&&dayDate){
+            for(var i=0;i<evts.length;i++){
+                var s=toMs(evts[i].start),e=evts[i].end?toMs(evts[i].end):s+5400000;
+                if(nowMs>=s&&nowMs<e){nowEvt=evts[i];nextEvt=evts[i+1]||null;break;}
+                if(nowMs<s&&!nextEvt){nextEvt=evts[i];}
+            }
+        }else{
+            nextEvt=evts[0]||null;
+        }
+        if(!nowEvt&&!nextEvt)return;
+        var card=document.createElement("div");
+        card.className="now-card";card.style.borderLeftColor=stage.color;
+        function slot(ev,badge,cls){
+            var sel=isSelected(ev.name);
+            return '<div class="now-slot">'
+                +'<div class="now-badges"><span class="now-badge '+cls+'">'+badge+'</span>'+(sel?'<span class="now-badge sel">⭐</span>':'')+'</div>'
+                +'<div class="now-artist">'+ev.name+'</div>'
+                +'<div class="now-time">'+ev.start+(ev.end?' – '+ev.end:'')+'</div>'
+                +'</div>';
+        }
+        var html='<div class="now-card-stage" style="color:'+stage.color+'">'+stage.name+'</div>';
+        if(nowEvt) html+=slot(nowEvt,"🔴 NOW","live");
+        if(nextEvt) html+=slot(nextEvt,"NEXT","next");
+        card.innerHTML=html;
+        var target=nowEvt||nextEvt;
+        card.onclick=function(){openSpotify(target.name);};
+        c.appendChild(card);
+    });
+    if(!c.children.length){
+        c.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:40px">📭 無演出資料</div>';
+    }
+}
+// ====== SUMMARY CARD ======
+function updateSummaryCard(){
+    var card=document.getElementById("summary-card");if(!card)return;
+    if(schedMode!=="personal"||mySelection.length===0){card.classList.remove("show");return;}
+    card.classList.add("show");
+    var stages=new Set();
+    mySelection.forEach(function(n){
+        var art=master.find(function(it){return it.name.toLowerCase().trim()===n;});
+        if(art&&art.stage){var si=stageInfo(art.stage);if(si)stages.add(si.stage.id);}
+    });
+    var conflictN=_conflicts.size>0?Math.round(_conflicts.size/2):0;
+    document.getElementById("sum-total").textContent=mySelection.length;
+    document.getElementById("sum-conflict").textContent=conflictN;
+    document.getElementById("sum-stage-n").textContent=stages.size;
+    document.getElementById("sum-stage-txt").textContent="涵蓋 "+stages.size+" 個舞台";
+    var sumDays=document.getElementById("sum-days");sumDays.innerHTML="";
+    DAYS.forEach(function(day,i){
+        var cnt=master.filter(function(it){return it.day===day&&isSelected(it.name);}).length;
+        var d=document.createElement("div");d.className="summary-day";
+        d.innerHTML='<strong>'+cnt+'</strong><span>Day '+(i+1)+'</span>';
+        sumDays.appendChild(d);
     });
 }
 // ====== STAGE VIEW ======
@@ -931,12 +1144,7 @@ function renderStageView(){
     g.style.minWidth="100%";
     g.appendChild(Object.assign(document.createElement("div"),{className:"corner"}));
     var hdr=document.createElement("div");hdr.className="stage-hdr";hdr.style.gridColumn=2;hdr.style.borderBottomColor=stage.color;hdr.style.color=stage.color;hdr.innerText=stage.name;g.appendChild(hdr);
-    var bg=document.createElement("div");bg.className="time-col-bg";g.appendChild(bg);
-    for(var i=0;i<=36;i++){
-        var hour=11+Math.floor(i/2),min=i%2===0?"00":"30",dh=hour>=24?(hour-24<10?"0"+(hour-24):hour-24):hour,r=i*30+2;
-        var l=document.createElement("div");l.className="grid-line"+(min==="30"?" half":"");l.style.gridRow=r;l.style.gridColumn="2";g.appendChild(l);
-        if(min==="00"){var lb=document.createElement("div");lb.className="time-lbl";lb.style.gridRow=r;lb.innerText=dh+":"+min;g.appendChild(lb);}
-    }
+    _renderTimeGrid(g,"2");
     var evts=master.filter(function(it){
         if(it.day!==curDay)return false;
         var si=stageInfo(it.stage);
@@ -946,35 +1154,23 @@ function renderStageView(){
     });
     if(!evts.length){var hint=document.createElement("div");hint.style.cssText="grid-column:2;grid-row:30;text-align:center;color:#666;padding:20px;";hint.textContent=schedMode==="personal"?"📭 此舞台無選取藝人":"📭 此舞台無節目";g.appendChild(hint);}
     updateConflicts();
-    evts.forEach(function(it){
-        var sel=isSelected(it.name);
-        var isConflict=_conflicts.has(it.name+"|"+curDay);
-        var bl=document.createElement("div");
-        bl.className="ev"+(schedMode==="full"&&!sel?" dimmed":"")+(sel?" selected":"")+(isConflict?" conflict":"");
-        bl.style.gridRow=timeToRow(it.start)+"/"+(it.end?timeToRow(it.end):timeToRow(it.start)+60);
-        bl.style.gridColumn=2;bl.style.borderLeftColor=stage.color;
-        var cdResult=getCountdown(it.day||curDay,it.start,it.end);
-        var cdHtml=cdResult?'<div class="ev-cd '+cdResult.cls+'">'+cdResult.text+'</div>':"";
-        var warnHtml=isConflict?'<div class="ev-warn">⚠️ 衝堂</div>':"";
-        bl.innerHTML='<div class="ev-time">'+it.start+' - '+(it.end||'?')+'</div><div class="ev-name">'+it.name+'</div>'+cdHtml+warnHtml;
-        bl.dataset.artist=it.name;bl.dataset.start=it.start||"";bl.dataset.end=it.end||"";bl.dataset.day=it.day||curDay;
-        if(_spPop[it.name]!==undefined)_applyGlow(bl,_spPop[it.name]);
-        (function(n){bl.onclick=function(){openSpotify(n);};})(it.name);
-        g.appendChild(bl);
-    });
+    evts.forEach(function(it){g.appendChild(_buildEvBlock(it,stage.color,2));});
     updateTimeLine();
 }
-function prevStage(){
+function _changeStage(dir){
     var active=STAGES.filter(function(s){return s.vis;});
-    curStageIdx=(curStageIdx-1+active.length)%active.length;
+    curStageIdx=(curStageIdx+dir+active.length)%active.length;
     renderStageView();document.getElementById("scroll").scrollTop=0;
 }
-function nextStage(){
-    var active=STAGES.filter(function(s){return s.vis;});
-    curStageIdx=(curStageIdx+1)%active.length;
-    renderStageView();document.getElementById("scroll").scrollTop=0;
+function prevStage(){_changeStage(-1);}
+function nextStage(){_changeStage(1);}
+function render(){
+    if(viewMode==="grid")renderGrid();
+    else if(viewMode==="stage")renderStageView();
+    else if(viewMode==="now")renderNowNext();
+    else renderList();
+    updateSummaryCard();
 }
-function render(){if(viewMode==="grid")renderGrid();else if(viewMode==="stage")renderStageView();else renderList();}
 // ====== NOW PLAYING BANNER ======
 function updateNowBanner(){
     var banner=document.getElementById("now-banner");
@@ -1034,21 +1230,33 @@ function _applyViewMode(){
     var tbv=document.getElementById("tbr-view");
     var scr=document.getElementById("scroll");
     var lv=document.getElementById("listview");
+    var nv=document.getElementById("now-view");
     var fab=document.getElementById("fab");
     var nav=document.getElementById("stage-nav");
-    var nextLabels={grid:"🎯 舞台",stage:"📋 列表",list:"🎛️ 格子"};
-    if(tbv){tbv.innerHTML='<span class="ico">'+(viewMode==="list"?"🎛️":viewMode==="stage"?"📋":"🎯")+'</span>'+(viewMode==="list"?"格子":viewMode==="stage"?"列表":"舞台");tbv.classList.toggle("active",viewMode!=="grid");}
-    scr.style.display=viewMode==="list"?"none":"block";
+    var tnow=document.getElementById("tbr-now");
+    var vl=VIEW_LABELS[viewMode]||VIEW_LABELS.now;
+    if(tbv){tbv.innerHTML='<span class="ico">'+vl.ico+'</span>'+vl.lbl;tbv.classList.toggle("active",viewMode!=="grid");}
+    if(tnow) tnow.classList.toggle("active",viewMode==="now");
+    var isTimeGrid=viewMode==="grid"||viewMode==="stage";
+    scr.style.display=isTimeGrid?"block":"none";
     lv.style.display=viewMode==="list"?"flex":"none";
-    fab.style.display=viewMode==="list"?"none":"flex";
+    nv.classList.toggle("show",viewMode==="now");
+    fab.style.display=isTimeGrid?"flex":"none";
     if(viewMode!=="stage")nav.classList.remove("show");
     render();
 }
+function toggleNowView(){
+    viewMode=viewMode==="now"?"list":"now";
+    _applyViewMode();
+}
 function changeDay(idx){
-    curDay=DAYS[idx];
-    document.querySelectorAll(".day-btn").forEach(function(b,i){b.classList.toggle("active",i===idx);});
-    document.getElementById("wm").innerText="2026 FUJI ROCK - "+DAY_LABELS[idx];
-    render();if(viewMode!=="list")document.getElementById("scroll").scrollTop=0;
+    var isAll=idx==="ALL";
+    curDay=isAll?"ALL":DAYS[idx];
+    document.querySelectorAll(".day-btn").forEach(function(b){b.classList.toggle("active",b.dataset.day===curDay);});
+    document.getElementById("wm").innerText=isAll?"2026 FUJI ROCK - 全覽":"2026 FUJI ROCK - "+DAY_LABELS[idx];
+    if(isAll&&viewMode!=="list"&&viewMode!=="now"){viewMode="list";_applyViewMode();return;}
+    render();
+    if(viewMode!=="list"&&viewMode!=="now") document.getElementById("scroll").scrollTop=0;
 }
 function jumpNow(){
     var n=new Date(),h=n.getHours();if(h>=0&&h<5)h+=24;
@@ -1067,18 +1275,14 @@ function toggleSS(){document.body.classList.toggle("ss-mode");}
 
 function initApp(){
     var dc=document.getElementById("days");dc.innerHTML="";
-    DAY_LABELS.forEach(function(l,i){var b=document.createElement("button");b.className="day-btn"+(i===0?" active":"");b.innerText=l;b.onclick=function(){changeDay(i);};dc.appendChild(b);});
+    // 全覽 button
+    var allBtn=document.createElement("button");allBtn.className="day-btn";allBtn.innerText="全覽";allBtn.dataset.day="ALL";allBtn.onclick=function(){changeDay("ALL");};dc.appendChild(allBtn);
+    DAY_LABELS.forEach(function(l,i){var b=document.createElement("button");b.className="day-btn"+(i===0?" active":"");b.innerText=l;b.dataset.day=DAYS[i];b.onclick=function(){changeDay(i);};dc.appendChild(b);});
     updateSelCount();
+    _restoreReminders();
     // 根據資料階段設定預設視圖
     var phase=getDataPhase();
-    if(phase==="list"&&viewMode==="grid"){
-        viewMode="list";
-        var tbv=document.getElementById("tbr-view");
-        if(tbv){tbv.innerHTML='<span class="ico">🎛️</span>格子';tbv.classList.add("active");}
-        document.getElementById("scroll").style.display="none";
-        document.getElementById("listview").style.display="flex";
-        document.getElementById("fab").style.display="none";
-    }
+    if(phase==="list"&&viewMode==="grid") viewMode="list";
     changeDay(0);
     // 舞台模式：左右滑切換舞台
     var _tx=0,_ty=0;
