@@ -298,17 +298,19 @@ var master = [], lineWanted = [], mySelection = [];
 var DAYS = ["Day 1","Day 2","Day 3"], DAY_LABELS = ["Day 1 (7/24)","Day 2 (7/25)","Day 3 (7/26)"];
 var curDay = DAYS[0], viewMode = "grid", schedMode = "personal";
 var KNOWN = [
-    {id:"GREEN",kw:"GREEN",name:"GREEN",color:"#22c55e"},
-    {id:"WHITE",kw:"WHITE",name:"WHITE",color:"#e2e8f0"},
-    {id:"RED",kw:"RED",name:"RED MARQUEE",color:"#ef4444"},
-    {id:"FIELD",kw:"HEAVEN",name:"HEAVEN",color:"#eab308"},
-    {id:"AVALON",kw:"AVALON",name:"AVALON",color:"#d946ef"},
-    {id:"CRYSTAL",kw:"CRYSTAL",name:"CRYSTAL",color:"#8b5cf6"},
-    {id:"PALACE",kw:"PALACE",name:"PALACE",color:"#f97316"},
-    {id:"ROOKIE",kw:"ROOKIE",name:"ROOKIE",color:"#06b6d4"},
-    {id:"DAY",kw:"DAY",name:"DAY DREAM",color:"#f43f5e"},
-    {id:"PYRAMID",kw:"PYRAMID",name:"PYRAMID",color:"#10b981"},
-    {id:"CAFE",kw:"CAFE",name:"CAFÉ",color:"#ec4899"}
+    {id:"GREEN",   kw:"GREEN",   name:"GREEN",       color:"#22c55e"},
+    {id:"WHITE",   kw:"WHITE",   name:"WHITE",        color:"#cbd5e1"},
+    {id:"RED",     kw:"RED",     name:"RED MARQUEE",  color:"#ef4444"},
+    {id:"HEAVEN",  kw:"HEAVEN",  name:"HEAVEN",       color:"#eab308"},
+    {id:"ORANGE",  kw:"ORANGE",  name:"ORANGE",       color:"#f97316"},
+    {id:"AVALON",  kw:"AVALON",  name:"AVALON",       color:"#d946ef"},
+    {id:"CRYSTAL", kw:"CRYSTAL", name:"CRYSTAL",      color:"#8b5cf6"},
+    {id:"PALACE",  kw:"PALACE",  name:"PALACE",       color:"#a855f7"},
+    {id:"ROOKIE",  kw:"ROOKIE",  name:"ROOKIE",       color:"#06b6d4"},
+    {id:"MOSHPIT", kw:"苗場",    name:"苗場食堂",      color:"#ec4899"},
+    {id:"PYRAMID", kw:"PYRAMID", name:"PYRAMID",       color:"#10b981"},
+    {id:"GANBAN",  kw:"GANBAN",  name:"GANBAN",       color:"#94a3b8"},
+    {id:"GALAXY",  kw:"GALAXY",  name:"GALAXY",       color:"#818cf8"}
 ];
 var STAGES = [];
 function toast(msg){var t=document.getElementById("toast");t.innerText=msg;t.style.display="block";setTimeout(function(){t.style.display="none";},2200);}
@@ -739,11 +741,20 @@ function buildStages(){
     var m=new Map();
     master.forEach(function(it){
         var sn=(it.stage||"").trim();if(!sn)return;
-        var k=KNOWN.find(function(s){return sn.toUpperCase().includes(s.kw);});
+        var u=sn.toUpperCase();
+        var k=KNOWN.find(function(s){return u.includes(s.kw.toUpperCase())||sn.includes(s.kw);});
         if(k){if(!m.has(k.id))m.set(k.id,{id:k.id,kw:k.kw,name:k.name,color:k.color,vis:true});}
         else{var sid="S_"+sn.replace(/\W/g,"_");if(!m.has(sid))m.set(sid,{id:sid,kw:sn,name:sn,color:"#64748b",vis:true});}
     });
-    STAGES=Array.from(m.values());
+    // 按 KNOWN 固定順序排列，未知舞台附在最後
+    var knownOrder=KNOWN.map(function(k){return k.id;});
+    STAGES=Array.from(m.values()).sort(function(a,b){
+        var ai=knownOrder.indexOf(a.id),bi=knownOrder.indexOf(b.id);
+        if(ai<0&&bi<0)return 0;
+        if(ai<0)return 1;
+        if(bi<0)return -1;
+        return ai-bi;
+    });
 }
 function isSelected(name){return mySelection.indexOf(name.toLowerCase().trim())>=0;}
 function toggleSelection(name){
@@ -789,7 +800,7 @@ async function syncFromLine(){
 // ====== RENDER ======
 function stageInfo(sn){
     if(!sn)return null;var u=sn.toUpperCase();
-    var match=STAGES.find(function(s){return u.includes(s.kw.toUpperCase());});
+    var match=STAGES.find(function(s){return u.includes(s.kw.toUpperCase())||sn.includes(s.kw);});
     if(!match||!match.vis)return null;
     var active=STAGES.filter(function(s){return s.vis;});
     return{col:active.findIndex(function(s){return s.id===match.id;})+2,stage:match};
