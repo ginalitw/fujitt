@@ -149,6 +149,14 @@
         /* ===== SCREENSHOT DOWNLOAD ===== */
         .ss-dl-btn{display:none;position:fixed;bottom:20px;left:20px;background:#22c55e;color:#000;width:46px;height:46px;border-radius:50%;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 4px 10px rgba(0,0,0,.5);z-index:9998;border:none;cursor:pointer;}
         body.ss-mode .ss-dl-btn{display:flex;}
+        /* ===== STAGE NAV（舞台模式導航列）===== */
+        .stage-nav{display:none;align-items:center;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--border);gap:8px;position:sticky;top:0;z-index:500;}
+        .stage-nav.show{display:flex;}
+        .stage-nav-center{flex:1;text-align:center;display:flex;flex-direction:column;gap:2px;}
+        .stage-nav-name{font-weight:700;font-size:1rem;line-height:1.2;}
+        .stage-nav-counter{font-size:.72rem;color:var(--muted);}
+        .stage-nav-btn{background:var(--bg);color:var(--text);border:1px solid var(--border);padding:7px 14px;border-radius:10px;cursor:pointer;font-size:1rem;flex-shrink:0;transition:.15s;}
+        .stage-nav-btn:active{background:var(--border);}
         /* ===== ADMIN MODE ===== */
         .admin-badge{display:none;position:fixed;top:8px;left:50%;transform:translateX(-50%);background:#7c3aed;color:#fff;padding:3px 12px;border-radius:10px;font-size:.7rem;font-weight:700;z-index:1002;pointer-events:none;}
         body.admin-on .admin-badge{display:block;}
@@ -194,6 +202,15 @@
         <span class="stat-pill" id="stat-conflict-wrap" style="display:none">
             <span class="stat-conflict" onclick="scrollToFirstConflict()">⚠️ <strong id="stat-conflict">0</strong> 衝堂</span>
         </span>
+    </div>
+    <!-- 舞台模式導航列 -->
+    <div class="stage-nav" id="stage-nav">
+        <button class="stage-nav-btn" onclick="prevStage()">◀</button>
+        <div class="stage-nav-center">
+            <span class="stage-nav-name" id="stage-nav-name"></span>
+            <span class="stage-nav-counter" id="stage-nav-counter"></span>
+        </div>
+        <button class="stage-nav-btn" onclick="nextStage()">▶</button>
     </div>
     <!-- NOW 正在演出 Banner（音樂祭期間） -->
     <div class="now-banner" id="now-banner">
@@ -353,9 +370,9 @@ function syncToolbarVisibility(){
     document.body.classList.toggle("clean-hdr",!_adminSettings.showStageLbl);
     // 隱藏時強制回預設模式
     if(!showP&&schedMode==="personal"){ schedMode="full"; render(); }
-    if(!showG&&viewMode==="grid"){
+    if(!showG&&viewMode!=="list"){
         viewMode="list";
-        if(bv){bv.innerHTML='<span class="ico">📋</span>列表';bv.classList.remove("active");}
+        document.getElementById("stage-nav").classList.remove("show");
         document.getElementById("scroll").style.display="none";
         document.getElementById("listview").style.display="flex";
         document.getElementById("fab").style.display="none";
@@ -895,7 +912,69 @@ function renderList(){
         c.appendChild(bl);
     });
 }
-function render(){if(viewMode==="grid")renderGrid();else renderList();}
+// ====== STAGE VIEW ======
+var curStageIdx = 0;
+function renderStageView(){
+    var active=STAGES.filter(function(s){return s.vis;});
+    if(!active.length){document.getElementById("grid").innerHTML='<div style="text-align:center;color:#666;padding:40px">沒有舞台</div>';return;}
+    if(curStageIdx>=active.length)curStageIdx=0;
+    var stage=active[curStageIdx];
+    // 更新導航列
+    var nav=document.getElementById("stage-nav");
+    nav.classList.add("show");
+    var nm=document.getElementById("stage-nav-name");
+    nm.textContent=stage.name; nm.style.color=stage.color;
+    document.getElementById("stage-nav-counter").textContent=(curStageIdx+1)+" / "+active.length;
+    // 建立格子（單欄）
+    var g=document.getElementById("grid");g.innerHTML="";
+    g.style.gridTemplateColumns="50px 1fr";
+    g.style.minWidth="100%";
+    g.appendChild(Object.assign(document.createElement("div"),{className:"corner"}));
+    var hdr=document.createElement("div");hdr.className="stage-hdr";hdr.style.gridColumn=2;hdr.style.borderBottomColor=stage.color;hdr.style.color=stage.color;hdr.innerText=stage.name;g.appendChild(hdr);
+    var bg=document.createElement("div");bg.className="time-col-bg";g.appendChild(bg);
+    for(var i=0;i<=36;i++){
+        var hour=11+Math.floor(i/2),min=i%2===0?"00":"30",dh=hour>=24?(hour-24<10?"0"+(hour-24):hour-24):hour,r=i*30+2;
+        var l=document.createElement("div");l.className="grid-line"+(min==="30"?" half":"");l.style.gridRow=r;l.style.gridColumn="2";g.appendChild(l);
+        if(min==="00"){var lb=document.createElement("div");lb.className="time-lbl";lb.style.gridRow=r;lb.innerText=dh+":"+min;g.appendChild(lb);}
+    }
+    var evts=master.filter(function(it){
+        if(it.day!==curDay)return false;
+        var si=stageInfo(it.stage);
+        if(!si||si.stage.id!==stage.id)return false;
+        if(schedMode==="personal")return isSelected(it.name);
+        return true;
+    });
+    if(!evts.length){var hint=document.createElement("div");hint.style.cssText="grid-column:2;grid-row:30;text-align:center;color:#666;padding:20px;";hint.textContent=schedMode==="personal"?"📭 此舞台無選取藝人":"📭 此舞台無節目";g.appendChild(hint);}
+    updateConflicts();
+    evts.forEach(function(it){
+        var sel=isSelected(it.name);
+        var isConflict=_conflicts.has(it.name+"|"+curDay);
+        var bl=document.createElement("div");
+        bl.className="ev"+(schedMode==="full"&&!sel?" dimmed":"")+(sel?" selected":"")+(isConflict?" conflict":"");
+        bl.style.gridRow=timeToRow(it.start)+"/"+(it.end?timeToRow(it.end):timeToRow(it.start)+60);
+        bl.style.gridColumn=2;bl.style.borderLeftColor=stage.color;
+        var cdResult=getCountdown(it.day||curDay,it.start,it.end);
+        var cdHtml=cdResult?'<div class="ev-cd '+cdResult.cls+'">'+cdResult.text+'</div>':"";
+        var warnHtml=isConflict?'<div class="ev-warn">⚠️ 衝堂</div>':"";
+        bl.innerHTML='<div class="ev-time">'+it.start+' - '+(it.end||'?')+'</div><div class="ev-name">'+it.name+'</div>'+cdHtml+warnHtml;
+        bl.dataset.artist=it.name;bl.dataset.start=it.start||"";bl.dataset.end=it.end||"";bl.dataset.day=it.day||curDay;
+        if(_spPop[it.name]!==undefined)_applyGlow(bl,_spPop[it.name]);
+        (function(n){bl.onclick=function(){openSpotify(n);};})(it.name);
+        g.appendChild(bl);
+    });
+    updateTimeLine();
+}
+function prevStage(){
+    var active=STAGES.filter(function(s){return s.vis;});
+    curStageIdx=(curStageIdx-1+active.length)%active.length;
+    renderStageView();document.getElementById("scroll").scrollTop=0;
+}
+function nextStage(){
+    var active=STAGES.filter(function(s){return s.vis;});
+    curStageIdx=(curStageIdx+1)%active.length;
+    renderStageView();document.getElementById("scroll").scrollTop=0;
+}
+function render(){if(viewMode==="grid")renderGrid();else if(viewMode==="stage")renderStageView();else renderList();}
 // ====== NOW PLAYING BANNER ======
 function updateNowBanner(){
     var banner=document.getElementById("now-banner");
@@ -929,12 +1008,13 @@ function updateNowBanner(){
     banner.classList.add("show");
 }
 function updateTimeLine(){
-    if(viewMode!=="grid")return;
+    if(viewMode==="list")return;
     var now=new Date(),h=now.getHours(),m=now.getMinutes();if(h>=0&&h<5)h+=24;
     if(h>=11&&h<=29){var r=(h-11)*60+m+2;var tl=document.getElementById("tl");
         if(!tl){tl=document.createElement("div");tl.id="tl";tl.className="time-line";var d=document.createElement("div");d.className="time-dot";tl.appendChild(d);}
-        var g=document.getElementById("grid"),active=STAGES.filter(function(s){return s.vis;});
-        if(g&&active.length){g.appendChild(tl);tl.style.gridRow=r;tl.style.gridColumn="2/span "+active.length;tl.style.display="block";}
+        var g=document.getElementById("grid");
+        var span=viewMode==="stage"?"1":(STAGES.filter(function(s){return s.vis;}).length+"");
+        if(g){g.appendChild(tl);tl.style.gridRow=r;tl.style.gridColumn="2/span "+span;tl.style.display="block";}
     }
 }
 // ====== CONTROLS ======
@@ -946,19 +1026,29 @@ function toggleMode(){
     render();
 }
 function toggleView(){
-    viewMode=viewMode==="grid"?"list":"grid";
+    var modes=["grid","stage","list"];
+    viewMode=modes[(modes.indexOf(viewMode)+1)%modes.length];
+    _applyViewMode();
+}
+function _applyViewMode(){
     var tbv=document.getElementById("tbr-view");
-    if(tbv){tbv.innerHTML='<span class="ico">'+(viewMode==="list"?"🎛️":"📋")+'</span>'+(viewMode==="list"?"格子":"列表");tbv.classList.toggle("active",viewMode==="list");}
-    document.getElementById("scroll").style.display=viewMode==="list"?"none":"block";
-    document.getElementById("listview").style.display=viewMode==="list"?"flex":"none";
-    document.getElementById("fab").style.display=viewMode==="list"?"none":"flex";
+    var scr=document.getElementById("scroll");
+    var lv=document.getElementById("listview");
+    var fab=document.getElementById("fab");
+    var nav=document.getElementById("stage-nav");
+    var nextLabels={grid:"🎯 舞台",stage:"📋 列表",list:"🎛️ 格子"};
+    if(tbv){tbv.innerHTML='<span class="ico">'+(viewMode==="list"?"🎛️":viewMode==="stage"?"📋":"🎯")+'</span>'+(viewMode==="list"?"格子":viewMode==="stage"?"列表":"舞台");tbv.classList.toggle("active",viewMode!=="grid");}
+    scr.style.display=viewMode==="list"?"none":"block";
+    lv.style.display=viewMode==="list"?"flex":"none";
+    fab.style.display=viewMode==="list"?"none":"flex";
+    if(viewMode!=="stage")nav.classList.remove("show");
     render();
 }
 function changeDay(idx){
     curDay=DAYS[idx];
     document.querySelectorAll(".day-btn").forEach(function(b,i){b.classList.toggle("active",i===idx);});
     document.getElementById("wm").innerText="2026 FUJI ROCK - "+DAY_LABELS[idx];
-    render();if(viewMode==="grid")document.getElementById("scroll").scrollTop=0;
+    render();if(viewMode!=="list")document.getElementById("scroll").scrollTop=0;
 }
 function jumpNow(){
     var n=new Date(),h=n.getHours();if(h>=0&&h<5)h+=24;
@@ -990,6 +1080,14 @@ function initApp(){
         document.getElementById("fab").style.display="none";
     }
     changeDay(0);
+    // 舞台模式：左右滑切換舞台
+    var _tx=0,_ty=0;
+    document.getElementById("scroll").addEventListener("touchstart",function(e){_tx=e.changedTouches[0].clientX;_ty=e.changedTouches[0].clientY;},{passive:true});
+    document.getElementById("scroll").addEventListener("touchend",function(e){
+        if(viewMode!=="stage")return;
+        var dx=e.changedTouches[0].clientX-_tx,dy=e.changedTouches[0].clientY-_ty;
+        if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>55){dx<0?nextStage():prevStage();}
+    },{passive:true});
     setInterval(updateTimeLine,60000);
     setInterval(updateAllCountdowns,30000);
     updateNowBanner();
