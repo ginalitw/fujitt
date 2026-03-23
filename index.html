@@ -433,8 +433,8 @@ function _buildEvBlock(it, stageColor, colVal){
 }
 function toast(msg){var t=document.getElementById("toast");t.innerText=msg;t.style.display="block";setTimeout(function(){t.style.display="none";},2200);}
 // ====== ADMIN MODE ======
-var ADMIN_PASSWORD = "fujitt2026"; // ★ 修改為你的密碼
-var OWNER_UID = "Uaad7f6d86f0316d7ddf10f660ade5205";
+var ADMIN_PASSWORD = (window.__adminConfig||{}).password||"";
+var OWNER_UID = (window.__adminConfig||{}).ownerUid||"";
 function isOwner(){ return new URLSearchParams(window.location.search).get("uid")===OWNER_UID; }
 var _adminSettings = JSON.parse(localStorage.getItem("fujitt_admin")||'{"conflict":true,"countdown":true,"festival":false,"phase":"auto","showPersonal":false,"showGrid":false,"showStage":false,"showTime":false,"showStageLbl":true,"showNow":true,"showSummary":true,"showRemind":true,"showAllDays":true}');
 // 向舊版 localStorage 補齊缺少的 key

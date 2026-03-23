@@ -8,3 +8,7 @@ window.__firebaseConfig = {
     messagingSenderId: "YOUR_SENDER_ID",
     appId: "YOUR_APP_ID"
 };
+window.__adminConfig = {
+    ownerUid: "YOUR_LINE_UID",
+    password: "YOUR_ADMIN_PASSWORD"
+};
