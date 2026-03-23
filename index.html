@@ -128,8 +128,7 @@
         body.clean-hdr .list-hdr span:last-child{display:none;}
         body.clean-hdr .list-item{border-left-color:transparent !important;}
         body.clean-hdr .ev{border-left-color:transparent !important;}
-        body.hide-artist-info .sp-info{display:none;}
-        body.hide-artist-info .sp-divider{display:none;}
+        body.clean-hdr .sp-tag.stage{display:none;}
         /* ===== CONFLICT WARNING ===== */
         .ev.conflict{outline:2px solid #ff3b30;outline-offset:-2px;}
         .ev-warn{font-size:.6rem;color:#ff3b30;font-weight:700;margin-top:2px;}
@@ -311,10 +310,6 @@
           <label class="toggle-sw"><input type="checkbox" id="sw-showStageLbl" onchange="saveAndSyncUI('showStageLbl',this.checked)"><span class="slider"></span></label>
         </div>
         <div class="admin-row">
-          <div><div class="admin-label">🎤 藝人資訊面板</div><div class="admin-sub">曲風／日期／舞台別＋簡介</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showArtistInfo" onchange="saveAndSyncUI('showArtistInfo',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
           <div><div class="admin-label">📊 計畫摘要卡</div><div class="admin-sub">個人模式下顯示選取統計</div></div>
           <label class="toggle-sw"><input type="checkbox" id="sw-showSummary" onchange="saveAndSyncUI('showSummary',this.checked)"><span class="slider"></span></label>
         </div>
@@ -447,7 +442,7 @@ function toast(msg){var t=document.getElementById("toast");t.innerText=msg;t.sty
 var ADMIN_PASSWORD = "fujitt2026"; // ★ 修改為你的密碼
 var OWNER_UID = "Uaad7f6d86f0316d7ddf10f660ade5205";
 function isOwner(){ return new URLSearchParams(window.location.search).get("uid")===OWNER_UID; }
-var _adminSettings = JSON.parse(localStorage.getItem("fujitt_admin")||'{"conflict":true,"countdown":true,"festival":false,"phase":"auto","showPersonal":false,"showGrid":false,"showStage":false,"showTime":false,"showStageLbl":true,"showNow":true,"showSummary":true,"showRemind":true,"showAllDays":true,"showArtistInfo":true}');
+var _adminSettings = JSON.parse(localStorage.getItem("fujitt_admin")||'{"conflict":true,"countdown":true,"festival":false,"phase":"auto","showPersonal":false,"showGrid":false,"showStage":false,"showTime":false,"showStageLbl":true,"showNow":true,"showSummary":true,"showRemind":true,"showAllDays":true}');
 // 向舊版 localStorage 補齊缺少的 key
 if(_adminSettings.showPersonal===undefined)_adminSettings.showPersonal=false;
 if(_adminSettings.showGrid===undefined)_adminSettings.showGrid=false;
@@ -458,7 +453,6 @@ if(_adminSettings.showNow===undefined)_adminSettings.showNow=true;
 if(_adminSettings.showSummary===undefined)_adminSettings.showSummary=true;
 if(_adminSettings.showRemind===undefined)_adminSettings.showRemind=true;
 if(_adminSettings.showAllDays===undefined)_adminSettings.showAllDays=true;
-if(_adminSettings.showArtistInfo===undefined)_adminSettings.showArtistInfo=true;
 var _adminTaps = 0, _adminTapTimer = null;
 
 function saveSetting(key,val){_adminSettings[key]=val;localStorage.setItem("fujitt_admin",JSON.stringify(_adminSettings));}
@@ -490,8 +484,6 @@ function syncToolbarVisibility(){
     if(ballDays) ballDays.style.display=showAllDays?"":"none";
     // 舞台列表標記
     document.body.classList.toggle("clean-hdr",!_adminSettings.showStageLbl);
-    // 藝人資訊面板
-    document.body.classList.toggle("hide-artist-info",!_adminSettings.showArtistInfo);
     // 隱藏時強制回預設模式
     if(!showP&&schedMode==="personal"){ schedMode="full"; }
     if(!showG&&!showNow&&viewMode!=="list"){ viewMode="list"; }
@@ -513,7 +505,7 @@ function openAdminPanel(){
     // 同步所有開關 UI 狀態
     var sw={"conflict":true,"countdown":true,"festival":false,"showPersonal":false,"showGrid":false,
             "showNow":true,"showStage":false,"showAllDays":true,"showTime":false,"showStageLbl":true,
-            "showSummary":true,"showRemind":true,"showArtistInfo":true};
+            "showSummary":true,"showRemind":true};
     Object.keys(sw).forEach(function(k){
         var el=document.getElementById("sw-"+k);
         if(el) el.checked=(_adminSettings[k]!==undefined)?!!_adminSettings[k]:sw[k];
@@ -728,7 +720,7 @@ function _buildArtistInfoHtml(name){
     var tags='';
     if(art.genre) tags+='<span class="sp-tag genre">🎵 '+art.genre+'</span>';
     if(art.day)   tags+='<span class="sp-tag">📅 '+art.day+'</span>';
-    if(art.stage) tags+='<span class="sp-tag">🏟 '+art.stage.replace(/ STAGE$/i,'').replace(/ MARQUEE$/i,'')+'</span>';
+    if(art.stage) tags+='<span class="sp-tag stage">🏟 '+art.stage.replace(/ STAGE$/i,'').replace(/ MARQUEE$/i,'')+'</span>';
     if(tags) html+='<div class="sp-tags">'+tags+'</div>';
     // 中文介紹（F欄）
     if(art.intro) html+='<div class="sp-intro">'+art.intro.replace(/\n/g,'<br>')+'</div>';
