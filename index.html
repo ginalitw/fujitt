@@ -128,6 +128,7 @@
         body.clean-hdr .list-hdr span:last-child{display:none;}
         body.clean-hdr .list-item{border-left-color:transparent !important;}
         body.clean-hdr .ev{border-left-color:transparent !important;}
+        body.clean-hdr .sp-tag.stage{display:none;}
         /* ===== CONFLICT WARNING ===== */
         .ev.conflict{outline:2px solid #ff3b30;outline-offset:-2px;}
         .ev-warn{font-size:.6rem;color:#ff3b30;font-weight:700;margin-top:2px;}
@@ -719,7 +720,7 @@ function _buildArtistInfoHtml(name){
     var tags='';
     if(art.genre) tags+='<span class="sp-tag genre">🎵 '+art.genre+'</span>';
     if(art.day)   tags+='<span class="sp-tag">📅 '+art.day+'</span>';
-    if(art.stage) tags+='<span class="sp-tag">🏟 '+art.stage.replace(/ STAGE$/i,'').replace(/ MARQUEE$/i,'')+'</span>';
+    if(art.stage) tags+='<span class="sp-tag stage">🏟 '+art.stage.replace(/ STAGE$/i,'').replace(/ MARQUEE$/i,'')+'</span>';
     if(tags) html+='<div class="sp-tags">'+tags+'</div>';
     // 中文介紹（F欄）
     if(art.intro) html+='<div class="sp-intro">'+art.intro.replace(/\n/g,'<br>')+'</div>';
