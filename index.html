@@ -7,11 +7,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <style>
-        :root { --bg:#000; --surface:#1a1a1a; --text:#fff; --muted:#9ca3af; --border:#333; --accent:#3b82f6; --header-bg:rgba(26,26,26,0.95); }
-        :root.light { --bg:#f0f4f8; --surface:#ffffff; --text:#0f172a; --muted:#64748b; --border:#cbd5e1; --accent:#2563eb; --header-bg:rgba(248,250,252,0.97); }
+        :root { --bg:#000; --surface:#1a1a1a; --text:#fff; --muted:#9ca3af; --border:#333; --accent:#3b82f6; }
         *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
         body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
-        header{padding:12px 16px;background:var(--header-bg);backdrop-filter:blur(10px);position:sticky;top:0;z-index:1000;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px;}
+        header{padding:12px 16px;background:rgba(26,26,26,0.95);backdrop-filter:blur(10px);position:sticky;top:0;z-index:1000;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px;}
         .header-top{display:flex;justify-content:space-between;align-items:center;}
         h1{font-size:1.1rem;font-weight:700;white-space:nowrap;}
         .toolbar{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
@@ -39,18 +38,18 @@
         .day-btn{background:transparent;color:var(--muted);border:none;font-size:0.95rem;font-weight:600;padding:4px 8px;cursor:pointer;white-space:nowrap;}
         .day-btn.active{color:var(--text);border-bottom:2px solid var(--accent);}
         .scroll-container{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;position:relative;}
-        .tt-grid{display:grid;position:relative;padding-bottom:20px;grid-auto-rows:2px;}
+        .tt-grid{display:grid;position:relative;padding-bottom:20px;}
         .time-col-bg{grid-column:1;grid-row:1/-1;position:sticky;left:0;z-index:90;background:var(--bg);border-right:1px solid var(--border);width:50px;min-width:50px;}
         .corner{grid-column:1;grid-row:1;position:sticky;top:0;left:0;z-index:200;background:var(--bg);border-bottom:2px solid var(--border);border-right:1px solid var(--border);width:50px;min-width:50px;}
         .stage-hdr{grid-row:1;position:sticky;top:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;text-align:center;border-bottom:2px solid;padding:8px 2px;}
-        .time-lbl{grid-column:1;position:sticky;left:0;z-index:95;background:var(--bg);font-size:.7rem;color:var(--muted);text-align:right;padding-right:6px;transform:translateY(-8px);width:50px;min-width:50px;height:0;overflow:visible;align-self:start;}
-        .grid-line{grid-column:2/-1;height:0;border-top:1px solid var(--border);z-index:1;}
-        .grid-line.half{border-top:1px dashed var(--border);}
+        .time-lbl{grid-column:1;position:sticky;left:0;z-index:95;background:var(--bg);font-size:.7rem;color:var(--muted);text-align:right;padding-right:6px;transform:translateY(-8px);width:50px;min-width:50px;}
+        .grid-line{grid-column:2/-1;border-top:1px solid var(--border);z-index:1;}
+        .grid-line.half{border-top:1px dashed #222;}
         .ev{margin:0 3px;border-radius:5px;padding:5px;font-size:.75rem;z-index:10;display:flex;flex-direction:column;overflow:hidden;border-left:4px solid;background:var(--surface);transition:.2s;box-shadow:0 2px 5px rgba(0,0,0,.5);cursor:pointer;-webkit-user-select:none;user-select:none;}
         .ev:active{transform:scale(0.97);}
         .ev .ev-time{font-size:.65rem;opacity:.8;margin-bottom:1px;}
         .ev .ev-name{font-weight:700;line-height:1.2;word-break:break-word;}
-        .ev.dimmed{opacity:.35;background:transparent;border-left-width:2px;box-shadow:none;}
+        .ev.dimmed{opacity:.4;background:#111;border-left-width:2px;box-shadow:none;}
         .ev.dimmed .ev-name{font-weight:normal;color:var(--muted);}
         .ev.selected{box-shadow:0 0 0 2px #eab308,0 2px 8px rgba(234,179,8,.3);}
         .ev.selected::after{content:"⭐";position:absolute;top:3px;right:5px;font-size:.7rem;}
@@ -61,7 +60,7 @@
         .fab{position:fixed;bottom:20px;right:20px;background:var(--accent);color:white;width:46px;height:46px;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:1.3rem;box-shadow:0 4px 10px rgba(0,0,0,.5);z-index:900;border:none;cursor:pointer;}
         .list-view{display:none;padding:16px;flex-direction:column;gap:10px;}
         .list-item{display:flex;flex-direction:column;background:var(--surface);padding:10px;border-radius:8px;border-left:4px solid;box-shadow:0 2px 5px rgba(0,0,0,.3);cursor:pointer;}
-        .list-item.dimmed{opacity:.35;background:transparent;}
+        .list-item.dimmed{opacity:.4;background:#111;}
         .list-item.selected{box-shadow:0 0 0 2px #eab308;}
         .list-hdr{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:4px;}
         .list-title{font-size:1rem;font-weight:bold;}
@@ -84,12 +83,12 @@
         body.ss-mode .ss-exit-btn{display:block;}
         /* ===== SPOTIFY PANEL ===== */
         #sp-overlay{display:none;position:fixed;inset:0;z-index:1990;background:rgba(0,0,0,.45);}
-        #sp-panel{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-radius:16px 16px 0 0;border-top:1px solid var(--border);z-index:2000;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);}
+        #sp-panel{position:fixed;bottom:0;left:0;right:0;background:#121212;border-radius:16px 16px 0 0;border-top:1px solid #282828;z-index:2000;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);}
         #sp-panel.open{transform:translateY(0);}
-        .sp-drag{width:36px;height:4px;background:var(--border);border-radius:2px;margin:10px auto;}
+        .sp-drag{width:36px;height:4px;background:#444;border-radius:2px;margin:10px auto;}
         .sp-head{display:flex;justify-content:space-between;align-items:center;padding:4px 16px 10px;}
-        .sp-title{font-size:1rem;font-weight:700;max-width:75%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
-        .sp-x{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:4px 8px;}
+        .sp-title{font-size:1rem;font-weight:700;max-width:75%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;}
+        .sp-x{background:none;border:none;color:#777;font-size:1.2rem;cursor:pointer;padding:4px 8px;}
         #sp-body{padding:0 12px 24px;}
         #sp-body iframe{width:100%;height:152px;border-radius:12px;border:none;display:block;}
         .sp-link{display:block;text-align:center;margin:8px auto;max-width:240px;background:#1DB954;color:#000;text-decoration:none;padding:12px;border-radius:25px;font-weight:700;font-size:.9rem;}
@@ -98,23 +97,6 @@
         .sp-sel{padding:6px 12px;border-radius:16px;font-size:.78rem;font-weight:700;border:none;cursor:pointer;white-space:nowrap;transition:.15s;}
         .sp-sel.add{background:#eab308;color:#000;}
         .sp-sel.remove{background:#ef4444;color:#fff;}
-        /* ===== ARTIST INFO IN PANEL ===== */
-        .sp-info{padding:4px 12px 8px;}
-        .sp-img{width:100%;max-height:170px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:block;}
-        .sp-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
-        .sp-tag{background:#1f2937;border-radius:20px;padding:3px 10px;font-size:.7rem;color:#93c5fd;white-space:nowrap;}
-        .sp-tag.genre{background:#312e81;color:#a5b4fc;font-weight:600;}
-        .sp-intro{color:#cbd5e1;font-size:.8rem;line-height:1.65;margin-bottom:10px;max-height:90px;overflow-y:auto;}
-        .sp-extlinks{display:flex;gap:7px;margin-bottom:4px;}
-        .sp-extlink{flex:1;text-align:center;background:#1f2937;color:#9ca3af;text-decoration:none;padding:7px 4px;border-radius:8px;font-size:.72rem;font-weight:600;}
-        .sp-extlink:active{background:#374151;color:#fff;}
-        .sp-divider{border:none;border-top:1px solid var(--border);margin:4px 0 10px;}
-        /* light mode overrides for artist info panel */
-        :root.light .sp-tag{background:#dbeafe;color:#1e40af;}
-        :root.light .sp-tag.genre{background:#ede9fe;color:#5b21b6;}
-        :root.light .sp-intro{color:#374151;}
-        :root.light .sp-extlink{background:#f1f5f9;color:#475569;}
-        :root.light .sp-extlink:active{background:#e2e8f0;color:#0f172a;}
         /* ===== SPOTIFY ICON ON EVENTS ===== */
         .ev-sp{position:absolute;bottom:2px;right:3px;font-size:.7rem;color:#1DB954;opacity:.5;background:none;border:none;cursor:pointer;padding:2px;line-height:1;z-index:11;}
         .ev-sp:active,.ev-sp:hover{opacity:1;}
@@ -122,13 +104,6 @@
         .ev.glow-md{box-shadow:0 0 8px rgba(234,179,8,.3),0 2px 5px rgba(0,0,0,.5);}
         .ev.glow-hi{box-shadow:0 0 16px rgba(234,179,8,.6),0 2px 5px rgba(0,0,0,.5);}
         .ev.selected.glow-hi{box-shadow:0 0 0 2px #eab308,0 0 14px rgba(234,179,8,.5),0 2px 8px rgba(234,179,8,.3);}
-        /* ===== CLEAN MODE ===== */
-        body.clean-hdr .stage-hdr{opacity:0;pointer-events:none;}
-        body.clean-hdr .corner{opacity:0;}
-        body.clean-hdr .list-hdr span:last-child{display:none;}
-        body.clean-hdr .list-item{border-left-color:transparent !important;}
-        body.clean-hdr .ev{border-left-color:transparent !important;}
-        body.clean-hdr .sp-tag.stage{display:none;}
         /* ===== CONFLICT WARNING ===== */
         .ev.conflict{outline:2px solid #ff3b30;outline-offset:-2px;}
         .ev-warn{font-size:.6rem;color:#ff3b30;font-weight:700;margin-top:2px;}
@@ -150,47 +125,7 @@
         /* ===== SCREENSHOT DOWNLOAD ===== */
         .ss-dl-btn{display:none;position:fixed;bottom:20px;left:20px;background:#22c55e;color:#000;width:46px;height:46px;border-radius:50%;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 4px 10px rgba(0,0,0,.5);z-index:9998;border:none;cursor:pointer;}
         body.ss-mode .ss-dl-btn{display:flex;}
-        /* ===== STAGE NAV（舞台模式導航列）===== */
-        .stage-nav{display:none;align-items:center;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--border);gap:8px;position:sticky;top:0;z-index:500;}
-        .stage-nav.show{display:flex;}
-        .stage-nav-center{flex:1;text-align:center;display:flex;flex-direction:column;gap:2px;}
-        .stage-nav-name{font-weight:700;font-size:1rem;line-height:1.2;}
-        .stage-nav-counter{font-size:.72rem;color:var(--muted);}
-        .stage-nav-btn{background:var(--bg);color:var(--text);border:1px solid var(--border);padding:7px 14px;border-radius:10px;cursor:pointer;font-size:1rem;flex-shrink:0;transition:.15s;}
-        .stage-nav-btn:active{background:var(--border);}
-        /* ===== SUMMARY CARD ===== */
-        .summary-card{display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;}
-        .summary-card.show{display:block;}
-        .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:8px;}
-        .summary-stat{text-align:center;background:rgba(255,255,255,.04);border-radius:8px;padding:6px 4px;}
-        .summary-num{font-size:1.25rem;font-weight:800;color:#eab308;line-height:1;}
-        .summary-lbl{font-size:.62rem;color:var(--muted);margin-top:2px;}
-        .summary-days{display:flex;gap:4px;margin-top:6px;}
-        .summary-day{flex:1;background:rgba(255,255,255,.04);border-radius:6px;padding:5px 4px;text-align:center;}
-        .summary-day strong{display:block;font-size:.9rem;font-weight:800;color:var(--text);}
-        .summary-day span{font-size:.6rem;color:var(--muted);}
-        /* ===== NOW & NEXT VIEW ===== */
-        #now-view{display:none;padding:12px 10px 80px;}
-        #now-view.show{display:block;}
-        .now-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
-        .now-card{background:var(--surface);border-radius:10px;padding:9px 10px;border-left:4px solid;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer;}
-        .now-card:active{transform:scale(.98);}
-        .now-card-stage{font-size:.63rem;font-weight:700;margin-bottom:5px;letter-spacing:.3px;}
-        .now-slot{padding:3px 0;}
-        .now-slot+.now-slot{border-top:1px solid var(--border);margin-top:4px;padding-top:4px;}
-        .now-badges{display:flex;gap:3px;margin-bottom:2px;flex-wrap:wrap;}
-        .now-badge{font-size:.58rem;font-weight:700;padding:1px 5px;border-radius:6px;}
-        .now-badge.live{background:#22c55e;color:#000;}
-        .now-badge.next{background:#3b82f6;color:#fff;}
-        .now-badge.sel{background:#eab308;color:#000;}
-        .now-artist{font-size:.82rem;font-weight:700;line-height:1.2;word-break:break-word;}
-        .now-time{font-size:.63rem;color:var(--muted);margin-top:1px;}
-        /* ===== REMIND BUTTON ===== */
-        .sp-remind{display:block;width:calc(100% - 24px);margin:0 12px 6px;background:var(--surface);color:var(--text);border:1px solid var(--border);padding:9px;border-radius:20px;font-size:.82rem;cursor:pointer;text-align:center;transition:.2s;}
-        .sp-remind.set{background:#1e3a5f;border-color:#3b82f6;color:#93c5fd;}
-        /* ===== ADMIN MODE ===== */
-        .admin-badge{display:none;position:fixed;top:8px;left:50%;transform:translateX(-50%);background:#7c3aed;color:#fff;padding:3px 12px;border-radius:10px;font-size:.7rem;font-weight:700;z-index:1002;pointer-events:none;}
-        body.admin-on .admin-badge{display:block;}
+        /* ===== ADMIN MODE（管理設定已移至 admin.html）===== */
         .admin-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
         .admin-row:last-child{border-bottom:none;}
         .admin-label{font-size:.9rem;}
@@ -204,9 +139,8 @@
         .phase-btns{display:flex;gap:6px;}
         .phase-btn{padding:5px 10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.78rem;cursor:pointer;}
         .phase-btn.active{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:700;}
-        /* ===== ADMIN SECTION LABEL ===== */
-        .admin-section-lbl{font-size:.68rem;font-weight:800;color:#7c3aed;letter-spacing:.8px;text-transform:uppercase;padding:14px 0 4px;border-bottom:1px solid rgba(124,58,237,.2);margin-bottom:2px;}
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
     <div id="loading">🤘 苗場資料讀取中...</div>
@@ -221,12 +155,10 @@
         <div class="toolbar-drawer" id="toolbar-drawer">
             <button class="tbr-btn hl" id="tbr-mode" onclick="toggleMode()"><span class="ico">👤</span>專屬</button>
             <button class="tbr-btn" id="tbr-view" onclick="toggleView()"><span class="ico">📋</span>列表</button>
-            <button class="tbr-btn" id="tbr-now" onclick="toggleNowView()"><span class="ico">⚡</span>快覽</button>
             <button class="tbr-btn" id="tbr-stage" onclick="openFilter()"><span class="ico">🏟️</span>舞台</button>
             <button class="tbr-btn green" onclick="syncFromLine()"><span class="ico">🔄</span>同步</button>
             <button class="tbr-btn" onclick="toggleSS()"><span class="ico">📸</span>截圖</button>
-            <button class="tbr-btn" id="tbr-theme" onclick="toggleTheme()"><span class="ico" id="theme-ico">☀️</span>日夜</button>
-            <button class="tbr-btn admin-only" id="tbr-admin" onclick="openAdminPanel()" style="display:none"><span class="ico">⚙️</span>管理員</button>
+            <button class="tbr-btn admin-only" id="tbr-admin" onclick="window.open('https://frfhelp-66666.web.app/admin.html','_blank')" style="display:none"><span class="ico">⚙️</span>後台</button>
         </div>
         <div class="day-selector" id="days"></div>
     </header>
@@ -237,28 +169,6 @@
             <span class="stat-conflict" onclick="scrollToFirstConflict()">⚠️ <strong id="stat-conflict">0</strong> 衝堂</span>
         </span>
     </div>
-    <!-- 計畫摘要卡（個人模式） -->
-    <div class="summary-card" id="summary-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:.78rem;font-weight:700">📊 我的計畫</span>
-            <span style="font-size:.68rem;color:var(--muted)" id="sum-stage-txt"></span>
-        </div>
-        <div class="summary-grid">
-            <div class="summary-stat"><div class="summary-num" id="sum-total">0</div><div class="summary-lbl">已選組數</div></div>
-            <div class="summary-stat"><div class="summary-num" id="sum-conflict">0</div><div class="summary-lbl">衝堂</div></div>
-            <div class="summary-stat"><div class="summary-num" id="sum-stage-n">0</div><div class="summary-lbl">涵蓋舞台</div></div>
-        </div>
-        <div class="summary-days" id="sum-days"></div>
-    </div>
-    <!-- 舞台模式導航列 -->
-    <div class="stage-nav" id="stage-nav">
-        <button class="stage-nav-btn" onclick="prevStage()">◀</button>
-        <div class="stage-nav-center">
-            <span class="stage-nav-name" id="stage-nav-name"></span>
-            <span class="stage-nav-counter" id="stage-nav-counter"></span>
-        </div>
-        <button class="stage-nav-btn" onclick="nextStage()">▶</button>
-    </div>
     <!-- NOW 正在演出 Banner（音樂祭期間） -->
     <div class="now-banner" id="now-banner">
         <div class="now-inner" id="now-inner"></div>
@@ -266,90 +176,8 @@
     <div class="watermark" id="wm">2026 FUJI ROCK MY TT</div>
     <div class="scroll-container" id="scroll"><div class="tt-grid" id="grid"></div></div>
     <div class="list-view" id="listview"></div>
-    <!-- Now & Next 快覽 -->
-    <div id="now-view"><div class="now-cards" id="now-cards"></div></div>
     <button class="fab" onclick="jumpNow()" id="fab">📍</button>
     <button class="ss-dl-btn" onclick="downloadScreenshot()" title="下載截圖">💾</button>
-    <div class="admin-badge">⚙️ 管理員模式</div>
-    <!-- Admin Panel -->
-    <div class="modal-bg" id="adminModal">
-      <div class="modal" style="max-height:85vh;overflow-y:auto;">
-        <div class="modal-title">⚙️ 管理員設定</div>
-
-        <!-- ── 工具列按鈕 ── -->
-        <div class="admin-section-lbl">🛠 工具列按鈕</div>
-        <div class="admin-row">
-          <div><div class="admin-label">👤 專屬模式按鈕</div><div class="admin-sub">隱藏時固定為全展模式</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showPersonal" onchange="saveAndSyncUI('showPersonal',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">🎛️ 視圖切換按鈕</div><div class="admin-sub">格子／單台／列表切換</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showGrid" onchange="saveAndSyncUI('showGrid',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">⚡ 快覽按鈕</div><div class="admin-sub">Now & Next 快速瀏覽</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showNow" onchange="saveAndSyncUI('showNow',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">🏟️ 舞台篩選按鈕</div><div class="admin-sub">隱藏時顯示全部舞台</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showStage" onchange="saveAndSyncUI('showStage',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">📅 全覽日期按鈕</div><div class="admin-sub">三天總覽模式選項</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showAllDays" onchange="saveAndSyncUI('showAllDays',this.checked)"><span class="slider"></span></label>
-        </div>
-
-        <!-- ── 版面功能 ── -->
-        <div class="admin-section-lbl">🖥 版面功能</div>
-        <div class="admin-row">
-          <div><div class="admin-label">演出時間別</div><div class="admin-sub">時間欄（時間未定時關閉）</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showTime" onchange="saveAndSyncUI('showTime',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">舞台色條與名稱</div><div class="admin-sub">隱藏後只留色塊不顯示標籤</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showStageLbl" onchange="saveAndSyncUI('showStageLbl',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">📊 計畫摘要卡</div><div class="admin-sub">個人模式下顯示選取統計</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showSummary" onchange="saveAndSyncUI('showSummary',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">🔔 演出提醒按鈕</div><div class="admin-sub">藝人面板顯示提醒設定</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showRemind" onchange="saveSetting('showRemind',this.checked)"><span class="slider"></span></label>
-        </div>
-
-        <!-- ── 演出顯示 ── -->
-        <div class="admin-section-lbl">⏱ 演出顯示</div>
-        <div class="admin-row">
-          <div><div class="admin-label">衝堂警告</div><div class="admin-sub">時間重疊時顯示警告</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-conflict" onchange="saveSetting('conflict',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">演出倒數</div><div class="admin-sub">色塊上顯示開演倒數</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-countdown" onchange="saveSetting('countdown',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">🎪 音樂祭節流模式</div><div class="admin-sub">強制開啟試聽限制（無視日期）</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-festival" onchange="saveSetting('festival',this.checked)"><span class="slider"></span></label>
-        </div>
-
-        <!-- ── 預設設定 ── -->
-        <div class="admin-section-lbl">⚙️ 預設設定</div>
-        <div class="admin-row">
-          <div><div class="admin-label">資料階段</div><div class="admin-sub">決定預設顯示模式</div></div>
-          <div class="phase-btns">
-            <button class="phase-btn" id="ph-auto" onclick="setPhase('auto')">自動</button>
-            <button class="phase-btn" id="ph-list" onclick="setPhase('list')">列表</button>
-            <button class="phase-btn" id="ph-grid" onclick="setPhase('grid')">格子</button>
-          </div>
-        </div>
-
-        <div class="modal-actions" style="margin-top:16px;">
-          <button class="btn btn-primary" onclick="applyAdminSettings()">套用</button>
-          <button class="btn" onclick="document.getElementById('adminModal').style.display='none'">關閉</button>
-        </div>
-      </div>
-    </div>
     <div class="modal-bg" id="filterModal"><div class="modal"><div class="modal-title">選擇舞台</div><div class="chips" id="filterChips"></div><div class="modal-actions"><button class="btn" onclick="allStages(true)">全選</button><button class="btn" onclick="allStages(false)">全不選</button><button class="btn btn-primary" onclick="applyFilter()">確定</button></div></div></div>
     <div id="sp-overlay" onclick="closeSpotify()"></div>
     <div id="sp-panel">
@@ -361,29 +189,22 @@
                 <button class="sp-x" onclick="closeSpotify()">✕</button>
             </div>
         </div>
-        <button id="sp-remind-btn" class="sp-remind" onclick="toggleReminder()" style="display:none">🔔 開演前 15 分鐘提醒</button>
         <div id="sp-body"></div>
     </div>
 <script>
 // ====== CONFIG ======
 var GAS_URL = "https://script.google.com/macros/s/AKfycbxrwj7fuanwtwa19rlCIuYdnl1kuaobuJOcoF5gWGHMSXIS0Pg3r6k0t5p3hSu0DnFmbw/exec";
 var uid = new URLSearchParams(location.search).get("uid");
-// ====== FIREBASE ======
-firebase.initializeApp({
-    apiKey: "AIzaSyDqHIQAIdllC5krO9gLzIIFVNB8llcyNl4",
-    authDomain: "frfhelp-66666.firebaseapp.com",
-    projectId: "frfhelp-66666",
-    storageBucket: "frfhelp-66666.firebasestorage.app",
-    messagingSenderId: "690578531619",
-    appId: "1:690578531619:web:d9113ca3351e3460851896"
+// ====== FIREBASE CONFIG ======
+var _firebaseApp = firebase.initializeApp({
+  apiKey: "AIzaSyDqHIQAIdllC5krO9gLzIIFVNB8llcyNl4",
+  authDomain: "frfhelp-66666.firebaseapp.com",
+  projectId: "frfhelp-66666",
+  storageBucket: "frfhelp-66666.firebasestorage.app",
+  messagingSenderId: "690578531619",
+  appId: "1:690578531619:web:d9113ca3351e3460851896"
 });
 var _db = firebase.firestore();
-// ====== CACHE（重複開啟秒速顯示）======
-var _CACHE_KEY  = "fujitt_sched_v3";  // artists(Firestore) + wantedList(GAS)
-var _SEL_KEY    = "fujitt_sel_v3";    // mySelection(Firestore)
-var _CACHE_TTL  = 60*60*1000;         // 1小時
-function _getCache(k,ttl){try{var c=JSON.parse(localStorage.getItem(k)||"null");if(c&&Date.now()-c.ts<ttl)return c;}catch(e){}return null;}
-function _setCache(k,data){try{var o=Object.assign({},data,{ts:Date.now()});localStorage.setItem(k,JSON.stringify(o));}catch(e){}}
 // ====== SPOTIFY CONFIG ======
 // 路線B：由 GAS 預載所有藝人 ID，無需用戶登入，無人數限制
 var _spPop = {};      // artistName -> popularity
@@ -394,152 +215,83 @@ var master = [], lineWanted = [], mySelection = [];
 var DAYS = ["Day 1","Day 2","Day 3"], DAY_LABELS = ["Day 1 (7/24)","Day 2 (7/25)","Day 3 (7/26)"];
 var curDay = DAYS[0], viewMode = "grid", schedMode = "personal";
 var KNOWN = [
-    {id:"GREEN",   kw:"GREEN",   name:"GREEN",       color:"#22c55e"},
-    {id:"WHITE",   kw:"WHITE",   name:"WHITE",        color:"#cbd5e1"},
-    {id:"RED",     kw:"RED",     name:"RED MARQUEE",  color:"#ef4444"},
-    {id:"HEAVEN",  kw:"HEAVEN",  name:"HEAVEN",       color:"#eab308"},
-    {id:"ORANGE",  kw:"ORANGE",  name:"ORANGE",       color:"#f97316"},
-    {id:"AVALON",  kw:"AVALON",  name:"AVALON",       color:"#d946ef"},
-    {id:"CRYSTAL", kw:"CRYSTAL", name:"CRYSTAL",      color:"#8b5cf6"},
-    {id:"PALACE",  kw:"PALACE",  name:"PALACE",       color:"#a855f7"},
-    {id:"ROOKIE",  kw:"ROOKIE",  name:"ROOKIE",       color:"#06b6d4"},
-    {id:"MOSHPIT", kw:"苗場",    name:"苗場食堂",      color:"#ec4899"},
-    {id:"PYRAMID", kw:"PYRAMID", name:"PYRAMID",       color:"#10b981"},
-    {id:"GANBAN",  kw:"GANBAN",  name:"GANBAN",       color:"#94a3b8"},
-    {id:"GALAXY",  kw:"GALAXY",  name:"GALAXY",       color:"#818cf8"}
+    {id:"GREEN",kw:"GREEN",name:"GREEN",color:"#22c55e"},
+    {id:"WHITE",kw:"WHITE",name:"WHITE",color:"#e2e8f0"},
+    {id:"RED",kw:"RED",name:"RED MARQUEE",color:"#ef4444"},
+    {id:"FIELD",kw:"HEAVEN",name:"HEAVEN",color:"#eab308"},
+    {id:"AVALON",kw:"AVALON",name:"AVALON",color:"#d946ef"},
+    {id:"CRYSTAL",kw:"CRYSTAL",name:"CRYSTAL",color:"#8b5cf6"},
+    {id:"PALACE",kw:"PALACE",name:"PALACE",color:"#f97316"},
+    {id:"ROOKIE",kw:"ROOKIE",name:"ROOKIE",color:"#06b6d4"},
+    {id:"DAY",kw:"DAY",name:"DAY DREAM",color:"#f43f5e"},
+    {id:"PYRAMID",kw:"PYRAMID",name:"PYRAMID",color:"#10b981"},
+    {id:"CAFE",kw:"CAFE",name:"CAFÉ",color:"#ec4899"}
 ];
 var STAGES = [];
-var VIEW_MODES = ["grid","stage","list","now"];
-// 按鈕顯示「下一個模式」的 icon 和 label
-var VIEW_LABELS = {grid:{ico:"🎯",lbl:"單台"},stage:{ico:"📋",lbl:"列表"},list:{ico:"🎛️",lbl:"格子"},now:{ico:"🎛️",lbl:"格子"}};
-// ── Shared helpers ──────────────────────────────────────────────────────────
-function _matchStage(sn, kw){ return sn.toUpperCase().includes(kw.toUpperCase())||sn.includes(kw); }
-function _renderTimeGrid(g, colSpan){
-    var bg=document.createElement("div");bg.className="time-col-bg";g.appendChild(bg);
-    for(var i=0;i<=36;i++){
-        var hour=11+Math.floor(i/2),min=i%2===0?"00":"30",dh=hour>=24?(hour-24<10?"0"+(hour-24):hour-24):hour,r=i*30+2;
-        var l=document.createElement("div");l.className="grid-line"+(min==="30"?" half":"");l.style.gridRow=r;l.style.gridColumn=colSpan;g.appendChild(l);
-        if(min==="00"){var lb=document.createElement("div");lb.className="time-lbl";lb.style.gridRow=r;lb.innerText=dh+":"+min;g.appendChild(lb);}
-    }
-}
-function _buildEvBlock(it, stageColor, colVal){
-    var sel=isSelected(it.name),isConflict=_conflicts.has(it.name+"|"+curDay);
-    var bl=document.createElement("div");
-    bl.className="ev"+(schedMode==="full"&&!sel?" dimmed":"")+(sel?" selected":"")+(isConflict?" conflict":"");
-    bl.style.gridRow=timeToRow(it.start)+"/"+(it.end?timeToRow(it.end):timeToRow(it.start)+60);
-    bl.style.gridColumn=colVal;bl.style.borderLeftColor=stageColor;
-    var cd=getCountdown(it.day||curDay,it.start,it.end);
-    bl.innerHTML='<div class="ev-time">'+it.start+' - '+(it.end||'?')+'</div><div class="ev-name">'+it.name+'</div>'
-        +(cd?'<div class="ev-cd '+cd.cls+'">'+cd.text+'</div>':"")
-        +(isConflict?'<div class="ev-warn">⚠️ 衝堂</div>':"");
-    bl.dataset.artist=it.name;bl.dataset.start=it.start||"";bl.dataset.end=it.end||"";bl.dataset.day=it.day||curDay;
-    if(_spPop[it.name]!==undefined)_applyGlow(bl,_spPop[it.name]);
-    (function(n){bl.onclick=function(){openSpotify(n);};})(it.name);
-    return bl;
-}
 function toast(msg){var t=document.getElementById("toast");t.innerText=msg;t.style.display="block";setTimeout(function(){t.style.display="none";},2200);}
 // ====== ADMIN MODE ======
 var ADMIN_PASSWORD = "fujitt2026"; // ★ 修改為你的密碼
 var OWNER_UID = "Uaad7f6d86f0316d7ddf10f660ade5205";
 function isOwner(){ return new URLSearchParams(window.location.search).get("uid")===OWNER_UID; }
-var _adminSettings = JSON.parse(localStorage.getItem("fujitt_admin")||'{"conflict":true,"countdown":true,"festival":false,"phase":"auto","showPersonal":false,"showGrid":false,"showStage":false,"showTime":false,"showStageLbl":true,"showNow":true,"showSummary":true,"showRemind":true,"showAllDays":true}');
-// 向舊版 localStorage 補齊缺少的 key
-if(_adminSettings.showPersonal===undefined)_adminSettings.showPersonal=false;
-if(_adminSettings.showGrid===undefined)_adminSettings.showGrid=false;
-if(_adminSettings.showStage===undefined)_adminSettings.showStage=false;
-if(_adminSettings.showTime===undefined)_adminSettings.showTime=false;
-if(_adminSettings.showStageLbl===undefined)_adminSettings.showStageLbl=true;
-if(_adminSettings.showNow===undefined)_adminSettings.showNow=true;
-if(_adminSettings.showSummary===undefined)_adminSettings.showSummary=true;
-if(_adminSettings.showRemind===undefined)_adminSettings.showRemind=true;
-if(_adminSettings.showAllDays===undefined)_adminSettings.showAllDays=true;
-var _adminTaps = 0, _adminTapTimer = null;
+// ====== 所有設定從 Firestore 讀取，admin.html 負責寫入 ======
+var _adminSettings = {conflict:true,countdown:true,festival:false,phase:"auto",
+                      showPersonal:false,showGrid:false,showStage:false,showTime:false};
 
-function saveSetting(key,val){_adminSettings[key]=val;localStorage.setItem("fujitt_admin",JSON.stringify(_adminSettings));}
-
-// 儲存後立即同步工具列顯示
-function saveAndSyncUI(key,val){
-    saveSetting(key,val);
-    syncToolbarVisibility();
+async function loadTimetableSettings(){
+    try{
+        var snap=await _db.collection("timetable").doc(OWNER_UID).get();
+        if(snap.exists){
+            var dc=(snap.data().displayConfig)||{};
+            // 布林設定
+            ["showPersonal","showGrid","showStage","showTime","conflict","countdown","festival"].forEach(function(k){
+                if(dc[k]!==undefined)_adminSettings[k]=dc[k];
+            });
+            // 字串設定
+            if(dc.phase!==undefined)_adminSettings.phase=dc.phase;
+        }
+    }catch(e){console.warn("display settings load failed",e);}
 }
+
+// 設定由 admin.html 負責寫入 Firestore，timetable.html 僅在載入時讀取
 
 // 根據 adminSettings 同步工具列按鈕顯示
 function syncToolbarVisibility(){
     var showP=!!_adminSettings.showPersonal;
     var showG=!!_adminSettings.showGrid;
     var showS=!!_adminSettings.showStage;
-    var showNow=!!_adminSettings.showNow;
-    var showAllDays=!!_adminSettings.showAllDays;
-    // 工具列按鈕顯示
+    // 專屬按鈕
     var bm=document.getElementById("tbr-mode");
     if(bm) bm.style.display=showP?"flex":"none";
+    // 格子按鈕
     var bv=document.getElementById("tbr-view");
     if(bv) bv.style.display=showG?"flex":"none";
-    var bn=document.getElementById("tbr-now");
-    if(bn) bn.style.display=showNow?"flex":"none";
+    // 舞台按鈕
     var bs=document.getElementById("tbr-stage");
     if(bs) bs.style.display=showS?"flex":"none";
-    // 全覽日期按鈕
-    var ballDays=document.querySelector(".day-btn[data-day='ALL']");
-    if(ballDays) ballDays.style.display=showAllDays?"":"none";
-    // 舞台列表標記
-    document.body.classList.toggle("clean-hdr",!_adminSettings.showStageLbl);
     // 隱藏時強制回預設模式
-    if(!showP&&schedMode==="personal"){ schedMode="full"; }
-    if(!showG&&!showNow&&viewMode!=="list"){ viewMode="list"; }
-    if(!showNow&&viewMode==="now"){ viewMode="list"; }
-    _applyViewMode();
-}
-function setPhase(v){
-    _adminSettings.phase=v;
-    localStorage.setItem("fujitt_admin",JSON.stringify(_adminSettings));
-    document.querySelectorAll(".phase-btn").forEach(function(b){b.classList.remove("active");});
-    document.getElementById("ph-"+v).classList.add("active");
-}
-function applyAdminSettings(){
-    document.getElementById("adminModal").style.display="none";
-    toast("✅ 設定已套用");
+    if(!showP&&schedMode==="personal"){ schedMode="full"; render(); }
+    if(!showG&&viewMode==="grid"){
+        viewMode="list";
+        if(bv){bv.innerHTML='<span class="ico">📋</span>列表';bv.classList.remove("active");}
+        document.getElementById("scroll").style.display="none";
+        document.getElementById("listview").style.display="flex";
+        document.getElementById("fab").style.display="none";
+    }
+    // 時間別切換後重繪列表
     render();
 }
-function openAdminPanel(){
-    // 同步所有開關 UI 狀態
-    var sw={"conflict":true,"countdown":true,"festival":false,"showPersonal":false,"showGrid":false,
-            "showNow":true,"showStage":false,"showAllDays":true,"showTime":false,"showStageLbl":true,
-            "showSummary":true,"showRemind":true};
-    Object.keys(sw).forEach(function(k){
-        var el=document.getElementById("sw-"+k);
-        if(el) el.checked=(_adminSettings[k]!==undefined)?!!_adminSettings[k]:sw[k];
-    });
-    var ph=_adminSettings.phase||"auto";
-    document.querySelectorAll(".phase-btn").forEach(function(b){b.classList.remove("active");});
-    document.getElementById("ph-"+ph).classList.add("active");
-    document.getElementById("adminModal").style.display="flex";
-}
+// 設定管理已移至 admin.html，此處僅顯示後台入口按鈕給擁有者
 function initAdmin(){
-    // 點標題 5 下進入管理員模式（僅限擁有者 UID）
-    document.querySelector("h1").addEventListener("click",function(){
-        if(!isOwner()) return; // 非擁有者連結，完全無反應
-        _adminTaps++;
-        clearTimeout(_adminTapTimer);
-        _adminTapTimer=setTimeout(function(){_adminTaps=0;},2000);
-        if(_adminTaps>=5){
-            _adminTaps=0;
-            if(document.body.classList.contains("admin-on")){
-                document.body.classList.remove("admin-on");
-                syncAdminBtn();
-                toast("已退出管理員模式");
-            }else{
-                var pwd=prompt("管理員密碼：");
-                if(pwd===ADMIN_PASSWORD){document.body.classList.add("admin-on");syncAdminBtn();toast("🔓 管理員模式已開啟");openAdminPanel();}
-                else if(pwd!==null){alert("密碼錯誤");}
-            }
-        }
-    });
-    // 退出管理員模式也同步按鈕
-    var origToggle=document.body.classList.toggle.bind(document.body.classList);
-    // 已在管理員模式則顯示設定按鈕
-    syncAdminBtn();
-    if(document.body.classList.contains("admin-on")) openAdminPanel();
+    if(isOwner()){
+        var btn=document.getElementById("tbr-admin");
+        if(btn) btn.style.display="flex";
+    }
+}
+function syncAdminBtn(){
+    if(isOwner()){
+        var btn=document.getElementById("tbr-admin");
+        if(btn) btn.style.display="flex";
+    }
 }
 
 // ====== DATA PHASE（預設視圖切換）======
@@ -608,19 +360,8 @@ function isMobile(){
     return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
            ('ontouchstart' in window && navigator.maxTouchPoints > 0 && window.innerWidth < 1024);
 }
-async function downloadScreenshot(){
+function downloadScreenshot(){
     toast("📸 截圖產生中...");
-    // 懶載入 html2canvas（只在點截圖時才下載，不阻塞初始渲染）
-    if(!window.html2canvas){
-        try{
-            await new Promise(function(resolve,reject){
-                var s=document.createElement("script");
-                s.src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-                s.onload=resolve; s.onerror=reject;
-                document.head.appendChild(s);
-            });
-        }catch(e){toast("❌ 截圖模組載入失敗");return;}
-    }
     html2canvas(document.body,{backgroundColor:"#000",scale:2,useCORS:true,allowTaint:true,ignoreElements:function(el){return el.classList&&(el.classList.contains("ss-dl-btn")||el.id==="sp-overlay"||el.id==="sp-panel");}}).then(function(canvas){
         if(isMobile()){
             // 手機：優先 Web Share API（可存到相簿），否則顯示長按提示
@@ -664,23 +405,13 @@ function isFestivalMode(){
     return y===2026 && m===7 && d>=24 && d<=27;
 }
 async function loadSpotifyData(){
-    // 先從 localStorage 取快取（Spotify ID 很少變動，用 24 小時 TTL）
-    var SP_KEY="fujitt_spotify_v1";
-    var spCached=_getCache(SP_KEY, 24*60*60*1000);
-    if(spCached && spCached.aid){
-        Object.assign(_spAid, spCached.aid);
-        Object.assign(_spPop, spCached.pop||{});
-        _spLoaded=true;
-    }
-    // 背景從 GAS 更新（不阻塞 UI）
     try{
-        var data=await gasGet(GAS_URL+"?action=getSpotifyData");
+        var data=await jsonp(GAS_URL+"?action=getSpotifyData");
         Object.keys(data).forEach(function(name){
             _spAid[name]=data[name].id;
             _spPop[name]=data[name].pop;
         });
         _spLoaded=true;
-        _setCache(SP_KEY, {aid:_spAid, pop:_spPop});
     }catch(e){
         console.warn("Spotify 快取載入失敗，改用外連搜尋");
     }
@@ -707,52 +438,16 @@ function spToggleSel(){
     toggleSelection(_spCurArtist);
     _updateSpSelBtn();
 }
-function _buildArtistInfoHtml(name){
-    var art=master.find(function(it){return it.name.toLowerCase().trim()===name.toLowerCase().trim();});
-    var html='';
-    if(!art)return html;
-    var hasInfo=art.image||art.genre||art.intro||art.ig||art.yt;
-    if(!hasInfo)return html;
-    html+='<div class="sp-info">';
-    // 圖片（M欄，尚未補上時自動隱藏）
-    if(art.image) html+='<img class="sp-img" src="'+art.image+'" alt="'+name+'" loading="lazy" onerror="this.style.display=\'none\'">';
-    // 標籤：曲風 / 日期 / 舞台
-    var tags='';
-    if(art.genre) tags+='<span class="sp-tag genre">🎵 '+art.genre+'</span>';
-    if(art.day)   tags+='<span class="sp-tag">📅 '+art.day+'</span>';
-    if(art.stage) tags+='<span class="sp-tag stage">🏟 '+art.stage.replace(/ STAGE$/i,'').replace(/ MARQUEE$/i,'')+'</span>';
-    if(tags) html+='<div class="sp-tags">'+tags+'</div>';
-    // 中文介紹（F欄）
-    if(art.intro) html+='<div class="sp-intro">'+art.intro.replace(/\n/g,'<br>')+'</div>';
-    // 外部連結（IG / YT）
-    var links='';
-    if(art.ig) links+='<a class="sp-extlink" href="'+art.ig+'" target="_blank">📸 Instagram</a>';
-    if(art.yt) links+='<a class="sp-extlink" href="'+art.yt+'" target="_blank">▶️ YouTube</a>';
-    if(links) html+='<div class="sp-extlinks">'+links+'</div>';
-    html+='</div><hr class="sp-divider">';
-    return html;
-}
 function openSpotify(name){
     _spCurArtist=name;
     document.getElementById("sp-aname").textContent=name;
     _updateSpSelBtn();
-    var remBtn=document.getElementById("sp-remind-btn");
-    if(remBtn){
-        var art=master.find(function(it){return it.name.toLowerCase().trim()===name.toLowerCase().trim();});
-        var hasTime=art&&art.start&&art.day&&DAY_DATES[art.day];
-        remBtn.style.display=(hasTime&&!!_adminSettings.showRemind)?"block":"none";
-        var rSaved=JSON.parse(localStorage.getItem("fujitt_reminders")||"{}");
-        var rKey=name.toLowerCase().trim();
-        remBtn.textContent=rSaved[rKey]?"🔕 取消提醒":"🔔 開演前 15 分鐘提醒";
-        remBtn.classList.toggle("set",!!rSaved[rKey]);
-    }
     var body=document.getElementById("sp-body");
     document.getElementById("sp-panel").classList.add("open");
     document.getElementById("sp-overlay").style.display="block";
-    var infoHtml=_buildArtistInfoHtml(name);
     // 🎪 音樂祭期間（7/24~7/27）鎖定試聽，節省行動數據
     if(isFestivalMode()){
-        body.innerHTML=infoHtml+
+        body.innerHTML=
             '<div style="text-align:center;padding:20px 12px 8px;font-size:2rem">🎪</div>'+
             '<div style="text-align:center;padding:0 16px 8px;color:#e2e8f0;font-size:.95rem;font-weight:700">音樂祭進行中！</div>'+
             '<div style="text-align:center;padding:0 16px 16px;color:#9ca3af;font-size:.82rem;line-height:1.5">試聽功能已暫停<br>節省你的行動數據，<br>到現場盡情享受吧！</div>'+
@@ -762,9 +457,9 @@ function openSpotify(name){
     }
     var aid=_spAid[name];
     if(aid){
-        body.innerHTML=infoHtml+'<iframe src="https://open.spotify.com/embed/artist/'+aid+'?utm_source=generator&theme=0" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
+        body.innerHTML='<iframe src="https://open.spotify.com/embed/artist/'+aid+'?utm_source=generator&theme=0" frameborder="0" allowfullscreen allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
     }else{
-        body.innerHTML=infoHtml+'<a class="sp-link" href="https://open.spotify.com/search/'+encodeURIComponent(name)+'" target="_blank">🎵 在 Spotify 搜尋 '+name+'</a>';
+        _spFallback(name,body);
     }
 }
 function _spFallback(name,body){
@@ -775,177 +470,78 @@ function closeSpotify(){
     document.getElementById("sp-overlay").style.display="none";
     setTimeout(function(){document.getElementById("sp-body").innerHTML="";},400);
 }
-
-// ====== REMINDER SYSTEM ======
-var _reminders = {};
-function _restoreReminders(){
-    var saved=JSON.parse(localStorage.getItem("fujitt_reminders")||"{}");
-    var now=Date.now(),clean={};
-    Object.keys(saved).forEach(function(key){
-        var ms=saved[key]-now;
-        if(ms>0){clean[key]=saved[key];_scheduleReminder(key,ms);}
-    });
-    localStorage.setItem("fujitt_reminders",JSON.stringify(clean));
-}
-function _scheduleReminder(key,ms){
-    clearTimeout(_reminders[key]);
-    _reminders[key]=setTimeout(function(){
-        var saved=JSON.parse(localStorage.getItem("fujitt_reminders")||"{}");
-        delete saved[key];
-        localStorage.setItem("fujitt_reminders",JSON.stringify(saved));
-        delete _reminders[key];
-        var art=master.find(function(it){return it.name.toLowerCase().trim()===key;});
-        var name=art?art.name:key;
-        if(typeof Notification!=="undefined"&&Notification.permission==="granted"){
-            new Notification("🎵 即將開演！",{body:name+" 還有 15 分鐘開演！"});
-        }else{toast("🔔 "+name+" 還有 15 分鐘開演！");}
-    },ms);
-}
-function toggleReminder(){
-    if(!_spCurArtist)return;
-    var key=_spCurArtist.toLowerCase().trim();
-    var saved=JSON.parse(localStorage.getItem("fujitt_reminders")||"{}");
-    var btn=document.getElementById("sp-remind-btn");
-    if(saved[key]){
-        clearTimeout(_reminders[key]);delete _reminders[key];delete saved[key];
-        localStorage.setItem("fujitt_reminders",JSON.stringify(saved));
-        if(btn){btn.textContent="🔔 開演前 15 分鐘提醒";btn.classList.remove("set");}
-        toast("🔕 已取消提醒："+_spCurArtist);return;
-    }
-    var art=master.find(function(it){return it.name.toLowerCase().trim()===key;});
-    if(!art||!art.start||!art.day||!DAY_DATES[art.day]){toast("❌ 演出時間未定，無法設定提醒");return;}
-    var p=art.start.split(":"),h=parseInt(p[0]),m=parseInt(p[1]||0);
-    var d=new Date(DAY_DATES[art.day]+"T00:00:00+09:00");
-    d.setHours(d.getHours()+h,m-15);
-    var ms=d.getTime()-Date.now();
-    if(ms<0){toast("❌ 演出時間已過");return;}
-    function doSchedule(){
-        saved[key]=d.getTime();
-        localStorage.setItem("fujitt_reminders",JSON.stringify(saved));
-        _scheduleReminder(key,ms);
-        if(btn){btn.textContent="🔕 取消提醒";btn.classList.add("set");}
-        toast("🔔 已設定："+_spCurArtist+" 開演前 15 分鐘提醒");
-    }
-    if(typeof Notification==="undefined"){doSchedule();return;}
-    if(Notification.permission==="granted"){doSchedule();}
-    else if(Notification.permission!=="denied"){
-        Notification.requestPermission().then(function(perm){if(perm==="granted")doSchedule();else toast("❌ 請允許通知權限");});
-    }else{doSchedule();toast("⚠️ 通知權限已拒絕，改用站內提示");}
-}
-// ====== Fetch Helper ======
-function gasGet(url) {
-  return fetch(url).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); });
-}
-// ── 日期格式 → "Day 1/2/3" 轉換 ───────────────────────
-// Firestore 存的是 "2026-07-24"，timetable 用的是 "Day 1"
-function _dateToDay(d){
-    if(!d)return "";
-    var s=String(d).trim();
-    if(s==="Day 1"||s==="7/24"||s==="2026-07-24")return "Day 1";
-    if(s==="Day 2"||s==="7/25"||s==="2026-07-25")return "Day 2";
-    if(s==="Day 3"||s==="7/26"||s==="2026-07-26")return "Day 3";
-    return s; // 其他格式原樣保留
-}
-// ── Firestore artists → master 格式轉換 helper ─────────
-function _artistsSnapToMaster(snap){
-    return snap.docs.map(function(d){
-        var a=d.data();
-        return {name:a.name||"",day:_dateToDay(a.date),start:a.startTime||"",
-                end:a.endTime||"",stage:a.stage||"",code:a.code||"",genre:a.genre||"",
-                intro:a.intro||"",image:a.imageUrl||a.image||"",ig:a.ig||"",yt:a.yt||""};
-    });
-}
-// ── LINE code ↔ 藝人名稱轉換（利用已載入的 master，不需 GAS）──
-function _codesToNames(codes){
-    return (codes||[]).map(function(code){
-        var a=master.find(function(it){return it.code===code;});
-        return a?a.name.toLowerCase().trim():null;
-    }).filter(Boolean);
-}
-function _namesToCodes(names){
-    return (names||[]).map(function(n){
-        var a=master.find(function(it){return it.name.toLowerCase().trim()===n;});
-        return a?a.code:null;
-    }).filter(Boolean);
-}
-// ── 背景靜默重整（快取命中後更新資料）─────────────────
-function _refreshDataBg(){
-    // 1. Firestore artists → master（排程表，最新節目）
-    _db.collection("artists").get().then(function(snap){
-        if(snap.empty)return;
-        master=_artistsSnapToMaster(snap);
-        buildStages(); render();
-        // 2. Firestore users/{uid}.favoriteList → lineWanted（不需 GAS）
-        if(!uid)return;
-        _db.collection("users").doc(uid).get().then(function(uSnap){
-            var codes=(uSnap.exists&&uSnap.data&&uSnap.data()&&uSnap.data().favoriteList)?uSnap.data().favoriteList:[];
-            lineWanted=_codesToNames(codes);
-            _setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});
-        }).catch(function(){_setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});});
-    }).catch(function(){});
+// ====== JSONP Helper ======
+var _jsonpId = 0;
+function jsonp(url) {
+  return new Promise(function(resolve, reject) {
+    var cbName = "_jsonp_cb_" + (++_jsonpId) + "_" + Date.now();
+    var timeout = setTimeout(function() { cleanup(); reject(new Error("Timeout")); }, 15000);
+    function cleanup() { clearTimeout(timeout); delete window[cbName]; var s = document.getElementById(cbName); if (s) s.remove(); }
+    window[cbName] = function(data) { cleanup(); resolve(data); };
+    var s = document.createElement("script");
+    s.id = cbName;
+    s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cbName;
+    s.onerror = function() { cleanup(); reject(new Error("Load failed")); };
+    document.head.appendChild(s);
+  });
 }
 // ====== DATA ======
 async function loadData(){
     if(!uid){document.getElementById("loading").innerText="❌ UID 遺失，請從 LINE 開啟";return;}
-
-    // ── 快取命中：立即顯示，背景靜默更新 ──────────────────
-    var cached   = _getCache(_CACHE_KEY, _CACHE_TTL);
-    var selCache = _getCache(_SEL_KEY,   _CACHE_TTL);
-    if(cached){
-        master      = cached.master    || [];
-        lineWanted  = cached.lineWanted|| [];
-        mySelection = selCache ? (selCache.selection||[]) : [];
-        if(mySelection.length===0) mySelection=lineWanted.map(function(n){return n;});
-        buildStages();
-        document.getElementById("loading").style.display="none";
-        initApp();
-        // ★ 修正：把 localStorage 的選擇同步寫回 Firestore
-        // （手機 LINE 沒有 localStorage，必須靠 Firestore 取得資料）
-        if(mySelection.length>0) saveSelection();
-        _refreshDataBg(); // 背景靜默更新，不阻塞畫面
-        return;
-    }
-
-    // ── 無快取：三個來源並行拉取（全部走 Firestore，不需 GAS）────
     try{
-        var results=await Promise.all([
-            _db.collection("artists").get(),
-            _db.collection("users").doc(uid).get().catch(function(){return{exists:false};}),
-            _db.collection("timetable").doc(uid).get().catch(function(){return{exists:false};})
-        ]);
-        var aSnap=results[0], uSnap=results[1], tSnap=results[2];
-        if(!aSnap.docs) throw new Error("Firestore 讀取失敗");
-        master = _artistsSnapToMaster(aSnap);
-        // LINE 收藏：Firestore users/{uid}.favoriteList（code）→ 名稱
-        var rawCodes=(uSnap.exists&&uSnap.data&&uSnap.data()&&uSnap.data().favoriteList)?uSnap.data().favoriteList:[];
-        lineWanted=_codesToNames(rawCodes);
-        var fsHadData = (tSnap.exists&&tSnap.data&&tSnap.data()&&tSnap.data().selection&&tSnap.data().selection.length>0);
-        mySelection= fsHadData ? tSnap.data().selection : [];
-        if(mySelection.length===0) mySelection=lineWanted.map(function(n){return n;});
-        _setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});
-        if(mySelection.length>0) _setCache(_SEL_KEY,{selection:mySelection});
+        // ── 1. GAS：取得 wantedList（LINE 收藏）+ fullSchedule（備援）──
+        var data = await jsonp(GAS_URL+"?action=getData&uid="+uid);
+        if(data.error){document.getElementById("loading").innerText="❌ "+data.error;return;}
+        lineWanted = data.wantedList||[];
+
+        // ── 2. fullSchedule：優先從 Firestore artists 讀取 ──────────
+        // 每次「同步藝人」後，Firestore 即為最新，timetable 自動更新
+        try{
+            var aSnap=await _db.collection("artists").get();
+            if(!aSnap.empty){
+                master = aSnap.docs.map(function(d){
+                    var a=d.data();
+                    return {
+                        name:  a.name||"",
+                        day:   a.date||"",        // NEWPLAYLIST B欄 = "Day 1"/"Day 2"/"Day 3"
+                        start: a.startTime||"",   // NEWPLAYLIST J欄
+                        end:   a.endTime||"",     // NEWPLAYLIST K欄
+                        stage: a.stage||"",       // NEWPLAYLIST D欄
+                        code:  a.code||"",
+                        genre: a.genre||""
+                    };
+                });
+            } else {
+                master = data.fullSchedule||[];   // Firestore 為空 → 用 GAS 備援
+            }
+        }catch(e){
+            master = data.fullSchedule||[];       // 讀取失敗 → 用 GAS 備援
+        }
+
+        // ── 3. mySelection：優先從 Firestore timetable/{uid} 讀取 ──
+        try{
+            var snap=await _db.collection("timetable").doc(uid).get();
+            if(snap.exists && snap.data().selection && snap.data().selection.length>0){
+                mySelection=snap.data().selection;
+            } else {
+                throw new Error("no firestore data");
+            }
+        }catch(e){
+            try{var d2=await jsonp(GAS_URL+"?action=getSelection&uid="+uid);mySelection=d2.selection||[];}catch(e2){mySelection=[];}
+        }
+        if(mySelection.length===0) mySelection = lineWanted.map(function(n){return n;});
         buildStages(); document.getElementById("loading").style.display="none"; initApp();
-        // Firestore 是空的但從 LINE 清單初始化了資料 → 寫入 Firestore
-        if(!fsHadData && mySelection.length>0) saveSelection();
     }catch(e){document.getElementById("loading").innerText="❌ 連線失敗："+e.message;}
 }
 function buildStages(){
     var m=new Map();
     master.forEach(function(it){
         var sn=(it.stage||"").trim();if(!sn)return;
-        var k=KNOWN.find(function(s){return _matchStage(sn,s.kw);});
+        var k=KNOWN.find(function(s){return sn.toUpperCase().includes(s.kw);});
         if(k){if(!m.has(k.id))m.set(k.id,{id:k.id,kw:k.kw,name:k.name,color:k.color,vis:true});}
         else{var sid="S_"+sn.replace(/\W/g,"_");if(!m.has(sid))m.set(sid,{id:sid,kw:sn,name:sn,color:"#64748b",vis:true});}
     });
-    // 按 KNOWN 固定順序排列，未知舞台附在最後
-    var knownOrder=KNOWN.map(function(k){return k.id;});
-    STAGES=Array.from(m.values()).sort(function(a,b){
-        var ai=knownOrder.indexOf(a.id),bi=knownOrder.indexOf(b.id);
-        if(ai<0&&bi<0)return 0;
-        if(ai<0)return 1;
-        if(bi<0)return -1;
-        return ai-bi;
-    });
+    STAGES=Array.from(m.values());
 }
 function isSelected(name){return mySelection.indexOf(name.toLowerCase().trim())>=0;}
 function toggleSelection(name){
@@ -953,45 +549,34 @@ function toggleSelection(name){
     var idx=mySelection.indexOf(key);
     if(idx>=0){mySelection.splice(idx,1);toast("❌ 已移除："+name);}
     else{mySelection.push(key);toast("⭐ 已加入："+name);}
-    _setCache(_SEL_KEY,{selection:mySelection}); // 立即存 localStorage（下次秒開）
     saveSelection(); render();
 }
-function saveSelection(){
-    // Firestore timetable/{uid} — 背景寫入，不阻塞 UI
+async function saveSelection(){
+    // Primary: Firestore timetable/{uid}
     if(uid && _db){
-        _db.collection("timetable").doc(uid).set({selection:mySelection},{merge:true}).catch(function(e){
-            console.warn("Firestore saveSelection failed:", e);
-        });
+        try{
+            await _db.collection("timetable").doc(uid).set({selection: mySelection},{merge:true});
+        }catch(e){
+            // Fallback: GAS
+            try{await jsonp(GAS_URL+"?action=saveSelection&uid="+uid+"&selection="+encodeURIComponent(JSON.stringify(mySelection)));}catch(e2){}
+        }
     }
 }
 async function syncFromLine(){
     try{
         toast("🔄 同步中...");
-        // Step1: 直接讀 Firestore users/{uid}.favoriteList（code 陣列）
-        var uSnap=await _db.collection("users").doc(uid).get();
-        var codes=(uSnap.exists&&uSnap.data&&uSnap.data()&&uSnap.data().favoriteList)?uSnap.data().favoriteList:[];
-        // Step2: code → 名稱（用 master，不需 GAS）
-        var lineList=_codesToNames(codes);
-        lineWanted=lineList.slice(); // 更新 lineWanted
-        // Step3: 合併 LINE → TT（只加不刪）
+        var d=await jsonp(GAS_URL+"?action=syncFromLine&uid="+uid);
+        var newList=(d.wantedList||[]).map(function(n){return n.toLowerCase().trim();});
         var added=0;
-        lineList.forEach(function(n){if(mySelection.indexOf(n)<0){mySelection.push(n);added++;}});
-        // Step4: TT 清單（名稱）→ code → 寫回 Firestore users/{uid}.favoriteList
-        var newCodes=_namesToCodes(mySelection);
-        await _db.collection("users").doc(uid).set({favoriteList:newCodes},{merge:true});
+        newList.forEach(function(n){if(mySelection.indexOf(n)<0){mySelection.push(n);added++;}});
         saveSelection(); render();
-        _setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});
-        _setCache(_SEL_KEY,{selection:mySelection});
-        toast("✅ 雙向同步完成！新增 "+added+" 組，LINE 已更新 "+newCodes.length+" 組");
-    }catch(e){
-        console.error("syncFromLine error:",e);
-        toast("❌ 同步失敗："+e.message);
-    }
+        toast("✅ 同步完成！新增 "+added+" 組");
+    }catch(e){toast("❌ 同步失敗");}
 }
 // ====== RENDER ======
 function stageInfo(sn){
-    if(!sn)return null;
-    var match=STAGES.find(function(s){return _matchStage(sn,s.kw);});
+    if(!sn)return null;var u=sn.toUpperCase();
+    var match=STAGES.find(function(s){return u.includes(s.kw.toUpperCase());});
     if(!match||!match.vis)return null;
     var active=STAGES.filter(function(s){return s.vis;});
     return{col:active.findIndex(function(s){return s.id===match.id;})+2,stage:match};
@@ -1005,11 +590,15 @@ function renderGrid(){
     var g=document.getElementById("grid");g.innerHTML="";
     var active=STAGES.filter(function(s){return s.vis;});
     if(!active.length){g.innerHTML='<div style="text-align:center;color:#666;padding:40px">沒有舞台</div>';return;}
-    g.style.gridTemplateColumns="50px repeat("+active.length+",minmax(100px,1fr))";
-    g.style.minWidth=(50+active.length*100)+"px";
+    g.style.gridTemplateColumns="50px repeat("+active.length+",minmax(80px,1fr))";
+    g.style.minWidth=(50+active.length*80)+"px";
     g.appendChild(Object.assign(document.createElement("div"),{className:"corner"}));
     active.forEach(function(s,i){var h=document.createElement("div");h.className="stage-hdr";h.style.gridColumn=i+2;h.style.borderBottomColor=s.color;h.style.color=s.color;h.innerText=s.name;g.appendChild(h);});
-    _renderTimeGrid(g,"2/span "+active.length);
+    var bg=document.createElement("div");bg.className="time-col-bg";g.appendChild(bg);
+    for(var i=0;i<=36;i++){var hour=11+Math.floor(i/2),min=i%2===0?"00":"30",dh=hour>=24?(hour-24<10?"0"+(hour-24):hour-24):hour,r=i*30+2;
+        var l=document.createElement("div");l.className="grid-line"+(min==="30"?" half":"");l.style.gridRow=r;l.style.gridColumn="2/span "+active.length;g.appendChild(l);
+        if(min==="00"){var lb=document.createElement("div");lb.className="time-lbl";lb.style.gridRow=r;lb.innerText=dh+":"+min;g.appendChild(lb);}
+    }
     var evts=master.filter(function(it){
         if(it.day!==curDay)return false;
         if(schedMode==="personal")return isSelected(it.name);
@@ -1019,7 +608,20 @@ function renderGrid(){
     updateConflicts();
     evts.forEach(function(it){
         var si=stageInfo(it.stage);if(!si)return;
-        g.appendChild(_buildEvBlock(it,si.stage.color,si.col));
+        var sel=isSelected(it.name);
+        var isConflict=_conflicts.has(it.name+"|"+curDay);
+        var bl=document.createElement("div");
+        bl.className="ev"+(schedMode==="full"&&!sel?" dimmed":"")+(sel?" selected":"")+(isConflict?" conflict":"");
+        bl.style.gridRow=timeToRow(it.start)+"/"+(it.end?timeToRow(it.end):timeToRow(it.start)+60);
+        bl.style.gridColumn=si.col;bl.style.borderLeftColor=si.stage.color;
+        var cdResult=getCountdown(it.day||curDay,it.start,it.end);
+        var cdHtml=cdResult?'<div class="ev-cd '+cdResult.cls+'">'+cdResult.text+'</div>':"";
+        var warnHtml=isConflict?'<div class="ev-warn">⚠️ 衝堂</div>':"";
+        bl.innerHTML='<div class="ev-time">'+it.start+' - '+(it.end||'?')+'</div><div class="ev-name">'+it.name+'</div>'+cdHtml+warnHtml;
+        bl.dataset.artist=it.name;bl.dataset.start=it.start||"";bl.dataset.end=it.end||"";bl.dataset.day=it.day||curDay;
+        if(_spPop[it.name]!==undefined)_applyGlow(bl,_spPop[it.name]);
+        (function(n){bl.onclick=function(){openSpotify(n);};})(it.name);
+        g.appendChild(bl);
     });
     updateTimeLine();
 }
@@ -1036,32 +638,15 @@ function getTimeslot(startStr){
 }
 function renderList(){
     var c=document.getElementById("listview");c.innerHTML="";
-    var isAll=curDay==="ALL";
-    var evts=master.filter(function(it){
-        if(!isAll&&it.day!==curDay)return false;
-        if(schedMode==="personal")return isSelected(it.name);
-        return true;
-    });
-    evts.sort(function(a,b){
-        if(isAll&&a.day!==b.day)return DAYS.indexOf(a.day)-DAYS.indexOf(b.day);
-        return timeToRow(a.start)-timeToRow(b.start);
-    });
+    var evts=master.filter(function(it){if(it.day!==curDay)return false;if(schedMode==="personal")return isSelected(it.name);return true;});
+    evts.sort(function(a,b){return timeToRow(a.start)-timeToRow(b.start);});
     if(!evts.length){c.innerHTML='<div style="text-align:center;color:#666;padding:40px">'+(schedMode==="personal"?"📭 點選單「👤 專屬」切換模式加入藝人":"📭 無資料")+"</div>";return;}
     updateConflicts();
-    var lastSlot="",lastDay="";
+    var lastSlot="";
     evts.forEach(function(it){
         var si=stageInfo(it.stage);var color=si?si.stage.color:"#64748b";var sName=si?si.stage.name:(it.stage||"未定");
         var sel=isSelected(it.name);
-        var isConflict=_conflicts.has(it.name+"|"+it.day);
-        // 三天總覽：日期分組 header
-        if(isAll&&it.day!==lastDay){
-            lastDay=it.day;lastSlot="";
-            var di=DAYS.indexOf(it.day);
-            var dh=document.createElement("div");
-            dh.style.cssText="font-size:.85rem;font-weight:800;color:var(--text);padding:14px 2px 6px;border-bottom:2px solid var(--accent);margin-bottom:4px;";
-            dh.innerText=(di>=0?DAY_LABELS[di]:it.day)||it.day;
-            c.appendChild(dh);
-        }
+        var isConflict=_conflicts.has(it.name+"|"+curDay);
         // 時段分組 header（只有開啟時間別時才顯示）
         if(_adminSettings.showTime){
             var slot=getTimeslot(it.start);
@@ -1076,7 +661,7 @@ function renderList(){
         var bl=document.createElement("div");
         bl.className='list-item'+(schedMode==='full'&&!sel?' dimmed':'')+(sel?' selected':'')+(isConflict?' conflict':'');
         bl.style.borderLeftColor=color;
-        var cdResult=getCountdown(it.day,it.start,it.end);
+        var cdResult=getCountdown(it.day||curDay,it.start,it.end);
         var cdHtml=cdResult?'<div class="ev-cd '+cdResult.cls+'" style="margin-top:4px">'+cdResult.text+'</div>':"";
         var warnHtml=isConflict?'<span style="color:#ff3b30;font-size:.75rem;font-weight:700;margin-left:6px">⚠️ 衝堂</span>':"";
         var timeStr=it.start?(it.start+(it.end?' - '+it.end:'')):'';
@@ -1086,132 +671,7 @@ function renderList(){
         c.appendChild(bl);
     });
 }
-// ====== NOW & NEXT VIEW ======
-function renderNowNext(){
-    var c=document.getElementById("now-cards");c.innerHTML="";
-    var active=STAGES.filter(function(s){return s.vis;});
-    var now=new Date();
-    // For ALL day mode, pick today's JST date
-    var showDay=curDay;
-    if(curDay==="ALL"){
-        var jst=new Date(now.getTime()+(9*60-now.getTimezoneOffset())*60000);
-        showDay=_dateToDay(jst.toISOString().slice(0,10))||DAYS[0];
-    }
-    var dayDate=DAY_DATES[showDay];
-    function toMs(timeStr){
-        if(!timeStr||!dayDate)return 0;
-        var p=timeStr.split(":"),h=parseInt(p[0]),m=parseInt(p[1]||0);
-        var d=new Date(dayDate+"T00:00:00+09:00");
-        d.setHours(d.getHours()+h,m);return d.getTime();
-    }
-    active.forEach(function(stage){
-        var evts=master.filter(function(it){
-            if(it.day!==showDay)return false;
-            var si=stageInfo(it.stage);return si&&si.stage.id===stage.id;
-        }).sort(function(a,b){return timeToRow(a.start)-timeToRow(b.start);});
-        if(!evts.length)return;
-        var nowEvt=null,nextEvt=null,nowMs=now.getTime();
-        if(isFestivalMode()&&dayDate){
-            for(var i=0;i<evts.length;i++){
-                var s=toMs(evts[i].start),e=evts[i].end?toMs(evts[i].end):s+5400000;
-                if(nowMs>=s&&nowMs<e){nowEvt=evts[i];nextEvt=evts[i+1]||null;break;}
-                if(nowMs<s&&!nextEvt){nextEvt=evts[i];}
-            }
-        }else{
-            nextEvt=evts[0]||null;
-        }
-        if(!nowEvt&&!nextEvt)return;
-        var card=document.createElement("div");
-        card.className="now-card";card.style.borderLeftColor=stage.color;
-        function slot(ev,badge,cls){
-            var sel=isSelected(ev.name);
-            return '<div class="now-slot">'
-                +'<div class="now-badges"><span class="now-badge '+cls+'">'+badge+'</span>'+(sel?'<span class="now-badge sel">⭐</span>':'')+'</div>'
-                +'<div class="now-artist">'+ev.name+'</div>'
-                +'<div class="now-time">'+ev.start+(ev.end?' – '+ev.end:'')+'</div>'
-                +'</div>';
-        }
-        var html='<div class="now-card-stage" style="color:'+stage.color+'">'+stage.name+'</div>';
-        if(nowEvt) html+=slot(nowEvt,"🔴 NOW","live");
-        if(nextEvt) html+=slot(nextEvt,"NEXT","next");
-        card.innerHTML=html;
-        var target=nowEvt||nextEvt;
-        card.onclick=function(){openSpotify(target.name);};
-        c.appendChild(card);
-    });
-    if(!c.children.length){
-        c.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:40px">📭 無演出資料</div>';
-    }
-}
-// ====== SUMMARY CARD ======
-function updateSummaryCard(){
-    var card=document.getElementById("summary-card");if(!card)return;
-    if(schedMode!=="personal"||mySelection.length===0||!_adminSettings.showSummary){card.classList.remove("show");return;}
-    card.classList.add("show");
-    var stages=new Set();
-    mySelection.forEach(function(n){
-        var art=master.find(function(it){return it.name.toLowerCase().trim()===n;});
-        if(art&&art.stage){var si=stageInfo(art.stage);if(si)stages.add(si.stage.id);}
-    });
-    var conflictN=_conflicts.size>0?Math.round(_conflicts.size/2):0;
-    document.getElementById("sum-total").textContent=mySelection.length;
-    document.getElementById("sum-conflict").textContent=conflictN;
-    document.getElementById("sum-stage-n").textContent=stages.size;
-    document.getElementById("sum-stage-txt").textContent="涵蓋 "+stages.size+" 個舞台";
-    var sumDays=document.getElementById("sum-days");sumDays.innerHTML="";
-    DAYS.forEach(function(day,i){
-        var cnt=master.filter(function(it){return it.day===day&&isSelected(it.name);}).length;
-        var d=document.createElement("div");d.className="summary-day";
-        d.innerHTML='<strong>'+cnt+'</strong><span>Day '+(i+1)+'</span>';
-        sumDays.appendChild(d);
-    });
-}
-// ====== STAGE VIEW ======
-var curStageIdx = 0;
-function renderStageView(){
-    var active=STAGES.filter(function(s){return s.vis;});
-    if(!active.length){document.getElementById("grid").innerHTML='<div style="text-align:center;color:#666;padding:40px">沒有舞台</div>';return;}
-    if(curStageIdx>=active.length)curStageIdx=0;
-    var stage=active[curStageIdx];
-    // 更新導航列
-    var nav=document.getElementById("stage-nav");
-    nav.classList.add("show");
-    var nm=document.getElementById("stage-nav-name");
-    nm.textContent=stage.name; nm.style.color=stage.color;
-    document.getElementById("stage-nav-counter").textContent=(curStageIdx+1)+" / "+active.length;
-    // 建立格子（單欄）
-    var g=document.getElementById("grid");g.innerHTML="";
-    g.style.gridTemplateColumns="50px 1fr";
-    g.style.minWidth="100%";
-    g.appendChild(Object.assign(document.createElement("div"),{className:"corner"}));
-    var hdr=document.createElement("div");hdr.className="stage-hdr";hdr.style.gridColumn=2;hdr.style.borderBottomColor=stage.color;hdr.style.color=stage.color;hdr.innerText=stage.name;g.appendChild(hdr);
-    _renderTimeGrid(g,"2");
-    var evts=master.filter(function(it){
-        if(it.day!==curDay)return false;
-        var si=stageInfo(it.stage);
-        if(!si||si.stage.id!==stage.id)return false;
-        if(schedMode==="personal")return isSelected(it.name);
-        return true;
-    });
-    if(!evts.length){var hint=document.createElement("div");hint.style.cssText="grid-column:2;grid-row:30;text-align:center;color:#666;padding:20px;";hint.textContent=schedMode==="personal"?"📭 此舞台無選取藝人":"📭 此舞台無節目";g.appendChild(hint);}
-    updateConflicts();
-    evts.forEach(function(it){g.appendChild(_buildEvBlock(it,stage.color,2));});
-    updateTimeLine();
-}
-function _changeStage(dir){
-    var active=STAGES.filter(function(s){return s.vis;});
-    curStageIdx=(curStageIdx+dir+active.length)%active.length;
-    renderStageView();document.getElementById("scroll").scrollTop=0;
-}
-function prevStage(){_changeStage(-1);}
-function nextStage(){_changeStage(1);}
-function render(){
-    if(viewMode==="grid")renderGrid();
-    else if(viewMode==="stage")renderStageView();
-    else if(viewMode==="now")renderNowNext();
-    else renderList();
-    updateSummaryCard();
-}
+function render(){if(viewMode==="grid")renderGrid();else renderList();}
 // ====== NOW PLAYING BANNER ======
 function updateNowBanner(){
     var banner=document.getElementById("now-banner");
@@ -1245,59 +705,35 @@ function updateNowBanner(){
     banner.classList.add("show");
 }
 function updateTimeLine(){
-    if(viewMode==="list")return;
+    if(viewMode!=="grid")return;
     var now=new Date(),h=now.getHours(),m=now.getMinutes();if(h>=0&&h<5)h+=24;
     if(h>=11&&h<=29){var r=(h-11)*60+m+2;var tl=document.getElementById("tl");
         if(!tl){tl=document.createElement("div");tl.id="tl";tl.className="time-line";var d=document.createElement("div");d.className="time-dot";tl.appendChild(d);}
-        var g=document.getElementById("grid");
-        var span=viewMode==="stage"?"1":(STAGES.filter(function(s){return s.vis;}).length+"");
-        if(g){g.appendChild(tl);tl.style.gridRow=r;tl.style.gridColumn="2/span "+span;tl.style.display="block";}
+        var g=document.getElementById("grid"),active=STAGES.filter(function(s){return s.vis;});
+        if(g&&active.length){g.appendChild(tl);tl.style.gridRow=r;tl.style.gridColumn="2/span "+active.length;tl.style.display="block";}
     }
 }
 // ====== CONTROLS ======
 function toggleMode(){
     schedMode=schedMode==="personal"?"full":"personal";
-    if(schedMode==="full"){toast("💡 點擊色塊可加入/移除自選");}
-    else{}
+    if(schedMode==="full")toast("💡 點擊色塊可加入/移除自選");
     updateSelCount();
     render();
 }
 function toggleView(){
-    var modes=["grid","stage","list"];
-    viewMode=modes[(modes.indexOf(viewMode)+1)%modes.length];
-    _applyViewMode();
-}
-function _applyViewMode(){
+    viewMode=viewMode==="grid"?"list":"grid";
     var tbv=document.getElementById("tbr-view");
-    var scr=document.getElementById("scroll");
-    var lv=document.getElementById("listview");
-    var nv=document.getElementById("now-view");
-    var fab=document.getElementById("fab");
-    var nav=document.getElementById("stage-nav");
-    var tnow=document.getElementById("tbr-now");
-    var vl=VIEW_LABELS[viewMode]||VIEW_LABELS.now;
-    if(tbv){tbv.innerHTML='<span class="ico">'+vl.ico+'</span>'+vl.lbl;tbv.classList.toggle("active",viewMode!=="grid");}
-    if(tnow) tnow.classList.toggle("active",viewMode==="now");
-    var isTimeGrid=viewMode==="grid"||viewMode==="stage";
-    scr.style.display=isTimeGrid?"block":"none";
-    lv.style.display=viewMode==="list"?"flex":"none";
-    nv.classList.toggle("show",viewMode==="now");
-    fab.style.display=isTimeGrid?"flex":"none";
-    if(viewMode!=="stage")nav.classList.remove("show");
+    if(tbv){tbv.innerHTML='<span class="ico">'+(viewMode==="list"?"🎛️":"📋")+'</span>'+(viewMode==="list"?"格子":"列表");tbv.classList.toggle("active",viewMode==="list");}
+    document.getElementById("scroll").style.display=viewMode==="list"?"none":"block";
+    document.getElementById("listview").style.display=viewMode==="list"?"flex":"none";
+    document.getElementById("fab").style.display=viewMode==="list"?"none":"flex";
     render();
-}
-function toggleNowView(){
-    viewMode=viewMode==="now"?"list":"now";
-    _applyViewMode();
 }
 function changeDay(idx){
-    var isAll=idx==="ALL";
-    curDay=isAll?"ALL":DAYS[idx];
-    document.querySelectorAll(".day-btn").forEach(function(b){b.classList.toggle("active",b.dataset.day===curDay);});
-    document.getElementById("wm").innerText=isAll?"2026 FUJI ROCK - 全覽":"2026 FUJI ROCK - "+DAY_LABELS[idx];
-    if(isAll&&viewMode!=="list"&&viewMode!=="now"){viewMode="list";_applyViewMode();return;}
-    render();
-    if(viewMode!=="list"&&viewMode!=="now") document.getElementById("scroll").scrollTop=0;
+    curDay=DAYS[idx];
+    document.querySelectorAll(".day-btn").forEach(function(b,i){b.classList.toggle("active",i===idx);});
+    document.getElementById("wm").innerText="2026 FUJI ROCK - "+DAY_LABELS[idx];
+    render();if(viewMode==="grid")document.getElementById("scroll").scrollTop=0;
 }
 function jumpNow(){
     var n=new Date(),h=n.getHours();if(h>=0&&h<5)h+=24;
@@ -1312,27 +748,21 @@ function openFilter(){
 function allStages(v){STAGES.forEach(function(s){s.vis=v;});openFilter();}
 function applyFilter(){document.getElementById("filterModal").style.display="none";render();}
 function toggleSS(){document.body.classList.toggle("ss-mode");}
-
-
 function initApp(){
     var dc=document.getElementById("days");dc.innerHTML="";
-    // 全覽 button
-    var allBtn=document.createElement("button");allBtn.className="day-btn";allBtn.innerText="全覽";allBtn.dataset.day="ALL";allBtn.onclick=function(){changeDay("ALL");};dc.appendChild(allBtn);
-    DAY_LABELS.forEach(function(l,i){var b=document.createElement("button");b.className="day-btn"+(i===0?" active":"");b.innerText=l;b.dataset.day=DAYS[i];b.onclick=function(){changeDay(i);};dc.appendChild(b);});
+    DAY_LABELS.forEach(function(l,i){var b=document.createElement("button");b.className="day-btn"+(i===0?" active":"");b.innerText=l;b.onclick=function(){changeDay(i);};dc.appendChild(b);});
     updateSelCount();
-    _restoreReminders();
     // 根據資料階段設定預設視圖
     var phase=getDataPhase();
-    if(phase==="list"&&viewMode==="grid") viewMode="list";
+    if(phase==="list"&&viewMode==="grid"){
+        viewMode="list";
+        var tbv=document.getElementById("tbr-view");
+        if(tbv){tbv.innerHTML='<span class="ico">🎛️</span>格子';tbv.classList.add("active");}
+        document.getElementById("scroll").style.display="none";
+        document.getElementById("listview").style.display="flex";
+        document.getElementById("fab").style.display="none";
+    }
     changeDay(0);
-    // 舞台模式：左右滑切換舞台
-    var _tx=0,_ty=0;
-    document.getElementById("scroll").addEventListener("touchstart",function(e){_tx=e.changedTouches[0].clientX;_ty=e.changedTouches[0].clientY;},{passive:true});
-    document.getElementById("scroll").addEventListener("touchend",function(e){
-        if(viewMode!=="stage")return;
-        var dx=e.changedTouches[0].clientX-_tx,dy=e.changedTouches[0].clientY-_ty;
-        if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>55){dx<0?nextStage():prevStage();}
-    },{passive:true});
     setInterval(updateTimeLine,60000);
     setInterval(updateAllCountdowns,30000);
     updateNowBanner();
@@ -1353,12 +783,6 @@ function toggleToolbar(){
     t.classList.toggle("open",show);
     t.innerHTML=show?"✕":"☰";
 }
-// 管理員模式時顯示管理員按鈕
-function syncAdminBtn(){
-    var btn=document.getElementById("tbr-admin");
-    if(btn) btn.style.display=document.body.classList.contains("admin-on")?"flex":"none";
-}
-
 // ====== STATS BAR ======
 function updateSelCount(){
     var cnt=mySelection.length;
@@ -1383,23 +807,7 @@ function scrollToFirstConflict(){
     if(first){first.scrollIntoView({behavior:"smooth",block:"center"});}
     else{toast("⚠️ 請切換到對應日期查看衝堂");}
 }
-// ====== DAY / NIGHT THEME ======
-function initTheme(){
-    var saved=localStorage.getItem("fujitt_theme")||"dark";
-    if(saved==="light"){
-        document.documentElement.classList.add("light");
-        var ico=document.getElementById("theme-ico");
-        if(ico) ico.textContent="🌙";
-    }
-}
-function toggleTheme(){
-    var isLight=document.documentElement.classList.toggle("light");
-    localStorage.setItem("fujitt_theme",isLight?"light":"dark");
-    var ico=document.getElementById("theme-ico");
-    if(ico) ico.textContent=isLight?"🌙":"☀️";
-}
 window.onload=async function(){
-    initTheme();
     // 音樂祭期間顯示節流提示橫幅
     if(isFestivalMode()){
         var banner=document.createElement("div");
@@ -1407,8 +815,8 @@ window.onload=async function(){
         banner.innerHTML="🎪 音樂祭進行中！試聽已暫停以節省行動數據 · 加入／移除排表功能正常使用";
         document.body.insertBefore(banner,document.body.firstChild);
     }
-    // 預載 Spotify 快取（與主資料並行，不阻塞排程顯示）
-    loadSpotifyData();
+    // 跨裝置顯示設定 + Spotify 快取 並行載入，完成後再取用戶資料
+    await Promise.all([loadTimetableSettings(), loadSpotifyData()]);
     loadData();
 };
 </script>
