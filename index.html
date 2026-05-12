@@ -67,7 +67,8 @@
         .list-title{font-size:1rem;font-weight:bold;}
         .modal-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.8);z-index:2000;align-items:center;justify-content:center;padding:20px;}
         .modal{background:var(--surface);width:100%;max-width:400px;border-radius:12px;padding:20px;border:1px solid var(--border);}
-        .modal-title{font-size:1.1rem;font-weight:bold;margin-bottom:16px;text-align:center;}
+        .modal-title{font-size:1.1rem;font-weight:bold;margin-bottom:16px;display:flex;align-items:center;justify-content:center;position:relative;}
+        .modal-close-btn{position:absolute;right:0;background:none;border:none;font-size:1.1rem;color:var(--muted);cursor:pointer;padding:2px 6px;line-height:1;}
         .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
         .chip{padding:8px 12px;border-radius:20px;border:1px solid;font-size:.85rem;background:transparent;color:var(--muted);cursor:pointer;transition:.2s;}
         .chip.active{color:#fff;font-weight:bold;}
@@ -253,7 +254,7 @@
     <div id="now-view"><div class="now-cards" id="now-cards"></div></div>
     <button class="fab" onclick="jumpNow()" id="fab">📍</button>
     <button class="ss-dl-btn" onclick="downloadScreenshot()" title="下載截圖">💾</button>
-    <div class="modal-bg" id="filterModal"><div class="modal"><div class="modal-title">選擇舞台</div><div class="chips" id="filterChips"></div><div class="modal-actions"><button class="btn" onclick="allStages(true)">全選</button><button class="btn" onclick="allStages(false)">全不選</button><button class="btn btn-primary" onclick="applyFilter()">確定</button></div></div></div>
+    <div class="modal-bg" id="filterModal" onclick="if(event.target===this)closeFilter()"><div class="modal"><div class="modal-title">選擇舞台<button class="modal-close-btn" onclick="closeFilter()">✕</button></div><div class="chips" id="filterChips"></div><div class="modal-actions"><button class="btn" onclick="allStages(true)">全選</button><button class="btn" onclick="allStages(false)">全不選</button><button class="btn" onclick="closeFilter()">取消</button><button class="btn btn-primary" onclick="applyFilter()">確定</button></div></div></div>
     <div id="sp-overlay" onclick="closeSpotify()"></div>
     <div id="sp-panel">
         <div class="sp-drag"></div>
@@ -295,7 +296,9 @@ var _spCurArtist = "";
 var _spLoaded = false;
 var master = [], lineWanted = [], mySelection = [];
 var DAYS = ["Day 1","Day 2","Day 3"], DAY_LABELS = ["Day 1 (7/24)","Day 2 (7/25)","Day 3 (7/26)"];
-var curDay = DAYS[0], viewMode = "grid", schedMode = "personal";
+var curDay = DAYS[0], viewMode = "list", schedMode = "personal";
+// ── 佔位模式（由 Firestore displayConfig.placeholderMode 控制，預設 true 直到 admin 關閉）──
+var PLACEHOLDER_MODE = true;
 var KNOWN = [
     {id:"GREEN",   kw:"GREEN",   name:"GREEN",       color:"#22c55e"},
     {id:"WHITE",   kw:"WHITE",   name:"WHITE",        color:"#cbd5e1"},
@@ -348,7 +351,8 @@ function isOwner(){ return new URLSearchParams(window.location.search).get("uid"
 // 預設值：由 Firestore timetable/OWNER_UID.displayConfig 覆蓋
 var _adminSettings = {conflict:true,countdown:true,festival:false,phase:"auto",
                       showPersonal:false,showGrid:false,showStage:false,showTime:false,
-                      showStageLbl:true,showNow:true,showSummary:true,showRemind:true,showAllDays:true};
+                      showStageLbl:true,showNow:true,showSummary:true,showRemind:true,showAllDays:true,
+                      placeholderMode:true};
 
 async function loadTimetableSettings(){
     try{
@@ -356,20 +360,24 @@ async function loadTimetableSettings(){
         if(snap.exists){
             var dc=(snap.data().displayConfig)||{};
             ["showPersonal","showGrid","showStage","showTime","showStageLbl","showNow",
-             "showSummary","showRemind","showAllDays","conflict","countdown","festival"].forEach(function(k){
+             "showSummary","showRemind","showAllDays","conflict","countdown","festival",
+             "placeholderMode"].forEach(function(k){
                 if(dc[k]!==undefined)_adminSettings[k]=dc[k];
             });
             if(dc.phase!==undefined)_adminSettings.phase=dc.phase;
         }
     }catch(e){console.warn("display settings load failed",e);}
+    // 讀取完畢後同步 PLACEHOLDER_MODE
+    PLACEHOLDER_MODE=!!_adminSettings.placeholderMode;
 }
 
 // 根據 adminSettings 同步工具列按鈕顯示
 function syncToolbarVisibility(){
     var showP=!!_adminSettings.showPersonal;
-    var showG=!!_adminSettings.showGrid;
-    var showS=!!_adminSettings.showStage;
-    var showNow=!!_adminSettings.showNow;
+    // PLACEHOLDER_MODE：格子/單台/快覽/舞台篩選全部強制隱藏
+    var showG=PLACEHOLDER_MODE?false:!!_adminSettings.showGrid;
+    var showS=PLACEHOLDER_MODE?false:!!_adminSettings.showStage;
+    var showNow=PLACEHOLDER_MODE?false:!!_adminSettings.showNow;
     var showAllDays=!!_adminSettings.showAllDays;
     // 工具列按鈕顯示
     var bm=document.getElementById("tbr-mode");
@@ -387,7 +395,7 @@ function syncToolbarVisibility(){
     document.body.classList.toggle("clean-hdr",!_adminSettings.showStageLbl);
     // 隱藏時強制回預設模式
     if(!showP&&schedMode==="personal"){ schedMode="full"; }
-    if(!showG&&!showNow&&viewMode!=="list"){ viewMode="list"; }
+    if(PLACEHOLDER_MODE||(!showG&&!showNow&&viewMode!=="list")){ viewMode="list"; }
     if(!showNow&&viewMode==="now"){ viewMode="list"; }
     _applyViewMode();
 }
@@ -573,11 +581,11 @@ function _buildArtistInfoHtml(name){
     html+='<div class="sp-info">';
     // 圖片（M欄，尚未補上時自動隱藏）
     if(art.image) html+='<img class="sp-img" src="'+art.image+'" alt="'+name+'" loading="lazy" onerror="this.style.display=\'none\'">';
-    // 標籤：曲風 / 日期 / 舞台
+    // 標籤：曲風 / 日期 / 舞台（PLACEHOLDER_MODE 時隱藏舞台）
     var tags='';
     if(art.genre) tags+='<span class="sp-tag genre">🎵 '+art.genre+'</span>';
     if(art.day)   tags+='<span class="sp-tag">📅 '+art.day+'</span>';
-    if(art.stage) tags+='<span class="sp-tag stage">🏟 '+art.stage.replace(/ STAGE$/i,'').replace(/ MARQUEE$/i,'')+'</span>';
+    if(!PLACEHOLDER_MODE&&art.stage) tags+='<span class="sp-tag stage">🏟 '+art.stage.replace(/ STAGE$/i,'').replace(/ MARQUEE$/i,'')+'</span>';
     if(tags) html+='<div class="sp-tags">'+tags+'</div>';
     // 中文介紹（F欄）
     if(art.intro) html+='<div class="sp-intro">'+art.intro.replace(/\n/g,'<br>')+'</div>';
@@ -597,7 +605,7 @@ function openSpotify(name){
     if(remBtn){
         var art=master.find(function(it){return it.name.toLowerCase().trim()===name.toLowerCase().trim();});
         var hasTime=art&&art.start&&art.day&&DAY_DATES[art.day];
-        remBtn.style.display=(hasTime&&!!_adminSettings.showRemind)?"block":"none";
+        remBtn.style.display=(!PLACEHOLDER_MODE&&hasTime&&!!_adminSettings.showRemind)?"block":"none";
         var rSaved=JSON.parse(localStorage.getItem("fujitt_reminders")||"{}");
         var rKey=name.toLowerCase().trim();
         remBtn.textContent=rSaved[rKey]?"🔕 取消提醒":"🔔 開演前 15 分鐘提醒";
@@ -931,14 +939,17 @@ function renderList(){
             }
         }
         var bl=document.createElement("div");
-        bl.className='list-item'+(schedMode==='full'&&!sel?' dimmed':'')+(sel?' selected':'')+(isConflict?' conflict':'');
-        bl.style.borderLeftColor=color;
-        var cdResult=getCountdown(it.day,it.start,it.end);
+        var showConflict=!PLACEHOLDER_MODE&&isConflict;
+        bl.className='list-item'+(schedMode==='full'&&!sel?' dimmed':'')+(sel?' selected':'')+(showConflict?' conflict':'');
+        bl.style.borderLeftColor=PLACEHOLDER_MODE?"var(--accent)":color;
+        var cdResult=PLACEHOLDER_MODE?null:getCountdown(it.day,it.start,it.end);
         var cdHtml=cdResult?'<div class="ev-cd '+cdResult.cls+'" style="margin-top:4px">'+cdResult.text+'</div>':"";
-        var warnHtml=isConflict?'<span style="color:#ff3b30;font-size:.75rem;font-weight:700;margin-left:6px">⚠️ 衝堂</span>':"";
+        var warnHtml=showConflict?'<span style="color:#ff3b30;font-size:.75rem;font-weight:700;margin-left:6px">⚠️ 衝堂</span>':"";
         var timeStr=it.start?(it.start+(it.end?' - '+it.end:'')):'';
-        var timeHtml=(_adminSettings.showTime&&timeStr)?'<span>🕒 '+timeStr+'</span>':'';
-        bl.innerHTML='<div class="list-hdr">'+timeHtml+'<span style="color:'+color+';font-weight:bold">'+sName+'</span></div><div class="list-title">'+it.name+(sel?' ⭐':'')+warnHtml+'</div>'+cdHtml;
+        var timeHtml=(!PLACEHOLDER_MODE&&_adminSettings.showTime&&timeStr)?'<span>🕒 '+timeStr+'</span>':'';
+        var stageHtml=(!PLACEHOLDER_MODE)?'<span style="color:'+color+';font-weight:bold">'+sName+'</span>':'';
+        var hdrContent=timeHtml+stageHtml;
+        bl.innerHTML=(hdrContent?'<div class="list-hdr">'+hdrContent+'</div>':'')+'<div class="list-title">'+it.name+(sel?' ⭐':'')+warnHtml+'</div>'+cdHtml;
         (function(n){bl.onclick=function(){openSpotify(n);};})(it.name);
         c.appendChild(bl);
     });
@@ -1012,9 +1023,18 @@ function updateSummaryCard(){
     });
     var conflictN=_conflicts.size>0?Math.round(_conflicts.size/2):0;
     document.getElementById("sum-total").textContent=mySelection.length;
-    document.getElementById("sum-conflict").textContent=conflictN;
-    document.getElementById("sum-stage-n").textContent=stages.size;
-    document.getElementById("sum-stage-txt").textContent="涵蓋 "+stages.size+" 個舞台";
+    // PLACEHOLDER_MODE：隱藏衝堂 & 涵蓋舞台欄位
+    var elConflict=document.getElementById("sum-conflict");
+    var elStageN=document.getElementById("sum-stage-n");
+    var elStageTxt=document.getElementById("sum-stage-txt");
+    if(elConflict) elConflict.parentElement.style.display=PLACEHOLDER_MODE?"none":"";
+    if(elStageN)   elStageN.parentElement.style.display=PLACEHOLDER_MODE?"none":"";
+    if(elStageTxt) elStageTxt.style.display=PLACEHOLDER_MODE?"none":"";
+    if(!PLACEHOLDER_MODE){
+        if(elConflict) elConflict.textContent=conflictN;
+        if(elStageN)   elStageN.textContent=stages.size;
+        if(elStageTxt) elStageTxt.textContent="涵蓋 "+stages.size+" 個舞台";
+    }
     var sumDays=document.getElementById("sum-days");sumDays.innerHTML="";
     DAYS.forEach(function(day,i){
         var cnt=master.filter(function(it){return it.day===day&&isSelected(it.name);}).length;
@@ -1072,6 +1092,7 @@ function render(){
 // ====== NOW PLAYING BANNER ======
 function updateNowBanner(){
     var banner=document.getElementById("now-banner");
+    if(PLACEHOLDER_MODE){banner.classList.remove("show");return;}
     var inner=document.getElementById("now-inner");
     if(!isFestivalMode()||!master.length){banner.classList.remove("show");return;}
     var now=new Date();
@@ -1161,13 +1182,16 @@ function jumpNow(){
     if(h>=11&&h<=29)document.getElementById("scroll").scrollTo({top:Math.max(0,((h-11)*60+n.getMinutes())*2-100),behavior:"smooth"});
     else toast("非演出時間");
 }
+var _filterSnapshot=[];
 function openFilter(){
+    _filterSnapshot=STAGES.map(function(s){return s.vis;});
     var c=document.getElementById("filterChips");c.innerHTML="";
     STAGES.forEach(function(s){var b=document.createElement("button");b.className="chip"+(s.vis?" active":"");b.style.borderColor=s.color;if(s.vis)b.style.backgroundColor=s.color;b.innerText=s.name;b.onclick=function(){s.vis=!s.vis;b.classList.toggle("active");b.style.backgroundColor=s.vis?s.color:"transparent";};c.appendChild(b);});
     document.getElementById("filterModal").style.display="flex";
 }
 function allStages(v){STAGES.forEach(function(s){s.vis=v;});openFilter();}
 function applyFilter(){document.getElementById("filterModal").style.display="none";render();}
+function closeFilter(){STAGES.forEach(function(s,i){s.vis=_filterSnapshot[i];});document.getElementById("filterModal").style.display="none";}
 function toggleSS(){document.body.classList.toggle("ss-mode");}
 
 
@@ -1200,6 +1224,29 @@ function initApp(){
     initAdmin();
     // 依設定同步工具列顯示
     syncToolbarVisibility();
+    // sp-panel 向下滑動收合
+    (function(){
+        var panel=document.getElementById("sp-panel");
+        var startY=0,startT=0,dragging=false;
+        panel.addEventListener("touchstart",function(e){
+            if(!panel.classList.contains("open"))return;
+            startY=e.touches[0].clientY;startT=Date.now();dragging=true;
+            panel.style.transition="none";
+        },{passive:true});
+        panel.addEventListener("touchmove",function(e){
+            if(!dragging)return;
+            var dy=e.touches[0].clientY-startY;
+            if(dy>0)panel.style.transform="translateY("+dy+"px)";
+        },{passive:true});
+        panel.addEventListener("touchend",function(e){
+            if(!dragging)return;dragging=false;
+            var dy=e.changedTouches[0].clientY-startY;
+            var dt=Date.now()-startT;
+            panel.style.transition="";panel.style.transform="";
+            if(dy>80||(dy>30&&dt<250))closeSpotify();
+            else panel.style.transform="";
+        },{passive:true});
+    })();
 }
 // ====== TOOLBAR TOGGLE ======
 function toggleToolbar(){
