@@ -188,24 +188,7 @@
         /* ===== REMIND BUTTON ===== */
         .sp-remind{display:block;width:calc(100% - 24px);margin:0 12px 6px;background:var(--surface);color:var(--text);border:1px solid var(--border);padding:9px;border-radius:20px;font-size:.82rem;cursor:pointer;text-align:center;transition:.2s;}
         .sp-remind.set{background:#1e3a5f;border-color:#3b82f6;color:#93c5fd;}
-        /* ===== ADMIN MODE ===== */
-        .admin-badge{display:none;position:fixed;top:8px;left:50%;transform:translateX(-50%);background:#7c3aed;color:#fff;padding:3px 12px;border-radius:10px;font-size:.7rem;font-weight:700;z-index:1002;pointer-events:none;}
-        body.admin-on .admin-badge{display:block;}
-        .admin-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
-        .admin-row:last-child{border-bottom:none;}
-        .admin-label{font-size:.9rem;}
-        .admin-sub{font-size:.72rem;color:var(--muted);margin-top:2px;}
-        .toggle-sw{position:relative;width:44px;height:24px;flex-shrink:0;}
-        .toggle-sw input{opacity:0;width:0;height:0;}
-        .toggle-sw .slider{position:absolute;inset:0;background:#333;border-radius:24px;cursor:pointer;transition:.3s;}
-        .toggle-sw input:checked+.slider{background:#7c3aed;}
-        .toggle-sw .slider:before{content:"";position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;}
-        .toggle-sw input:checked+.slider:before{transform:translateX(20px);}
-        .phase-btns{display:flex;gap:6px;}
-        .phase-btn{padding:5px 10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.78rem;cursor:pointer;}
-        .phase-btn.active{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:700;}
-        /* ===== ADMIN SECTION LABEL ===== */
-        .admin-section-lbl{font-size:.68rem;font-weight:800;color:#7c3aed;letter-spacing:.8px;text-transform:uppercase;padding:14px 0 4px;border-bottom:1px solid rgba(124,58,237,.2);margin-bottom:2px;}
+        /* ===== ADMIN MODE（設定管理已移至 admin.html）===== */
     </style>
 </head>
 <body>
@@ -226,7 +209,7 @@
             <button class="tbr-btn green" onclick="syncFromLine()"><span class="ico">🔄</span>同步</button>
             <button class="tbr-btn" onclick="toggleSS()"><span class="ico">📸</span>截圖</button>
             <button class="tbr-btn" id="tbr-theme" onclick="toggleTheme()"><span class="ico" id="theme-ico">☀️</span>日夜</button>
-            <button class="tbr-btn admin-only" id="tbr-admin" onclick="openAdminPanel()" style="display:none"><span class="ico">⚙️</span>管理員</button>
+            <button class="tbr-btn admin-only" id="tbr-admin" onclick="window.open('https://frfhelp-66666.web.app/admin.html','_blank')" style="display:none"><span class="ico">⚙️</span>後台</button>
         </div>
         <div class="day-selector" id="days"></div>
     </header>
@@ -270,86 +253,6 @@
     <div id="now-view"><div class="now-cards" id="now-cards"></div></div>
     <button class="fab" onclick="jumpNow()" id="fab">📍</button>
     <button class="ss-dl-btn" onclick="downloadScreenshot()" title="下載截圖">💾</button>
-    <div class="admin-badge">⚙️ 管理員模式</div>
-    <!-- Admin Panel -->
-    <div class="modal-bg" id="adminModal">
-      <div class="modal" style="max-height:85vh;overflow-y:auto;">
-        <div class="modal-title">⚙️ 管理員設定</div>
-
-        <!-- ── 工具列按鈕 ── -->
-        <div class="admin-section-lbl">🛠 工具列按鈕</div>
-        <div class="admin-row">
-          <div><div class="admin-label">👤 專屬模式按鈕</div><div class="admin-sub">隱藏時固定為全展模式</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showPersonal" onchange="saveAndSyncUI('showPersonal',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">🎛️ 視圖切換按鈕</div><div class="admin-sub">格子／單台／列表切換</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showGrid" onchange="saveAndSyncUI('showGrid',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">⚡ 快覽按鈕</div><div class="admin-sub">Now & Next 快速瀏覽</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showNow" onchange="saveAndSyncUI('showNow',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">🏟️ 舞台篩選按鈕</div><div class="admin-sub">隱藏時顯示全部舞台</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showStage" onchange="saveAndSyncUI('showStage',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">📅 全覽日期按鈕</div><div class="admin-sub">三天總覽模式選項</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showAllDays" onchange="saveAndSyncUI('showAllDays',this.checked)"><span class="slider"></span></label>
-        </div>
-
-        <!-- ── 版面功能 ── -->
-        <div class="admin-section-lbl">🖥 版面功能</div>
-        <div class="admin-row">
-          <div><div class="admin-label">演出時間別</div><div class="admin-sub">時間欄（時間未定時關閉）</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showTime" onchange="saveAndSyncUI('showTime',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">舞台色條與名稱</div><div class="admin-sub">隱藏後只留色塊不顯示標籤</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showStageLbl" onchange="saveAndSyncUI('showStageLbl',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">📊 計畫摘要卡</div><div class="admin-sub">個人模式下顯示選取統計</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showSummary" onchange="saveAndSyncUI('showSummary',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">🔔 演出提醒按鈕</div><div class="admin-sub">藝人面板顯示提醒設定</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-showRemind" onchange="saveSetting('showRemind',this.checked)"><span class="slider"></span></label>
-        </div>
-
-        <!-- ── 演出顯示 ── -->
-        <div class="admin-section-lbl">⏱ 演出顯示</div>
-        <div class="admin-row">
-          <div><div class="admin-label">衝堂警告</div><div class="admin-sub">時間重疊時顯示警告</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-conflict" onchange="saveSetting('conflict',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">演出倒數</div><div class="admin-sub">色塊上顯示開演倒數</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-countdown" onchange="saveSetting('countdown',this.checked)"><span class="slider"></span></label>
-        </div>
-        <div class="admin-row">
-          <div><div class="admin-label">🎪 音樂祭節流模式</div><div class="admin-sub">強制開啟試聽限制（無視日期）</div></div>
-          <label class="toggle-sw"><input type="checkbox" id="sw-festival" onchange="saveSetting('festival',this.checked)"><span class="slider"></span></label>
-        </div>
-
-        <!-- ── 預設設定 ── -->
-        <div class="admin-section-lbl">⚙️ 預設設定</div>
-        <div class="admin-row">
-          <div><div class="admin-label">資料階段</div><div class="admin-sub">決定預設顯示模式</div></div>
-          <div class="phase-btns">
-            <button class="phase-btn" id="ph-auto" onclick="setPhase('auto')">自動</button>
-            <button class="phase-btn" id="ph-list" onclick="setPhase('list')">列表</button>
-            <button class="phase-btn" id="ph-grid" onclick="setPhase('grid')">格子</button>
-          </div>
-        </div>
-
-        <div class="modal-actions" style="margin-top:16px;">
-          <button class="btn btn-primary" onclick="applyAdminSettings()">套用</button>
-          <button class="btn" onclick="document.getElementById('adminModal').style.display='none'">關閉</button>
-        </div>
-      </div>
-    </div>
     <div class="modal-bg" id="filterModal"><div class="modal"><div class="modal-title">選擇舞台</div><div class="chips" id="filterChips"></div><div class="modal-actions"><button class="btn" onclick="allStages(true)">全選</button><button class="btn" onclick="allStages(false)">全不選</button><button class="btn btn-primary" onclick="applyFilter()">確定</button></div></div></div>
     <div id="sp-overlay" onclick="closeSpotify()"></div>
     <div id="sp-panel">
@@ -438,29 +341,27 @@ function _buildEvBlock(it, stageColor, colVal){
     return bl;
 }
 function toast(msg){var t=document.getElementById("toast");t.innerText=msg;t.style.display="block";setTimeout(function(){t.style.display="none";},2200);}
-// ====== ADMIN MODE ======
-var ADMIN_PASSWORD = "fujitt2026"; // ★ 修改為你的密碼
+// ====== ADMIN MODE（設定管理已移至 admin.html）======
 var OWNER_UID = "Uaad7f6d86f0316d7ddf10f660ade5205";
 function isOwner(){ return new URLSearchParams(window.location.search).get("uid")===OWNER_UID; }
-var _adminSettings = JSON.parse(localStorage.getItem("fujitt_admin")||'{"conflict":true,"countdown":true,"festival":false,"phase":"auto","showPersonal":false,"showGrid":false,"showStage":false,"showTime":false,"showStageLbl":true,"showNow":true,"showSummary":true,"showRemind":true,"showAllDays":true}');
-// 向舊版 localStorage 補齊缺少的 key
-if(_adminSettings.showPersonal===undefined)_adminSettings.showPersonal=false;
-if(_adminSettings.showGrid===undefined)_adminSettings.showGrid=false;
-if(_adminSettings.showStage===undefined)_adminSettings.showStage=false;
-if(_adminSettings.showTime===undefined)_adminSettings.showTime=false;
-if(_adminSettings.showStageLbl===undefined)_adminSettings.showStageLbl=true;
-if(_adminSettings.showNow===undefined)_adminSettings.showNow=true;
-if(_adminSettings.showSummary===undefined)_adminSettings.showSummary=true;
-if(_adminSettings.showRemind===undefined)_adminSettings.showRemind=true;
-if(_adminSettings.showAllDays===undefined)_adminSettings.showAllDays=true;
-var _adminTaps = 0, _adminTapTimer = null;
 
-function saveSetting(key,val){_adminSettings[key]=val;localStorage.setItem("fujitt_admin",JSON.stringify(_adminSettings));}
+// 預設值：由 Firestore timetable/OWNER_UID.displayConfig 覆蓋
+var _adminSettings = {conflict:true,countdown:true,festival:false,phase:"auto",
+                      showPersonal:false,showGrid:false,showStage:false,showTime:false,
+                      showStageLbl:true,showNow:true,showSummary:true,showRemind:true,showAllDays:true};
 
-// 儲存後立即同步工具列顯示
-function saveAndSyncUI(key,val){
-    saveSetting(key,val);
-    syncToolbarVisibility();
+async function loadTimetableSettings(){
+    try{
+        var snap=await _db.collection("timetable").doc(OWNER_UID).get();
+        if(snap.exists){
+            var dc=(snap.data().displayConfig)||{};
+            ["showPersonal","showGrid","showStage","showTime","showStageLbl","showNow",
+             "showSummary","showRemind","showAllDays","conflict","countdown","festival"].forEach(function(k){
+                if(dc[k]!==undefined)_adminSettings[k]=dc[k];
+            });
+            if(dc.phase!==undefined)_adminSettings.phase=dc.phase;
+        }
+    }catch(e){console.warn("display settings load failed",e);}
 }
 
 // 根據 adminSettings 同步工具列按鈕顯示
@@ -490,56 +391,12 @@ function syncToolbarVisibility(){
     if(!showNow&&viewMode==="now"){ viewMode="list"; }
     _applyViewMode();
 }
-function setPhase(v){
-    _adminSettings.phase=v;
-    localStorage.setItem("fujitt_admin",JSON.stringify(_adminSettings));
-    document.querySelectorAll(".phase-btn").forEach(function(b){b.classList.remove("active");});
-    document.getElementById("ph-"+v).classList.add("active");
-}
-function applyAdminSettings(){
-    document.getElementById("adminModal").style.display="none";
-    toast("✅ 設定已套用");
-    render();
-}
-function openAdminPanel(){
-    // 同步所有開關 UI 狀態
-    var sw={"conflict":true,"countdown":true,"festival":false,"showPersonal":false,"showGrid":false,
-            "showNow":true,"showStage":false,"showAllDays":true,"showTime":false,"showStageLbl":true,
-            "showSummary":true,"showRemind":true};
-    Object.keys(sw).forEach(function(k){
-        var el=document.getElementById("sw-"+k);
-        if(el) el.checked=(_adminSettings[k]!==undefined)?!!_adminSettings[k]:sw[k];
-    });
-    var ph=_adminSettings.phase||"auto";
-    document.querySelectorAll(".phase-btn").forEach(function(b){b.classList.remove("active");});
-    document.getElementById("ph-"+ph).classList.add("active");
-    document.getElementById("adminModal").style.display="flex";
-}
 function initAdmin(){
-    // 點標題 5 下進入管理員模式（僅限擁有者 UID）
-    document.querySelector("h1").addEventListener("click",function(){
-        if(!isOwner()) return; // 非擁有者連結，完全無反應
-        _adminTaps++;
-        clearTimeout(_adminTapTimer);
-        _adminTapTimer=setTimeout(function(){_adminTaps=0;},2000);
-        if(_adminTaps>=5){
-            _adminTaps=0;
-            if(document.body.classList.contains("admin-on")){
-                document.body.classList.remove("admin-on");
-                syncAdminBtn();
-                toast("已退出管理員模式");
-            }else{
-                var pwd=prompt("管理員密碼：");
-                if(pwd===ADMIN_PASSWORD){document.body.classList.add("admin-on");syncAdminBtn();toast("🔓 管理員模式已開啟");openAdminPanel();}
-                else if(pwd!==null){alert("密碼錯誤");}
-            }
-        }
-    });
-    // 退出管理員模式也同步按鈕
-    var origToggle=document.body.classList.toggle.bind(document.body.classList);
-    // 已在管理員模式則顯示設定按鈕
-    syncAdminBtn();
-    if(document.body.classList.contains("admin-on")) openAdminPanel();
+    // 設定管理已移至 admin.html，此處僅顯示後台入口按鈕給擁有者
+    if(isOwner()){
+        var btn=document.getElementById("tbr-admin");
+        if(btn) btn.style.display="flex";
+    }
 }
 
 // ====== DATA PHASE（預設視圖切換）======
@@ -1353,12 +1210,6 @@ function toggleToolbar(){
     t.classList.toggle("open",show);
     t.innerHTML=show?"✕":"☰";
 }
-// 管理員模式時顯示管理員按鈕
-function syncAdminBtn(){
-    var btn=document.getElementById("tbr-admin");
-    if(btn) btn.style.display=document.body.classList.contains("admin-on")?"flex":"none";
-}
-
 // ====== STATS BAR ======
 function updateSelCount(){
     var cnt=mySelection.length;
@@ -1407,8 +1258,8 @@ window.onload=async function(){
         banner.innerHTML="🎪 音樂祭進行中！試聽已暫停以節省行動數據 · 加入／移除排表功能正常使用";
         document.body.insertBefore(banner,document.body.firstChild);
     }
-    // 預載 Spotify 快取（與主資料並行，不阻塞排程顯示）
-    loadSpotifyData();
+    // 預載 Spotify 快取 + 時刻表顯示設定（與主資料並行，不阻塞排程顯示）
+    await Promise.all([loadTimetableSettings(), loadSpotifyData()]);
     loadData();
 };
 </script>
