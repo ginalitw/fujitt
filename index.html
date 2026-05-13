@@ -395,7 +395,15 @@ function syncToolbarVisibility(){
     document.body.classList.toggle("clean-hdr",!_adminSettings.showStageLbl);
     // 隱藏時強制回預設模式
     if(!showP&&schedMode==="personal"){ schedMode="full"; }
-    if(PLACEHOLDER_MODE||(!showG&&!showNow&&viewMode!=="list")){ viewMode="list"; }
+    // showAllDays 關閉時，若停留在 ALL 總覽 → 跳回 Day 1
+    if(!showAllDays&&curDay==="ALL"){
+        curDay=DAYS[0];
+        document.querySelectorAll(".day-btn").forEach(function(b){b.classList.toggle("active",b.dataset.day===curDay);});
+        var wm=document.getElementById("wm");if(wm)wm.innerText="2026 FUJI ROCK - "+DAY_LABELS[0];
+    }
+    // PLACEHOLDER_MODE 或 grid/stage 按鈕隱藏時，強制離開格子視圖
+    if(PLACEHOLDER_MODE){ viewMode="list"; }
+    else if(!showG&&(viewMode==="grid"||viewMode==="stage")){ viewMode="list"; }
     if(!showNow&&viewMode==="now"){ viewMode="list"; }
     _applyViewMode();
 }
@@ -927,8 +935,8 @@ function renderList(){
             dh.innerText=(di>=0?DAY_LABELS[di]:it.day)||it.day;
             c.appendChild(dh);
         }
-        // 時段分組 header（只有開啟時間別時才顯示）
-        if(_adminSettings.showTime){
+        // 時段分組 header（只有開啟時間別，且非佔位模式時才顯示）
+        if(!PLACEHOLDER_MODE&&_adminSettings.showTime){
             var slot=getTimeslot(it.start);
             if(slot!==lastSlot){
                 lastSlot=slot;
