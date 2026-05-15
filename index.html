@@ -299,6 +299,8 @@ var DAYS = ["Day 1","Day 2","Day 3"], DAY_LABELS = ["Day 1 (7/24)","Day 2 (7/25)
 var curDay = DAYS[0], viewMode = "list", schedMode = "personal";
 // ── 佔位模式（由 Firestore displayConfig.placeholderMode 控制，預設 true 直到 admin 關閉）──
 var PLACEHOLDER_MODE = true;
+// ── 演出時間顯示（由 Firestore displayConfig.showArtistTime 控制，預設 false 直到時間公布）──
+var SHOW_ARTIST_TIME = false;
 var KNOWN = [
     {id:"GREEN",   kw:"GREEN",   name:"GREEN",       color:"#22c55e"},
     {id:"WHITE",   kw:"WHITE",   name:"WHITE",        color:"#cbd5e1"},
@@ -352,7 +354,7 @@ function isOwner(){ return new URLSearchParams(window.location.search).get("uid"
 var _adminSettings = {conflict:true,countdown:true,festival:false,phase:"auto",
                       showPersonal:false,showGrid:false,showStage:false,showTime:false,
                       showStageLbl:true,showNow:true,showSummary:true,showRemind:true,showAllDays:true,
-                      placeholderMode:true};
+                      placeholderMode:true,showArtistTime:false};
 
 async function loadTimetableSettings(){
     try{
@@ -361,14 +363,15 @@ async function loadTimetableSettings(){
             var dc=(snap.data().displayConfig)||{};
             ["showPersonal","showGrid","showStage","showTime","showStageLbl","showNow",
              "showSummary","showRemind","showAllDays","conflict","countdown","festival",
-             "placeholderMode"].forEach(function(k){
+             "placeholderMode","showArtistTime"].forEach(function(k){
                 if(dc[k]!==undefined)_adminSettings[k]=dc[k];
             });
             if(dc.phase!==undefined)_adminSettings.phase=dc.phase;
         }
     }catch(e){console.warn("display settings load failed",e);}
-    // 讀取完畢後同步 PLACEHOLDER_MODE
+    // 讀取完畢後同步 PLACEHOLDER_MODE / SHOW_ARTIST_TIME
     PLACEHOLDER_MODE=!!_adminSettings.placeholderMode;
+    SHOW_ARTIST_TIME=!!_adminSettings.showArtistTime;
 }
 
 // 根據 adminSettings 同步工具列按鈕顯示
@@ -613,7 +616,7 @@ function openSpotify(name){
     if(remBtn){
         var art=master.find(function(it){return it.name.toLowerCase().trim()===name.toLowerCase().trim();});
         var hasTime=art&&art.start&&art.day&&DAY_DATES[art.day];
-        remBtn.style.display=(!PLACEHOLDER_MODE&&hasTime&&!!_adminSettings.showRemind)?"block":"none";
+        remBtn.style.display=(SHOW_ARTIST_TIME&&hasTime&&!!_adminSettings.showRemind)?"block":"none";
         var rSaved=JSON.parse(localStorage.getItem("fujitt_reminders")||"{}");
         var rKey=name.toLowerCase().trim();
         remBtn.textContent=rSaved[rKey]?"🔕 取消提醒":"🔔 開演前 15 分鐘提醒";
@@ -935,8 +938,8 @@ function renderList(){
             dh.innerText=(di>=0?DAY_LABELS[di]:it.day)||it.day;
             c.appendChild(dh);
         }
-        // 時段分組 header（只有開啟時間別，且非佔位模式時才顯示）
-        if(!PLACEHOLDER_MODE&&_adminSettings.showTime){
+        // 時段分組 header（只有開啟時間別，且演出時間顯示開啟時才顯示）
+        if(SHOW_ARTIST_TIME&&_adminSettings.showTime){
             var slot=getTimeslot(it.start);
             if(slot!==lastSlot){
                 lastSlot=slot;
@@ -954,7 +957,7 @@ function renderList(){
         var cdHtml=cdResult?'<div class="ev-cd '+cdResult.cls+'" style="margin-top:4px">'+cdResult.text+'</div>':"";
         var warnHtml=showConflict?'<span style="color:#ff3b30;font-size:.75rem;font-weight:700;margin-left:6px">⚠️ 衝堂</span>':"";
         var timeStr=it.start?(it.start+(it.end?' - '+it.end:'')):'';
-        var timeHtml=(!PLACEHOLDER_MODE&&_adminSettings.showTime&&timeStr)?'<span>🕒 '+timeStr+'</span>':'';
+        var timeHtml=(SHOW_ARTIST_TIME&&_adminSettings.showTime&&timeStr)?'<span>🕒 '+timeStr+'</span>':'';
         var stageHtml=(!PLACEHOLDER_MODE)?'<span style="color:'+color+';font-weight:bold">'+sName+'</span>':'';
         var hdrContent=timeHtml+stageHtml;
         bl.innerHTML=(hdrContent?'<div class="list-hdr">'+hdrContent+'</div>':'')+'<div class="list-title">'+it.name+(sel?' ⭐':'')+warnHtml+'</div>'+cdHtml;
