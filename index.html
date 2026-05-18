@@ -190,6 +190,22 @@
         .sp-remind{display:block;width:calc(100% - 24px);margin:0 12px 6px;background:var(--surface);color:var(--text);border:1px solid var(--border);padding:9px;border-radius:20px;font-size:.82rem;cursor:pointer;text-align:center;transition:.2s;}
         .sp-remind.set{background:#1e3a5f;border-color:#3b82f6;color:#93c5fd;}
         /* ===== ADMIN MODE（設定管理已移至 admin.html）===== */
+        /* ===== POSTER VIEW ===== */
+        #poster-view{display:none;padding:10px 12px 80px;}
+        #poster-view.show{display:block;}
+        .poster-festival-title{text-align:center;font-size:.65rem;font-weight:800;letter-spacing:3px;color:var(--muted);text-transform:uppercase;padding:8px 0 14px;}
+        .poster-day-block{margin-bottom:18px;}
+        .poster-day-label{font-size:.7rem;font-weight:800;color:var(--accent);letter-spacing:2px;text-transform:uppercase;padding:5px 0 8px;border-bottom:1px solid var(--border);margin-bottom:8px;}
+        .poster-stage-block{background:var(--surface);border-radius:10px;padding:10px 14px;margin-bottom:8px;border-left:4px solid;position:relative;overflow:hidden;}
+        .poster-stage-name{font-size:.58rem;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:7px;}
+        .poster-artists{display:flex;flex-direction:column;align-items:center;gap:1px;text-align:center;}
+        .poster-artist{cursor:pointer;transition:opacity .1s;-webkit-user-select:none;user-select:none;width:100%;text-align:center;}
+        .poster-artist:active{opacity:.5;}
+        .poster-artist.p-main{font-size:1.25rem;font-weight:900;line-height:1.15;letter-spacing:-.3px;padding:2px 0;}
+        .poster-artist.p-sub{font-size:.95rem;font-weight:700;line-height:1.25;padding:1px 0;}
+        .poster-artist.p-small{font-size:.75rem;font-weight:500;color:var(--muted);padding:1px 0;}
+        .poster-empty{text-align:center;color:var(--muted);padding:48px 20px;font-size:.85rem;line-height:1.7;}
+        .poster-stage-accent{position:absolute;top:0;right:0;bottom:0;width:3px;opacity:.15;}
     </style>
 </head>
 <body>
@@ -207,6 +223,7 @@
             <button class="tbr-btn" id="tbr-view" onclick="toggleView()"><span class="ico">📋</span>列表</button>
             <button class="tbr-btn" id="tbr-now" onclick="toggleNowView()"><span class="ico">⚡</span>快覽</button>
             <button class="tbr-btn" id="tbr-stage" onclick="openFilter()"><span class="ico">🏟️</span>舞台</button>
+            <button class="tbr-btn" id="tbr-poster" onclick="togglePosterView()"><span class="ico">🎪</span>海報</button>
             <button class="tbr-btn green" onclick="syncFromLine()"><span class="ico">🔄</span>同步</button>
             <button class="tbr-btn" onclick="toggleSS()"><span class="ico">📸</span>截圖</button>
             <button class="tbr-btn" id="tbr-theme" onclick="toggleTheme()"><span class="ico" id="theme-ico">☀️</span>日夜</button>
@@ -252,6 +269,8 @@
     <div class="list-view" id="listview"></div>
     <!-- Now & Next 快覽 -->
     <div id="now-view"><div class="now-cards" id="now-cards"></div></div>
+    <!-- 海報視圖 -->
+    <div id="poster-view"></div>
     <button class="fab" onclick="jumpNow()" id="fab">📍</button>
     <button class="ss-dl-btn" onclick="downloadScreenshot()" title="下載截圖">💾</button>
     <div class="modal-bg" id="filterModal" onclick="if(event.target===this)closeFilter()"><div class="modal"><div class="modal-title">選擇舞台<button class="modal-close-btn" onclick="closeFilter()">✕</button></div><div class="chips" id="filterChips"></div><div class="modal-actions"><button class="btn" onclick="allStages(true)">全選</button><button class="btn" onclick="allStages(false)">全不選</button><button class="btn" onclick="closeFilter()">取消</button><button class="btn btn-primary" onclick="applyFilter()">確定</button></div></div></div>
@@ -1093,10 +1112,87 @@ function _changeStage(dir){
 }
 function prevStage(){_changeStage(-1);}
 function nextStage(){_changeStage(1);}
+// ====== POSTER VIEW ======
+function renderPoster(){
+    var c=document.getElementById("poster-view");c.innerHTML="";
+    var isAll=curDay==="ALL";
+    var daysToShow=isAll?DAYS:[curDay];
+    var selected=master.filter(function(it){return isSelected(it.name);});
+    if(!selected.length){
+        c.innerHTML='<div class="poster-empty">📭 尚未選擇任何藝人<br><small style="font-size:.75rem">切換到列表 → 點藝人 → 加入排表</small></div>';
+        return;
+    }
+    var title=document.createElement("div");
+    title.className="poster-festival-title";
+    title.textContent="FUJI ROCK FESTIVAL '26 · MY LINEUP";
+    c.appendChild(title);
+    daysToShow.forEach(function(day){
+        var dayArtists=selected.filter(function(it){return it.day===day;});
+        if(!dayArtists.length)return;
+        var dayBlock=document.createElement("div");
+        dayBlock.className="poster-day-block";
+        var di=DAYS.indexOf(day);
+        var dl=document.createElement("div");
+        dl.className="poster-day-label";
+        dl.textContent=(di>=0?DAY_LABELS[di]:day);
+        dayBlock.appendChild(dl);
+        // Group by stage (preserve KNOWN order)
+        var stageMap={};
+        dayArtists.forEach(function(it){
+            var si=STAGES.find(function(s){return it.stage&&_matchStage(it.stage,s.kw);});
+            var sid=si?si.id:(it.stage||"__unknown__");
+            if(!stageMap[sid]){stageMap[sid]={stage:si,name:si?si.name:(it.stage||"未定舞台"),color:si?si.color:"#64748b",artists:[]};}
+            stageMap[sid].artists.push(it);
+        });
+        // Sort stages by KNOWN order, then unknowns
+        var knownOrder=KNOWN.map(function(k){return k.id;});
+        var sids=Object.keys(stageMap).sort(function(a,b){
+            var ia=knownOrder.indexOf(a),ib=knownOrder.indexOf(b);
+            if(ia<0)ia=999;if(ib<0)ib=999;
+            return ia-ib;
+        });
+        sids.forEach(function(sid){
+            var sg=stageMap[sid];
+            var sb=document.createElement("div");
+            sb.className="poster-stage-block";
+            sb.style.borderLeftColor=sg.color;
+            // Stage name
+            var sn=document.createElement("div");
+            sn.className="poster-stage-name";
+            sn.style.color=sg.color;
+            sn.textContent=sg.name;
+            sb.appendChild(sn);
+            // Artists list sorted by popularity desc
+            var arts=sg.artists.slice().sort(function(a,b){
+                var pa=(_spPop[a.name]!==undefined?_spPop[a.name]:-1);
+                var pb=(_spPop[b.name]!==undefined?_spPop[b.name]:-1);
+                return pb-pa;
+            });
+            var al=document.createElement("div");
+            al.className="poster-artists";
+            arts.forEach(function(it,idx){
+                var ad=document.createElement("div");
+                var cls=idx===0?"p-main":idx<=2?"p-sub":"p-small";
+                ad.className="poster-artist "+cls;
+                ad.textContent=it.name;
+                (function(n){ad.onclick=function(e){e.stopPropagation();openSpotify(n);};})(it.name);
+                al.appendChild(ad);
+            });
+            sb.appendChild(al);
+            dayBlock.appendChild(sb);
+        });
+        c.appendChild(dayBlock);
+    });
+}
+function togglePosterView(){
+    viewMode=viewMode==="poster"?"list":"poster";
+    _applyViewMode();
+}
 function render(){
     if(viewMode==="grid")renderGrid();
     else if(viewMode==="stage")renderStageView();
     else if(viewMode==="now")renderNowNext();
+    else if(viewMode==="poster")renderPoster();
     else renderList();
     updateSummaryCard();
 }
@@ -1161,16 +1257,20 @@ function _applyViewMode(){
     var scr=document.getElementById("scroll");
     var lv=document.getElementById("listview");
     var nv=document.getElementById("now-view");
+    var pv=document.getElementById("poster-view");
     var fab=document.getElementById("fab");
     var nav=document.getElementById("stage-nav");
     var tnow=document.getElementById("tbr-now");
+    var tposter=document.getElementById("tbr-poster");
     var vl=VIEW_LABELS[viewMode]||VIEW_LABELS.now;
     if(tbv){tbv.innerHTML='<span class="ico">'+vl.ico+'</span>'+vl.lbl;tbv.classList.toggle("active",viewMode!=="grid");}
     if(tnow) tnow.classList.toggle("active",viewMode==="now");
+    if(tposter) tposter.classList.toggle("active",viewMode==="poster");
     var isTimeGrid=viewMode==="grid"||viewMode==="stage";
     scr.style.display=isTimeGrid?"block":"none";
     lv.style.display=viewMode==="list"?"flex":"none";
     nv.classList.toggle("show",viewMode==="now");
+    if(pv) pv.classList.toggle("show",viewMode==="poster");
     fab.style.display=isTimeGrid?"flex":"none";
     if(viewMode!=="stage")nav.classList.remove("show");
     render();
