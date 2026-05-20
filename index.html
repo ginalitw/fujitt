@@ -7,8 +7,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <style>
-        :root { --bg:#000; --surface:#1a1a1a; --text:#fff; --muted:#9ca3af; --border:#333; --accent:#3b82f6; --header-bg:rgba(26,26,26,0.95); }
-        :root.light { --bg:#f0f4f8; --surface:#ffffff; --text:#0f172a; --muted:#64748b; --border:#cbd5e1; --accent:#2563eb; --header-bg:rgba(248,250,252,0.97); }
+        /* ===== 夜（B 暖色節慶）/ 日（C 亮白極簡）===== */
+        :root { --bg:#0f0a04; --surface:#1a1005; --text:#fef3c7; --muted:#a8a29e; --border:#2d1f08; --accent:#fbbf24; --header-bg:rgba(26,16,5,0.96); }
+        :root.light { --bg:#f8fafc; --surface:#ffffff; --text:#0f172a; --muted:#94a3b8; --border:#e2e8f0; --accent:#2563eb; --header-bg:rgba(255,255,255,0.97); }
         *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
         body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
         header{padding:12px 16px;background:var(--header-bg);backdrop-filter:blur(10px);position:sticky;top:0;z-index:1000;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px;}
@@ -27,11 +28,13 @@
         @keyframes drawerIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
         .tbr-btn{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:7px 4px;font-size:.72rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:.2s;line-height:1.2;}
         .tbr-btn .ico{font-size:1.1rem;line-height:1;}
-        .tbr-btn.active{background:#1e3a5f;border-color:var(--accent);color:#93c5fd;}
+        .tbr-btn.active{background:rgba(251,191,36,.14);border-color:var(--accent);color:var(--accent);}
+        :root.light .tbr-btn.active{background:#eff6ff;border-color:#2563eb;color:#2563eb;}
         .tbr-btn.hl{background:#422006;border-color:#eab308;color:#eab308;}
+        :root.light .tbr-btn.hl{background:#fef3c7;border-color:#f59e0b;color:#92400e;}
         .tbr-btn.green{background:#052e16;border-color:#22c55e;color:#22c55e;}
         /* ===== STATS BAR ===== */
-        .stats-bar{display:none;background:#111;border-bottom:1px solid var(--border);padding:5px 16px;font-size:.78rem;color:var(--muted);gap:12px;align-items:center;}
+        .stats-bar{display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:5px 16px;font-size:.78rem;color:var(--muted);gap:12px;align-items:center;}
         .stats-bar.show{display:flex;}
         .stat-pill{display:inline-flex;align-items:center;gap:4px;}
         .stat-conflict{color:#ff3b30;font-weight:700;cursor:pointer;}
@@ -79,7 +82,8 @@
         body.ss-mode header,body.ss-mode .fab{display:none!important;}
         .watermark{display:none;text-align:center;font-size:1.2rem;font-weight:800;padding:16px 0;letter-spacing:2px;}
         body.ss-mode .watermark{display:block;}
-        #loading{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;}
+        #loading{position:fixed;top:0;left:0;width:100%;height:100%;background:#0f0a04;z-index:9999;display:flex;align-items:center;justify-content:center;color:#fef3c7;font-size:1rem;}
+        :root.light #loading{background:#f8fafc;color:#0f172a;}
         /* ===== SS-MODE EXIT ===== */
         .ss-exit-btn{display:none;position:fixed;top:12px;right:12px;z-index:9999;background:rgba(20,20,20,.85);color:#fff;border:1px solid rgba(255,255,255,.2);padding:8px 16px;border-radius:20px;font-size:.85rem;cursor:pointer;backdrop-filter:blur(6px);box-shadow:0 2px 8px rgba(0,0,0,.5);}
         body.ss-mode .ss-exit-btn{display:block;}
@@ -103,12 +107,12 @@
         .sp-info{padding:4px 12px 8px;}
         .sp-img{width:100%;max-height:170px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:block;}
         .sp-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
-        .sp-tag{background:#1f2937;border-radius:20px;padding:3px 10px;font-size:.7rem;color:#93c5fd;white-space:nowrap;}
-        .sp-tag.genre{background:#312e81;color:#a5b4fc;font-weight:600;}
-        .sp-intro{color:#cbd5e1;font-size:.8rem;line-height:1.65;margin-bottom:10px;max-height:90px;overflow-y:auto;}
+        .sp-tag{background:#2d1f08;border-radius:20px;padding:3px 10px;font-size:.7rem;color:#fbbf24;white-space:nowrap;}
+        .sp-tag.genre{background:#451a03;color:#fde68a;font-weight:600;}
+        .sp-intro{color:var(--text);font-size:.8rem;line-height:1.65;margin-bottom:10px;max-height:90px;overflow-y:auto;}
         .sp-extlinks{display:flex;gap:7px;margin-bottom:4px;}
-        .sp-extlink{flex:1;text-align:center;background:#1f2937;color:#9ca3af;text-decoration:none;padding:7px 4px;border-radius:8px;font-size:.72rem;font-weight:600;}
-        .sp-extlink:active{background:#374151;color:#fff;}
+        .sp-extlink{flex:1;text-align:center;background:#2d1f08;color:#a8a29e;text-decoration:none;padding:7px 4px;border-radius:8px;font-size:.72rem;font-weight:600;}
+        .sp-extlink:active{background:#3d2a0a;color:#fef3c7;}
         .sp-divider{border:none;border-top:1px solid var(--border);margin:4px 0 10px;}
         /* light mode overrides for artist info panel */
         :root.light .sp-tag{background:#dbeafe;color:#1e40af;}
@@ -188,7 +192,10 @@
         .now-time{font-size:.63rem;color:var(--muted);margin-top:1px;}
         /* ===== REMIND BUTTON ===== */
         .sp-remind{display:block;width:calc(100% - 24px);margin:0 12px 6px;background:var(--surface);color:var(--text);border:1px solid var(--border);padding:9px;border-radius:20px;font-size:.82rem;cursor:pointer;text-align:center;transition:.2s;}
-        .sp-remind.set{background:#1e3a5f;border-color:#3b82f6;color:#93c5fd;}
+        .sp-remind.set{background:rgba(251,191,36,.12);border-color:var(--accent);color:var(--accent);}
+        :root.light .sp-remind.set{background:#eff6ff;border-color:#2563eb;color:#2563eb;}
+        /* ===== HEADER PRETITLE ===== */
+        .header-pretitle{font-size:.58rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);display:block;line-height:1;margin-bottom:2px;}
         /* ===== ADMIN MODE（設定管理已移至 admin.html）===== */
         /* ===== POSTER VIEW ===== */
         #poster-view{display:none;padding:10px 12px 80px;}
@@ -214,7 +221,7 @@
     <button class="ss-exit-btn" onclick="toggleSS()">✕ 返回主畫面</button>
     <header>
         <div class="header-top">
-            <h1>🎵 My Timetable</h1>
+            <div><span class="header-pretitle">Fuji Rock Festival '26</span><h1>🎵 My Timetable</h1></div>
             <button class="menu-toggle" id="menu-toggle-btn" onclick="toggleToolbar()" title="選單">☰</button>
         </div>
         <!-- 收合式工具列 -->
