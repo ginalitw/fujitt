@@ -195,7 +195,7 @@
         #poster-view.show{display:block;}
         .poster-festival-title{text-align:center;font-size:.65rem;font-weight:800;letter-spacing:3px;color:var(--muted);text-transform:uppercase;padding:8px 0 14px;}
         .poster-day-block{margin-bottom:18px;}
-        .poster-day-label{font-size:.7rem;font-weight:800;color:var(--accent);letter-spacing:2px;text-transform:uppercase;padding:5px 0 8px;border-bottom:1px solid var(--border);margin-bottom:8px;}
+        .poster-day-label{font-size:.7rem;font-weight:800;color:var(--accent);letter-spacing:2px;text-transform:uppercase;padding:5px 10px 8px;border-bottom:1px solid var(--border);margin:0 -12px 8px;background:var(--header-bg);backdrop-filter:blur(8px);position:sticky;top:0;z-index:10;}
         .poster-stage-block{background:var(--surface);border-radius:10px;padding:10px 14px;margin-bottom:8px;border-left:4px solid;position:relative;overflow:hidden;}
         .poster-stage-name{font-size:.58rem;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:7px;}
         .poster-artists{display:flex;flex-direction:column;align-items:center;gap:1px;text-align:center;}
@@ -1196,8 +1196,28 @@ function renderPoster(){
         c.appendChild(dayBlock);
     });
 }
+var _posterPrevDay = DAYS[0]; // 進入海報前的天，離開時還原
 function togglePosterView(){
-    viewMode=viewMode==="poster"?"list":"poster";
+    if(viewMode==="poster"){
+        // ── 離開海報：還原原本所在的天 ──
+        viewMode="list";
+        curDay=_posterPrevDay;
+        var prevIdx=DAYS.indexOf(curDay);
+        document.querySelectorAll(".day-btn").forEach(function(b){
+            b.classList.toggle("active",b.dataset.day===curDay);
+        });
+        document.getElementById("wm").innerText=
+            prevIdx>=0?"2026 FUJI ROCK - "+DAY_LABELS[prevIdx]:"2026 FUJI ROCK - 全覽";
+    } else {
+        // ── 進入海報：記住當前天，強制全覽 ──
+        _posterPrevDay=curDay;
+        viewMode="poster";
+        curDay="ALL";
+        document.querySelectorAll(".day-btn").forEach(function(b){
+            b.classList.toggle("active",b.dataset.day==="ALL");
+        });
+        document.getElementById("wm").innerText="2026 FUJI ROCK - FULL LINEUP";
+    }
     _applyViewMode();
 }
 function render(){
@@ -1278,13 +1298,17 @@ function _applyViewMode(){
     if(tbv){tbv.innerHTML='<span class="ico">'+vl.ico+'</span>'+vl.lbl;tbv.classList.toggle("active",viewMode!=="grid");}
     if(tnow) tnow.classList.toggle("active",viewMode==="now");
     if(tposter) tposter.classList.toggle("active",viewMode==="poster");
+    var isPoster=viewMode==="poster";
     var isTimeGrid=viewMode==="grid"||viewMode==="stage";
     scr.style.display=isTimeGrid?"block":"none";
     lv.style.display=viewMode==="list"?"flex":"none";
     nv.classList.toggle("show",viewMode==="now");
-    if(pv) pv.classList.toggle("show",viewMode==="poster");
+    if(pv) pv.classList.toggle("show",isPoster);
     fab.style.display=isTimeGrid?"flex":"none";
     if(viewMode!=="stage")nav.classList.remove("show");
+    // 海報模式：日期列已由海報內部 Day 標題取代，隱藏以減少視覺干擾
+    var ds=document.getElementById("days");
+    if(ds) ds.style.display=isPoster?"none":"";
     render();
 }
 function toggleNowView(){
