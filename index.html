@@ -374,23 +374,34 @@ var _adminSettings = {conflict:true,countdown:true,festival:false,phase:"auto",
                       showPersonal:false,showGrid:false,showStage:false,showTime:false,
                       showStageLbl:true,showNow:true,showSummary:true,showRemind:true,showAllDays:true,
                       placeholderMode:true,showArtistTime:false};
+var _SETTINGS_KEY = "fujitt_settings_v1";
+var _SETTINGS_TTL = 5*60*1000; // 5 分鐘快取
+
+// 將 displayConfig 套用到 _adminSettings
+function _applyDisplayConfig(dc){
+    ["showPersonal","showGrid","showStage","showTime","showStageLbl","showNow",
+     "showSummary","showRemind","showAllDays","conflict","countdown","festival",
+     "placeholderMode","showArtistTime"].forEach(function(k){
+        if(dc[k]!==undefined)_adminSettings[k]=dc[k];
+    });
+    if(dc.phase!==undefined)_adminSettings.phase=dc.phase;
+    PLACEHOLDER_MODE=!!_adminSettings.placeholderMode;
+    SHOW_ARTIST_TIME=!!_adminSettings.showArtistTime;
+}
 
 async function loadTimetableSettings(){
+    // ① 先從 localStorage 快取取得（0ms，立即套用）
+    var cached=_getCache(_SETTINGS_KEY, _SETTINGS_TTL);
+    if(cached&&cached.dc){ _applyDisplayConfig(cached.dc); }
+    // ② 背景從 Firestore 取得最新值，更新快取
     try{
         var snap=await _db.collection("timetable").doc(OWNER_UID).get();
         if(snap.exists){
             var dc=(snap.data().displayConfig)||{};
-            ["showPersonal","showGrid","showStage","showTime","showStageLbl","showNow",
-             "showSummary","showRemind","showAllDays","conflict","countdown","festival",
-             "placeholderMode","showArtistTime"].forEach(function(k){
-                if(dc[k]!==undefined)_adminSettings[k]=dc[k];
-            });
-            if(dc.phase!==undefined)_adminSettings.phase=dc.phase;
+            _applyDisplayConfig(dc);
+            _setCache(_SETTINGS_KEY,{dc:dc}); // 存入 localStorage 快取
         }
     }catch(e){console.warn("display settings load failed",e);}
-    // 讀取完畢後同步 PLACEHOLDER_MODE / SHOW_ARTIST_TIME
-    PLACEHOLDER_MODE=!!_adminSettings.placeholderMode;
-    SHOW_ARTIST_TIME=!!_adminSettings.showArtistTime;
 }
 
 // 根據 adminSettings 同步工具列按鈕顯示
@@ -763,20 +774,21 @@ function _namesToCodes(names){
         return a?a.code:null;
     }).filter(Boolean);
 }
-// ── 背景靜默重整（快取命中後更新資料）─────────────────
+// ── 背景靜默重整（快取命中後並行更新資料）─────────────────
 function _refreshDataBg(){
-    // 1. Firestore artists → master（排程表，最新節目）
-    _db.collection("artists").get().then(function(snap){
-        if(snap.empty)return;
+    // artists + users 同時拉，不序列等待
+    var p1=_db.collection("artists").get();
+    var p2=uid?_db.collection("users").doc(uid).get():Promise.resolve(null);
+    Promise.all([p1,p2]).then(function(results){
+        var snap=results[0], uSnap=results[1];
+        if(!snap||snap.empty)return;
         master=_artistsSnapToMaster(snap);
-        buildStages(); render();
-        // 2. Firestore users/{uid}.favoriteList → lineWanted（不需 GAS）
-        if(!uid)return;
-        _db.collection("users").doc(uid).get().then(function(uSnap){
-            var codes=(uSnap.exists&&uSnap.data&&uSnap.data()&&uSnap.data().favoriteList)?uSnap.data().favoriteList:[];
+        if(uSnap&&uSnap.exists&&uSnap.data&&uSnap.data()){
+            var codes=uSnap.data().favoriteList||[];
             lineWanted=_codesToNames(codes);
-            _setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});
-        }).catch(function(){_setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});});
+        }
+        _setCache(_CACHE_KEY,{master:master,lineWanted:lineWanted});
+        buildStages(); render();
     }).catch(function(){});
 }
 // ====== DATA ======
@@ -1407,7 +1419,7 @@ function toggleTheme(){
     var ico=document.getElementById("theme-ico");
     if(ico) ico.textContent=isLight?"🌙":"☀️";
 }
-window.onload=async function(){
+window.onload=function(){
     initTheme();
     // 音樂祭期間顯示節流提示橫幅
     if(isFestivalMode()){
@@ -1416,9 +1428,23 @@ window.onload=async function(){
         banner.innerHTML="🎪 音樂祭進行中！試聽已暫停以節省行動數據 · 加入／移除排表功能正常使用";
         document.body.insertBefore(banner,document.body.firstChild);
     }
-    // 預載 Spotify 快取 + 時刻表顯示設定（與主資料並行，不阻塞排程顯示）
-    await Promise.all([loadTimetableSettings(), loadSpotifyData()]);
+    // ① 立即從 localStorage 套用上次快取的設定（0ms）
+    var cachedSettings=_getCache(_SETTINGS_KEY, _SETTINGS_TTL);
+    if(cachedSettings&&cachedSettings.dc){ _applyDisplayConfig(cachedSettings.dc); }
+
+    // ② 立即開始載入主資料（不等設定或 Spotify）
     loadData();
+
+    // ③ 背景拉最新設定；若與快取不同則重新套用工具列
+    loadTimetableSettings().then(function(){
+        // 若 app 已初始化，重新同步顯示設定
+        if(document.getElementById("loading").style.display==="none"){
+            syncToolbarVisibility(); render();
+        }
+    });
+
+    // ④ Spotify 完全背景，不阻塞任何東西
+    loadSpotifyData();
 };
 </script>
 </body>
