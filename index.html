@@ -53,9 +53,9 @@
         .ev:active{transform:scale(0.97);}
         .ev .ev-time{font-size:.65rem;opacity:.8;margin-bottom:1px;}
         .ev .ev-name{font-weight:700;line-height:1.2;word-break:break-word;}
-        .ev.dimmed{opacity:.35;background:transparent;border-left-width:2px;box-shadow:none;}
+        .ev.dimmed{opacity:.18;background:transparent;border-left-width:2px;box-shadow:none;filter:grayscale(80%);}
         .ev.dimmed .ev-name{font-weight:normal;color:var(--muted);}
-        .ev.selected{box-shadow:0 0 0 2px #eab308,0 2px 8px rgba(234,179,8,.3);}
+        .ev.selected{box-shadow:0 0 0 2px #eab308,0 4px 14px rgba(234,179,8,.5);filter:brightness(1.15);}
         .ev.selected::after{content:"⭐";position:absolute;top:3px;right:5px;font-size:.7rem;}
         .ev{position:relative;}
         .time-line{height:2px;background:#ff3b30;position:relative;z-index:50;pointer-events:none;display:none;}
@@ -64,7 +64,7 @@
         .fab{position:fixed;bottom:20px;right:20px;background:var(--accent);color:white;width:46px;height:46px;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:1.3rem;box-shadow:0 4px 10px rgba(0,0,0,.5);z-index:900;border:none;cursor:pointer;}
         .list-view{display:none;padding:16px;flex-direction:column;gap:10px;}
         .list-item{display:flex;flex-direction:column;background:var(--surface);padding:10px;border-radius:8px;border-left:4px solid;box-shadow:0 2px 5px rgba(0,0,0,.3);cursor:pointer;}
-        .list-item.dimmed{opacity:.35;background:transparent;}
+        .list-item.dimmed{opacity:.18;background:transparent;filter:grayscale(80%);}
         .list-item.selected{box-shadow:0 0 0 2px #eab308;}
         .list-hdr{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:4px;}
         .list-title{font-size:1rem;font-weight:bold;}
@@ -349,20 +349,20 @@ var PLACEHOLDER_MODE = true;
 var SHOW_ARTIST_TIME = false;
 var KNOWN = [
     // ── 主舞台（預設顯示）──
-    {id:"GREEN",   kw:"GREEN",   name:"GREEN STAGE",       color:"#22c55e", group:"main"},
-    {id:"WHITE",   kw:"WHITE",   name:"WHITE STAGE",       color:"#cbd5e1", group:"main"},
-    {id:"RED",     kw:["RED","PLANET GROOVE","TRIBAL CIRCUS","SUNDAY SESSION"], name:"RED MARQUEE", color:"#ef4444", group:"main"},
-    {id:"HEAVEN",  kw:"HEAVEN",  name:"FIELD OF HEAVEN",   color:"#eab308", group:"main"},
-    {id:"ORANGE",  kw:"ORANGE",  name:"ORANGE COURT",      color:"#f97316", group:"main"},
+    {id:"GREEN",   kw:"GREEN",   name:"GREEN STAGE",        color:"#6ea400", group:"main"},
+    {id:"WHITE",   kw:"WHITE",   name:"WHITE STAGE",        color:"#929292", group:"main"},
+    {id:"RED",     kw:["RED","PLANET GROOVE","TRIBAL CIRCUS","SUNDAY SESSION"], name:"RED MARQUEE", color:"#ff3300", group:"main"},
+    {id:"HEAVEN",  kw:"HEAVEN",  name:"FIELD OF HEAVEN",    color:"#1ccbe3", group:"main"},
+    {id:"ORANGE",  kw:"ORANGE",  name:"ORANGE COURT",       color:"#ffb343", group:"main"},
     // ── 夜場 & 小舞台（預設隱藏）──
-    {id:"GYPSY",   kw:"GYPSY",   name:"GYPSY AVALON",      color:"#d946ef", group:"sub", vis:false},
-    {id:"CRYSTAL", kw:"CRYSTAL", name:"CRYSTAL PALACE TENT",color:"#8b5cf6", group:"sub", vis:false},
-    {id:"PALACE",  kw:"PALACE ARENA", name:"PALACE ARENA", color:"#a855f7", group:"sub", vis:false},
-    {id:"ROOKIE",  kw:"ROOKIE",  name:"ROOKIE A GO-GO",    color:"#06b6d4", group:"sub", vis:false},
-    {id:"MOSHPIT", kw:"苗場",    name:"苗場食堂",            color:"#ec4899", group:"sub", vis:false},
-    {id:"PYRAMID", kw:"PYRAMID", name:"PYRAMID GARDEN",    color:"#10b981", group:"sub", vis:false},
-    {id:"GANBAN",  kw:"GAN",     name:"GAN-BAN SQUARE",    color:"#94a3b8", group:"sub", vis:false},
-    {id:"GALAXY",  kw:"GALAXY",  name:"BLUE GALAXY",       color:"#818cf8", group:"sub", vis:false},
+    {id:"GYPSY",   kw:"GYPSY",   name:"GYPSY AVALON",       color:"#9d1257", group:"sub", vis:false},
+    {id:"CRYSTAL", kw:"CRYSTAL", name:"CRYSTAL PALACE TENT",color:"#129d89", group:"sub", vis:false},
+    {id:"PALACE",  kw:"PALACE ARENA", name:"PALACE ARENA",  color:"#129d89", group:"sub", vis:false},
+    {id:"ROOKIE",  kw:"ROOKIE",  name:"ROOKIE A GO-GO",     color:"#129d89", group:"sub", vis:false},
+    {id:"MOSHPIT", kw:"苗場",    name:"苗場食堂",             color:"#9d9812", group:"sub", vis:false},
+    {id:"PYRAMID", kw:"PYRAMID", name:"PYRAMID GARDEN",     color:"#920e82", group:"sub", vis:false},
+    {id:"GANBAN",  kw:"GAN",     name:"GAN-BAN SQUARE",     color:"#ffffff", group:"sub", vis:false},
+    {id:"GALAXY",  kw:"GALAXY",  name:"BLUE GALAXY",        color:"#385486", group:"sub", vis:false},
 ];
 // ── 舞台群組定義 ──
 var STAGE_GROUPS = [
