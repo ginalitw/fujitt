@@ -485,8 +485,9 @@ function syncToolbarVisibility(){
         document.querySelectorAll(".day-btn").forEach(function(b){b.classList.toggle("active",b.dataset.day===curDay);});
         var wm=document.getElementById("wm");if(wm)wm.innerText="2026 FUJI ROCK - "+DAY_LABELS[0];
     }
-    // PLACEHOLDER_MODE 或 grid/stage 按鈕隱藏時，強制離開格子視圖
-    if(PLACEHOLDER_MODE){ viewMode="list"; }
+    // PLACEHOLDER_MODE 強制隱藏格子，但管理員明確設定 phase="grid" 時例外
+    var phaseOverride = _adminSettings.phase === "grid";
+    if(PLACEHOLDER_MODE && !phaseOverride){ viewMode="list"; }
     else if(!showG&&(viewMode==="grid"||viewMode==="stage")){ viewMode="list"; }
     if(!showNow&&viewMode==="now"){ viewMode="list"; }
     _applyViewMode();
@@ -1332,8 +1333,12 @@ function updateTimeLine(){
 // ====== CONTROLS ======
 function toggleMode(){
     schedMode=schedMode==="personal"?"full":"personal";
-    if(schedMode==="full"){toast("💡 點擊色塊可加入/移除自選");}
-    else{}
+    if(schedMode==="full"){
+        toast("💡 點擊色塊可加入/移除自選");
+        // 全展模式預設切換到格子視圖（若已開啟格子按鈕）
+        var canGrid=!PLACEHOLDER_MODE||_adminSettings.phase==="grid";
+        if(canGrid&&_adminSettings.showGrid&&viewMode==="list"){viewMode="grid";_applyViewMode();}
+    }
     updateSelCount();
     render();
 }
@@ -1463,7 +1468,8 @@ function initApp(){
     _restoreReminders();
     // 根據資料階段設定預設視圖
     var phase=getDataPhase();
-    if(phase==="list"&&viewMode==="grid") viewMode="list";
+    if(phase==="grid") viewMode="grid";
+    else viewMode="list";
     changeDay(0);
     // 舞台模式：左右滑切換舞台
     var _tx=0,_ty=0;
