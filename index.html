@@ -72,9 +72,16 @@
         .modal{background:var(--surface);width:100%;max-width:400px;border-radius:12px;padding:20px;border:1px solid var(--border);}
         .modal-title{font-size:1.1rem;font-weight:bold;margin-bottom:16px;display:flex;align-items:center;justify-content:center;position:relative;}
         .modal-close-btn{position:absolute;right:0;background:none;border:none;font-size:1.1rem;color:var(--muted);cursor:pointer;padding:2px 6px;line-height:1;}
-        .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+        .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
         .chip{padding:8px 12px;border-radius:20px;border:1px solid;font-size:.85rem;background:transparent;color:var(--muted);cursor:pointer;transition:.2s;}
         .chip.active{color:#fff;font-weight:bold;}
+        /* ===== STAGE GROUP FILTER ===== */
+        .filter-group-btns{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+        .filter-group-btn{flex:1;min-width:120px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:10px;padding:9px 8px;font-size:.8rem;cursor:pointer;text-align:center;transition:.2s;line-height:1.4;}
+        .filter-group-btn.active{border-color:var(--accent);background:rgba(251,191,36,.12);color:var(--accent);font-weight:700;}
+        :root.light .filter-group-btn.active{background:#eff6ff;border-color:#2563eb;color:#2563eb;}
+        .filter-group-label{font-size:.65rem;letter-spacing:.3px;color:var(--muted);font-weight:700;text-transform:uppercase;padding:6px 0 4px;border-top:1px solid var(--border);margin-top:4px;display:block;}
+        .filter-group-label:first-child{border-top:none;margin-top:0;}
         .modal-actions{display:flex;gap:10px;justify-content:center;}
         .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(34,197,94,.9);color:#fff;padding:10px 20px;border-radius:20px;font-size:.85rem;font-weight:bold;z-index:3000;display:none;animation:fadeInOut 2s ease;}
         @keyframes fadeInOut{0%{opacity:0;transform:translateX(-50%) translateY(10px)}15%{opacity:1;transform:translateX(-50%) translateY(0)}85%{opacity:1}100%{opacity:0}}
@@ -280,7 +287,20 @@
     <div id="poster-view"></div>
     <button class="fab" onclick="jumpNow()" id="fab">📍</button>
     <button class="ss-dl-btn" onclick="downloadScreenshot()" title="下載截圖">💾</button>
-    <div class="modal-bg" id="filterModal" onclick="if(event.target===this)closeFilter()"><div class="modal"><div class="modal-title">選擇舞台<button class="modal-close-btn" onclick="closeFilter()">✕</button></div><div class="chips" id="filterChips"></div><div class="modal-actions"><button class="btn" onclick="allStages(true)">全選</button><button class="btn" onclick="allStages(false)">全不選</button><button class="btn" onclick="closeFilter()">取消</button><button class="btn btn-primary" onclick="applyFilter()">確定</button></div></div></div>
+    <div class="modal-bg" id="filterModal" onclick="if(event.target===this)closeFilter()">
+      <div class="modal">
+        <div class="modal-title">選擇舞台<button class="modal-close-btn" onclick="closeFilter()">✕</button></div>
+        <!-- 群組快選 -->
+        <div class="filter-group-btns" id="filterGroupBtns"></div>
+        <!-- 個別舞台 chips（依群組分組顯示）-->
+        <div id="filterChips"></div>
+        <div class="modal-actions">
+          <button class="btn" onclick="allStages(false)">全不選</button>
+          <button class="btn" onclick="closeFilter()">取消</button>
+          <button class="btn btn-primary" onclick="applyFilter()">確定</button>
+        </div>
+      </div>
+    </div>
     <div id="sp-overlay" onclick="closeSpotify()"></div>
     <div id="sp-panel">
         <div class="sp-drag"></div>
@@ -328,22 +348,26 @@ var PLACEHOLDER_MODE = true;
 // ── 演出時間顯示（由 Firestore displayConfig.showArtistTime 控制，預設 false 直到時間公布）──
 var SHOW_ARTIST_TIME = false;
 var KNOWN = [
-    {id:"GREEN",   kw:"GREEN",   name:"GREEN",        color:"#22c55e"},
-    {id:"WHITE",   kw:"WHITE",   name:"WHITE",         color:"#cbd5e1"},
-    {id:"RED",     kw:"RED",     name:"RED MARQUEE",   color:"#ef4444"},
-    {id:"RED",     kw:"GROOVE",  name:"RED MARQUEE",   color:"#ef4444", vis:false},
-    {id:"RED",     kw:"SUNDAY",  name:"RED MARQUEE",   color:"#ef4444", vis:false},
-    {id:"RED",     kw:"CIRUS",   name:"RED MARQUEE",   color:"#ef4444", vis:false},
-    {id:"HEAVEN",  kw:"HEAVEN",  name:"HEAVEN",        color:"#eab308"},
-    {id:"ECHO",    kw:"ECHO",    name:"ORANGE ECHO",   color:"#f97316", vis:false},
-    {id:"AVALON",  kw:"AVALON",  name:"AVALON",        color:"#d946ef"},
-    {id:"CRYSTAL", kw:"CRYSTAL", name:"CRYSTAL",       color:"#8b5cf6", vis:false},
-    {id:"PALACE",  kw:"PALACE",  name:"PALACE",        color:"#a855f7", vis:false},
-    {id:"ROOKIE",  kw:"ROOKIE",  name:"ROOKIE",        color:"#06b6d4", vis:false},
-    {id:"MOSHPIT", kw:"苗場",    name:"苗場食堂",       color:"#ec4899", vis:false},
-    {id:"PYRAMID", kw:"PYRAMID", name:"PYRAMID",        color:"#10b981"},
-    {id:"GANBAN",  kw:"GANBAN",  name:"GANBAN",        color:"#94a3b8", vis:false},
-    {id:"GALAXY",  kw:"GALAXY",  name:"GALAXY",        color:"#818cf8", vis:false}
+    // ── 主舞台（預設顯示）──
+    {id:"GREEN",   kw:"GREEN",   name:"GREEN STAGE",       color:"#22c55e", group:"main"},
+    {id:"WHITE",   kw:"WHITE",   name:"WHITE STAGE",       color:"#cbd5e1", group:"main"},
+    {id:"RED",     kw:"RED",     name:"RED MARQUEE",       color:"#ef4444", group:"main"},
+    {id:"HEAVEN",  kw:"HEAVEN",  name:"FIELD OF HEAVEN",   color:"#eab308", group:"main"},
+    {id:"ORANGE",  kw:"ORANGE",  name:"ORANGE COURT",      color:"#f97316", group:"main"},
+    // ── 夜場 & 小舞台（預設隱藏）──
+    {id:"GYPSY",   kw:"GYPSY",   name:"GYPSY AVALON",      color:"#d946ef", group:"sub", vis:false},
+    {id:"CRYSTAL", kw:"CRYSTAL", name:"CRYSTAL PALACE TENT",color:"#8b5cf6", group:"sub", vis:false},
+    {id:"PALACE",  kw:"PALACE ARENA", name:"PALACE ARENA", color:"#a855f7", group:"sub", vis:false},
+    {id:"ROOKIE",  kw:"ROOKIE",  name:"ROOKIE A GO-GO",    color:"#06b6d4", group:"sub", vis:false},
+    {id:"MOSHPIT", kw:"苗場",    name:"苗場食堂",            color:"#ec4899", group:"sub", vis:false},
+    {id:"PYRAMID", kw:"PYRAMID", name:"PYRAMID GARDEN",    color:"#10b981", group:"sub", vis:false},
+    {id:"GANBAN",  kw:"GAN",     name:"GAN-BAN SQUARE",    color:"#94a3b8", group:"sub", vis:false},
+    {id:"GALAXY",  kw:"GALAXY",  name:"BLUE GALAXY",       color:"#818cf8", group:"sub", vis:false},
+];
+// ── 舞台群組定義 ──
+var STAGE_GROUPS = [
+    {key:"main", label:"🎯 主舞台", desc:"GREEN / WHITE / RED / HEAVEN / ORANGE"},
+    {key:"sub",  label:"🌙 夜場＆小舞台", desc:"GYPSY / CRYSTAL / PALACE / ROOKIE / 苗場 / PYRAMID / GAN-BAN / BLUE GALAXY"},
 ];
 var STAGES = [];
 var VIEW_MODES = ["grid","stage","list","now"];
@@ -1342,11 +1366,65 @@ function jumpNow(){
 var _filterSnapshot=[];
 function openFilter(){
     _filterSnapshot=STAGES.map(function(s){return s.vis;});
-    var c=document.getElementById("filterChips");c.innerHTML="";
-    STAGES.forEach(function(s){var b=document.createElement("button");b.className="chip"+(s.vis?" active":"");b.style.borderColor=s.color;if(s.vis)b.style.backgroundColor=s.color;b.innerText=s.name;b.onclick=function(){s.vis=!s.vis;b.classList.toggle("active");b.style.backgroundColor=s.vis?s.color:"transparent";};c.appendChild(b);});
+    _renderFilterGroupBtns();
+    _renderFilterChips();
     document.getElementById("filterModal").style.display="flex";
 }
-function allStages(v){STAGES.forEach(function(s){s.vis=v;});openFilter();}
+function _renderFilterGroupBtns(){
+    var wrap=document.getElementById("filterGroupBtns");wrap.innerHTML="";
+    STAGE_GROUPS.forEach(function(g){
+        var inGroup=STAGES.filter(function(s){return s.group===g.key;});
+        var allOn=inGroup.every(function(s){return s.vis;});
+        var btn=document.createElement("button");
+        btn.className="filter-group-btn"+(allOn?" active":"");
+        btn.innerHTML='<strong>'+g.label+'</strong><br><span style="font-size:.63rem;opacity:.65">'+g.desc+'</span>';
+        btn.onclick=function(){
+            var turnOn=!allOn;
+            inGroup.forEach(function(s){s.vis=turnOn;});
+            _renderFilterGroupBtns();_renderFilterChips();
+        };
+        wrap.appendChild(btn);
+    });
+}
+function _renderFilterChips(){
+    var c=document.getElementById("filterChips");c.innerHTML="";
+    STAGE_GROUPS.forEach(function(g){
+        var inGroup=STAGES.filter(function(s){return s.group===g.key;});
+        if(!inGroup.length)return;
+        var lbl=document.createElement("span");lbl.className="filter-group-label";lbl.innerText=g.label;c.appendChild(lbl);
+        var row=document.createElement("div");row.className="chips";
+        inGroup.forEach(function(s){
+            var b=document.createElement("button");
+            b.className="chip"+(s.vis?" active":"");
+            b.style.borderColor=s.color;
+            if(s.vis)b.style.backgroundColor=s.color;
+            b.innerText=s.name;
+            b.onclick=function(){
+                s.vis=!s.vis;
+                b.classList.toggle("active");
+                b.style.backgroundColor=s.vis?s.color:"transparent";
+                _renderFilterGroupBtns();
+            };
+            row.appendChild(b);
+        });
+        c.appendChild(row);
+    });
+    var ungrouped=STAGES.filter(function(s){return !s.group;});
+    if(ungrouped.length){
+        var lbl2=document.createElement("span");lbl2.className="filter-group-label";lbl2.innerText="其他";c.appendChild(lbl2);
+        var row2=document.createElement("div");row2.className="chips";
+        ungrouped.forEach(function(s){
+            var b=document.createElement("button");
+            b.className="chip"+(s.vis?" active":"");
+            b.style.borderColor=s.color;if(s.vis)b.style.backgroundColor=s.color;
+            b.innerText=s.name;
+            b.onclick=function(){s.vis=!s.vis;b.classList.toggle("active");b.style.backgroundColor=s.vis?s.color:"transparent";_renderFilterGroupBtns();};
+            row2.appendChild(b);
+        });
+        c.appendChild(row2);
+    }
+}
+function allStages(v){STAGES.forEach(function(s){s.vis=v;});_renderFilterGroupBtns();_renderFilterChips();}
 function applyFilter(){document.getElementById("filterModal").style.display="none";render();}
 function closeFilter(){STAGES.forEach(function(s,i){s.vis=_filterSnapshot[i];});document.getElementById("filterModal").style.display="none";}
 function toggleSS(){document.body.classList.toggle("ss-mode");}
