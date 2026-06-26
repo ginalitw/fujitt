@@ -49,13 +49,14 @@
         .time-lbl{grid-column:1;position:sticky;left:0;z-index:95;background:var(--bg);font-size:.7rem;color:var(--muted);text-align:right;padding-right:6px;transform:translateY(-8px);width:50px;min-width:50px;height:0;overflow:visible;align-self:start;}
         .grid-line{grid-column:2/-1;height:0;border-top:1px solid var(--border);z-index:1;}
         .grid-line.half{border-top:1px dashed var(--border);}
-        .ev{margin:0 3px;border-radius:5px;padding:5px;font-size:.75rem;z-index:10;display:flex;flex-direction:column;overflow:hidden;border-left:4px solid;background:var(--surface);transition:.2s;box-shadow:0 2px 5px rgba(0,0,0,.5);cursor:pointer;-webkit-user-select:none;user-select:none;}
+        .ev{margin:0 3px;border-radius:5px;padding:5px;font-size:.75rem;z-index:10;display:flex;flex-direction:column;overflow:hidden;border-left:4px solid;background:var(--surface);transition:background .2s,box-shadow .2s,opacity .2s;box-shadow:0 2px 5px rgba(0,0,0,.4);cursor:pointer;-webkit-user-select:none;user-select:none;}
         .ev:active{transform:scale(0.97);}
-        .ev .ev-time{font-size:.65rem;opacity:.8;margin-bottom:1px;}
+        .ev .ev-time{font-size:.65rem;opacity:.75;margin-bottom:1px;}
         .ev .ev-name{font-weight:700;line-height:1.2;word-break:break-word;}
-        .ev.dimmed{opacity:.18;background:transparent;border-left-width:2px;box-shadow:none;filter:grayscale(80%);}
-        .ev.dimmed .ev-name{font-weight:normal;color:var(--muted);}
-        .ev.selected{box-shadow:0 0 0 2px #eab308,0 4px 14px rgba(234,179,8,.5);filter:brightness(1.15);}
+        .ev.dimmed{box-shadow:none;border-left-width:2px;}
+        .ev.dimmed .ev-name{font-weight:normal;opacity:.6;}
+        .ev.dimmed .ev-time{opacity:.5;}
+        .ev.selected{box-shadow:0 0 0 2px #eab308,0 4px 14px rgba(234,179,8,.4);border-left-width:5px;}
         .ev.selected::after{content:"⭐";position:absolute;top:3px;right:5px;font-size:.7rem;}
         .ev{position:relative;}
         .time-line{height:2px;background:#ff3b30;position:relative;z-index:50;pointer-events:none;display:none;}
@@ -64,8 +65,8 @@
         .fab{position:fixed;bottom:20px;right:20px;background:var(--accent);color:white;width:46px;height:46px;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:1.3rem;box-shadow:0 4px 10px rgba(0,0,0,.5);z-index:900;border:none;cursor:pointer;}
         .list-view{display:none;padding:16px;flex-direction:column;gap:10px;}
         .list-item{display:flex;flex-direction:column;background:var(--surface);padding:10px;border-radius:8px;border-left:4px solid;box-shadow:0 2px 5px rgba(0,0,0,.3);cursor:pointer;}
-        .list-item.dimmed{opacity:.18;background:transparent;filter:grayscale(80%);}
-        .list-item.selected{box-shadow:0 0 0 2px #eab308;}
+        .list-item.dimmed{box-shadow:none;border-left-width:2px;opacity:.55;}
+        .list-item.selected{box-shadow:0 0 0 2px #eab308;border-left-width:5px;}
         .list-hdr{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:4px;}
         .list-title{font-size:1rem;font-weight:bold;}
         .modal-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.8);z-index:2000;align-items:center;justify-content:center;padding:20px;}
@@ -374,6 +375,11 @@ var VIEW_MODES = ["grid","stage","list","now"];
 // 按鈕顯示「下一個模式」的 icon 和 label
 var VIEW_LABELS = {grid:{ico:"🎯",lbl:"單台"},stage:{ico:"📋",lbl:"列表"},list:{ico:"🎛️",lbl:"格子"},now:{ico:"🎛️",lbl:"格子"}};
 // ── Shared helpers ──────────────────────────────────────────────────────────
+function _hexToRgb(hex){
+    hex=(hex||"#64748b").replace("#","");
+    if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+    return parseInt(hex.slice(0,2),16)+","+parseInt(hex.slice(2,4),16)+","+parseInt(hex.slice(4,6),16);
+}
 function _matchStage(sn, kw){
     if(Array.isArray(kw)) return kw.some(function(k){ return sn.toUpperCase().includes(k.toUpperCase()); });
     return sn.toUpperCase().includes(kw.toUpperCase())||sn.includes(kw);
@@ -388,10 +394,17 @@ function _renderTimeGrid(g, colSpan){
 }
 function _buildEvBlock(it, stageColor, colVal){
     var sel=isSelected(it.name),isConflict=_conflicts.has(it.name+"|"+curDay);
+    var inFocus=schedMode==="full"&&mySelection.length>0;
+    var isDimmed=inFocus&&!sel;
+    var rgb=_hexToRgb(stageColor);
+    // 選取：較深色塊；一般：淡色塊；dimmed：更淡
+    var bgAlpha=sel?0.42:(isDimmed?0.07:0.18);
     var bl=document.createElement("div");
-    bl.className="ev"+(schedMode==="full"&&!sel?" dimmed":"")+(sel?" selected":"")+(isConflict?" conflict":"");
+    bl.className="ev"+(isDimmed?" dimmed":"")+(sel?" selected":"")+(isConflict?" conflict":"");
     bl.style.gridRow=timeToRow(it.start)+"/"+(it.end?timeToRow(it.end):timeToRow(it.start)+60);
-    bl.style.gridColumn=colVal;bl.style.borderLeftColor=stageColor;
+    bl.style.gridColumn=colVal;
+    bl.style.borderLeftColor=stageColor;
+    bl.style.background="rgba("+rgb+","+bgAlpha+")";
     var cd=getCountdown(it.day||curDay,it.start,it.end);
     bl.innerHTML='<div class="ev-time">'+it.start+' - '+(it.end||'?')+'</div><div class="ev-name">'+it.name+'</div>'
         +(cd?'<div class="ev-cd '+cd.cls+'">'+cd.text+'</div>':"")
@@ -1019,8 +1032,15 @@ function renderList(){
         }
         var bl=document.createElement("div");
         var showConflict=!PLACEHOLDER_MODE&&isConflict;
-        bl.className='list-item'+(schedMode==='full'&&!sel?' dimmed':'')+(sel?' selected':'')+(showConflict?' conflict':'');
-        bl.style.borderLeftColor=PLACEHOLDER_MODE?"var(--accent)":color;
+        var liInFocus=schedMode==='full'&&mySelection.length>0;
+        var liDimmed=liInFocus&&!sel;
+        bl.className='list-item'+(liDimmed?' dimmed':'')+(sel?' selected':'')+(showConflict?' conflict':'');
+        var liColor=PLACEHOLDER_MODE?"var(--accent)":color;
+        bl.style.borderLeftColor=liColor;
+        if(!PLACEHOLDER_MODE){
+            var liRgb=_hexToRgb(color);
+            bl.style.background='rgba('+liRgb+','+(sel?0.38:(liDimmed?0.05:0.14))+')';
+        }
         var cdResult=PLACEHOLDER_MODE?null:getCountdown(it.day,it.start,it.end);
         var cdHtml=cdResult?'<div class="ev-cd '+cdResult.cls+'" style="margin-top:4px">'+cdResult.text+'</div>':"";
         var warnHtml=showConflict?'<span style="color:#ff3b30;font-size:.75rem;font-weight:700;margin-left:6px">⚠️ 衝堂</span>':"";
