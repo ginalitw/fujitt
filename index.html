@@ -351,7 +351,7 @@ var KNOWN = [
     // ── 主舞台（預設顯示）──
     {id:"GREEN",   kw:"GREEN",   name:"GREEN STAGE",       color:"#22c55e", group:"main"},
     {id:"WHITE",   kw:"WHITE",   name:"WHITE STAGE",       color:"#cbd5e1", group:"main"},
-    {id:"RED",     kw:"RED",     name:"RED MARQUEE",       color:"#ef4444", group:"main"},
+    {id:"RED",     kw:["RED","PLANET GROOVE","TRIBAL CIRCUS","SUNDAY SESSION"], name:"RED MARQUEE", color:"#ef4444", group:"main"},
     {id:"HEAVEN",  kw:"HEAVEN",  name:"FIELD OF HEAVEN",   color:"#eab308", group:"main"},
     {id:"ORANGE",  kw:"ORANGE",  name:"ORANGE COURT",      color:"#f97316", group:"main"},
     // ── 夜場 & 小舞台（預設隱藏）──
@@ -374,7 +374,10 @@ var VIEW_MODES = ["grid","stage","list","now"];
 // 按鈕顯示「下一個模式」的 icon 和 label
 var VIEW_LABELS = {grid:{ico:"🎯",lbl:"單台"},stage:{ico:"📋",lbl:"列表"},list:{ico:"🎛️",lbl:"格子"},now:{ico:"🎛️",lbl:"格子"}};
 // ── Shared helpers ──────────────────────────────────────────────────────────
-function _matchStage(sn, kw){ return sn.toUpperCase().includes(kw.toUpperCase())||sn.includes(kw); }
+function _matchStage(sn, kw){
+    if(Array.isArray(kw)) return kw.some(function(k){ return sn.toUpperCase().includes(k.toUpperCase()); });
+    return sn.toUpperCase().includes(kw.toUpperCase())||sn.includes(kw);
+}
 function _renderTimeGrid(g, colSpan){
     var bg=document.createElement("div");bg.className="time-col-bg";g.appendChild(bg);
     for(var i=0;i<=36;i++){
@@ -875,7 +878,7 @@ function buildStages(){
     master.forEach(function(it){
         var sn=(it.stage||"").trim();if(!sn)return;
         var k=KNOWN.find(function(s){return _matchStage(sn,s.kw);});
-        if(k){if(!m.has(k.id))m.set(k.id,{id:k.id,kw:k.kw,name:k.name,color:k.color,vis:(k.vis!==false)});}
+        if(k){if(!m.has(k.id))m.set(k.id,{id:k.id,kw:k.kw,name:k.name,color:k.color,group:k.group,vis:(k.vis!==false)});}
         else{var sid="S_"+sn.replace(/\W/g,"_");if(!m.has(sid))m.set(sid,{id:sid,kw:sn,name:sn,color:"#64748b",vis:true});}
     });
     // 按 KNOWN 固定順序排列，未知舞台附在最後
