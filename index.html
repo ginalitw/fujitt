@@ -343,9 +343,9 @@ var _spCurArtist = "";
 var _spLoaded = false;
 var master = [], lineWanted = [], mySelection = [];
 var DAYS = ["Day 1","Day 2","Day 3"], DAY_LABELS = ["Day 1 (7/24)","Day 2 (7/25)","Day 3 (7/26)"];
-var curDay = DAYS[0], viewMode = "list", schedMode = "personal";
+var curDay = DAYS[0], viewMode = "grid", schedMode = "full";
 // ── 佔位模式（由 Firestore displayConfig.placeholderMode 控制，預設 true 直到 admin 關閉）──
-var PLACEHOLDER_MODE = true;
+var PLACEHOLDER_MODE = false;
 // ── 演出時間顯示（由 Firestore displayConfig.showArtistTime 控制，預設 false 直到時間公布）──
 var SHOW_ARTIST_TIME = false;
 var KNOWN = [
@@ -1466,10 +1466,9 @@ function initApp(){
     DAY_LABELS.forEach(function(l,i){var b=document.createElement("button");b.className="day-btn"+(i===0?" active":"");b.innerText=l;b.dataset.day=DAYS[i];b.onclick=function(){changeDay(i);};dc.appendChild(b);});
     updateSelCount();
     _restoreReminders();
-    // 根據資料階段設定預設視圖
+    // 根據資料階段設定預設視圖（明確設 list 才切回 list，其餘保持 grid）
     var phase=getDataPhase();
-    if(phase==="grid") viewMode="grid";
-    else viewMode="list";
+    if(phase==="list") viewMode="list";
     changeDay(0);
     // 舞台模式：左右滑切換舞台
     var _tx=0,_ty=0;
