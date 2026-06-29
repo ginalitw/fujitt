@@ -351,22 +351,21 @@ var PLACEHOLDER_MODE = false;
 // ── 演出時間顯示（由 Firestore displayConfig.showArtistTime 控制，預設 false 直到時間公布）──
 var SHOW_ARTIST_TIME = false;
 var KNOWN = [
-    // ── 主舞台（預設顯示）──
-    {id:"GREEN",   kw:"GREEN",   name:"GREEN STAGE",        color:"#6ea400", group:"main"},
-    {id:"WHITE",   kw:"WHITE",   name:"WHITE STAGE",        color:"#929292", group:"main"},
-    {id:"RED",     kw:["RED","PLANET GROOVE","GROOVE","TRIBAL CIRCUS","CIRCUS","CIRUS","SUNDAY SESSION","SUNDAY"], name:"RED MARQUEE", color:"#ff3300", group:"main"},
-    {id:"HEAVEN",  kw:"HEAVEN",  name:"FIELD OF HEAVEN",    color:"#1ccbe3", group:"main"},
-    {id:"ORANGE",  kw:"ORANGE",  name:"ORANGE COURT",       color:"#ffb343", group:"main"},
-    // ── 夜場 & 小舞台（預設隱藏）──
-    {id:"GYPSY",   kw:["GYPSY","AVALON"],   name:"GYPSY AVALON",       color:"#9d1257", group:"sub", vis:false},
-    {id:"CRYSTAL", kw:"CRYSTAL", name:"CRYSTAL PALACE TENT",color:"#129d89", group:"sub", vis:false},
-    {id:"PALACE",  kw:"PALACE ARENA", name:"PALACE ARENA",  color:"#129d89", group:"sub", vis:false},
-    {id:"ROOKIE",  kw:"ROOKIE",  name:"ROOKIE A GO-GO",     color:"#129d89", group:"sub", vis:false},
-    {id:"MOSHPIT", kw:"苗場",    name:"苗場食堂",             color:"#9d9812", group:"sub", vis:false},
-    {id:"PYRAMID", kw:"PYRAMID", name:"PYRAMID GARDEN",     color:"#920e82", group:"sub", vis:false},
-    {id:"ECHO",    kw:"ECHO",    name:"ORANGE ECHO",         color:"#e86a10", group:"main"},
-    {id:"GANBAN",  kw:"GAN",     name:"GAN-BAN SQUARE",     color:"#ffffff", group:"sub", vis:false},
-    {id:"GALAXY",  kw:"GALAXY",  name:"BLUE GALAXY",        color:"#385486", group:"sub", vis:false},
+    // ── 主舞台（預設顯示，依官方順序）──
+    {id:"GREEN",   kw:"GREEN",   name:"GREEN STAGE",        color:"#4e8018", group:"main"},
+    {id:"WHITE",   kw:"WHITE",   name:"WHITE STAGE",        color:"#888888", group:"main"},
+    {id:"RED",     kw:["RED","PLANET GROOVE","GROOVE","TRIBAL CIRCUS","CIRCUS","CIRUS","SUNDAY SESSION","SUNDAY"], name:"RED MARQUEE", color:"#e03000", group:"main"},
+    {id:"HEAVEN",  kw:"HEAVEN",  name:"FIELD OF HEAVEN",    color:"#28b8d8", group:"main"},
+    {id:"ECHO",    kw:"ECHO",    name:"ORANGE ECHO",        color:"#e07820", group:"main"},
+    // ── 小舞台（預設隱藏，依官方順序）──
+    {id:"GYPSY",   kw:["GYPSY","AVALON"],   name:"GYPSY AVALON",       color:"#881560", group:"sub", vis:false},
+    {id:"CRYSTAL", kw:"CRYSTAL", name:"CRYSTAL PALACE TENT",color:"#158878", group:"sub", vis:false},
+    {id:"PALACE",  kw:"PALACE ARENA", name:"PALACE ARENA",  color:"#158878", group:"sub", vis:false},
+    {id:"ROOKIE",  kw:"ROOKIE",  name:"ROOKIE A GO-GO",     color:"#158878", group:"sub", vis:false},
+    {id:"MOSHPIT", kw:"苗場",    name:"苗場食堂",             color:"#888418", group:"sub", vis:false},
+    {id:"PYRAMID", kw:"PYRAMID", name:"PYRAMID GARDEN",     color:"#8820a8", group:"sub", vis:false},
+    {id:"GANBAN",  kw:"GAN",     name:"GAN-BAN SQUARE",     color:"#1a1a1a", group:"sub", vis:false},
+    {id:"GALAXY",  kw:"GALAXY",  name:"BLUE GALAXY",        color:"#384878", group:"sub", vis:false},
 ];
 // ── 舞台群組定義 ──
 var STAGE_GROUPS = [
@@ -382,6 +381,16 @@ function _hexToRgb(hex){
     hex=(hex||"#64748b").replace("#","");
     if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
     return parseInt(hex.slice(0,2),16)+","+parseInt(hex.slice(2,4),16)+","+parseInt(hex.slice(4,6),16);
+}
+// 暗色主題下，極深色（如黑色）自動轉為可見的淺灰
+function _dispColor(hex){
+    var isDark=!document.documentElement.classList.contains("light");
+    if(!isDark) return hex;
+    var h=(hex||"#888").replace("#","");
+    if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    var r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
+    var lum=(0.299*r+0.587*g+0.114*b)/255;
+    return lum<0.18?"#aaaaaa":hex;
 }
 function _matchStage(sn, kw){
     if(Array.isArray(kw)) return kw.some(function(k){ return sn.toUpperCase().includes(k.toUpperCase()); });
@@ -399,7 +408,8 @@ function _buildEvBlock(it, stageColor, colVal){
     var sel=isSelected(it.name),isConflict=_conflicts.has(it.name+"|"+curDay);
     var inFocus=schedMode==="full"&&mySelection.length>0;
     var isDimmed=inFocus&&!sel;
-    var rgb=_hexToRgb(stageColor);
+    var dispC=_dispColor(stageColor);
+    var rgb=_hexToRgb(dispC);
     // 選取：較深色塊；一般：淡色塊；dimmed：更淡
     var bgAlpha=sel?0.42:(isDimmed?0.07:0.18);
     // 計算格子列範圍，過濾超出格子的演出（如 10:20 → row 1402）
@@ -411,7 +421,7 @@ function _buildEvBlock(it, stageColor, colVal){
     bl.className="ev"+(isDimmed?" dimmed":"")+(sel?" selected":"")+(isConflict?" conflict":"");
     bl.style.gridRow=startRow+"/"+endRow;
     bl.style.gridColumn=colVal;
-    bl.style.borderLeftColor=stageColor;
+    bl.style.borderLeftColor=dispC;
     bl.style.background="rgba("+rgb+","+bgAlpha+")";
     var cd=getCountdown(it.day||curDay,it.start,it.end);
     bl.innerHTML='<div class="ev-time">'+_fmtTime(it.start)+' - '+(it.end?_fmtTime(it.end):'?')+'</div><div class="ev-name">'+it.name+'</div>'
@@ -985,7 +995,7 @@ function renderGrid(){
     g.style.gridTemplateColumns=cols;g.style.minWidth=mw;
     hdrRow.style.gridTemplateColumns=cols;hdrRow.style.minWidth=mw;
     hdrRow.appendChild(Object.assign(document.createElement("div"),{className:"corner"}));
-    active.forEach(function(s,i){var h=document.createElement("div");h.className="stage-hdr";h.style.gridColumn=i+2;h.style.borderBottomColor=s.color;h.style.color=s.color;h.innerText=s.name;hdrRow.appendChild(h);});
+    active.forEach(function(s,i){var h=document.createElement("div");h.className="stage-hdr";h.style.gridColumn=i+2;var dc=_dispColor(s.color);h.style.borderBottomColor=dc;h.style.color=dc;h.innerText=s.name;hdrRow.appendChild(h);});
     _renderTimeGrid(g,"2/span "+active.length);
     var evts=master.filter(function(it){
         if(it.day!==curDay)return false;
@@ -1182,7 +1192,7 @@ function renderStageView(){
     g.style.gridTemplateColumns="50px 1fr";g.style.minWidth="100%";
     hdrRow.style.gridTemplateColumns="50px 1fr";hdrRow.style.minWidth="100%";
     hdrRow.appendChild(Object.assign(document.createElement("div"),{className:"corner"}));
-    var hdr=document.createElement("div");hdr.className="stage-hdr";hdr.style.gridColumn=2;hdr.style.borderBottomColor=stage.color;hdr.style.color=stage.color;hdr.innerText=stage.name;hdrRow.appendChild(hdr);
+    var hdr=document.createElement("div");hdr.className="stage-hdr";hdr.style.gridColumn=2;var dc=_dispColor(stage.color);hdr.style.borderBottomColor=dc;hdr.style.color=dc;hdr.innerText=stage.name;hdrRow.appendChild(hdr);
     _renderTimeGrid(g,"2");
     var evts=master.filter(function(it){
         if(it.day!==curDay)return false;
