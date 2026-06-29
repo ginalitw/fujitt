@@ -11,7 +11,7 @@
         :root { --bg:#0f0a04; --surface:#1a1005; --text:#fef3c7; --muted:#a8a29e; --border:#2d1f08; --accent:#fbbf24; --header-bg:rgba(26,16,5,0.96); }
         :root.light { --bg:#f8fafc; --surface:#ffffff; --text:#0f172a; --muted:#94a3b8; --border:#e2e8f0; --accent:#2563eb; --header-bg:rgba(255,255,255,0.97); }
         *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent;}
-        body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+        body{background:var(--bg);color:var(--text);height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;}
         header{padding:12px 16px;background:var(--header-bg);backdrop-filter:blur(10px);position:sticky;top:0;z-index:1000;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:10px;}
         .header-top{display:flex;justify-content:space-between;align-items:center;}
         h1{font-size:1.1rem;font-weight:700;white-space:nowrap;}
@@ -64,7 +64,7 @@
         .time-dot{position:sticky;left:50px;width:10px;height:10px;background:#ff3b30;border-radius:50%;box-shadow:0 0 8px #ff3b30;animation:pulse 2s infinite;transform:translateY(-4px);}
         @keyframes pulse{0%{transform:scale(.95);box-shadow:0 0 0 0 rgba(255,59,48,.7)}70%{transform:scale(1);box-shadow:0 0 0 6px rgba(255,59,48,0)}100%{transform:scale(.95);box-shadow:0 0 0 0 rgba(255,59,48,0)}}
         .fab{position:fixed;bottom:20px;right:20px;background:var(--accent);color:white;width:46px;height:46px;border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:1.3rem;box-shadow:0 4px 10px rgba(0,0,0,.5);z-index:900;border:none;cursor:pointer;}
-        .list-view{display:none;padding:16px;flex-direction:column;gap:10px;}
+        .list-view{display:none;padding:16px;flex-direction:column;gap:10px;flex:1;min-height:0;overflow-y:auto;}
         .list-item{display:flex;flex-direction:column;background:var(--surface);padding:10px;border-radius:8px;border-left:4px solid;box-shadow:0 2px 5px rgba(0,0,0,.3);cursor:pointer;}
         .list-item.dimmed{box-shadow:none;border-left-width:2px;opacity:.55;}
         .list-item.selected{box-shadow:0 0 0 2px #eab308;border-left-width:5px;}
@@ -185,8 +185,8 @@
         .summary-day strong{display:block;font-size:.9rem;font-weight:800;color:var(--text);}
         .summary-day span{font-size:.6rem;color:var(--muted);}
         /* ===== NOW & NEXT VIEW ===== */
-        #now-view{display:none;padding:12px 10px 80px;}
-        #now-view.show{display:block;}
+        #now-view{display:none;padding:12px 10px 80px;flex-direction:column;flex:1;min-height:0;overflow-y:auto;}
+        #now-view.show{display:flex;}
         .now-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
         .now-card{background:var(--surface);border-radius:10px;padding:9px 10px;border-left:4px solid;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer;}
         .now-card:active{transform:scale(.98);}
@@ -208,8 +208,8 @@
         .header-pretitle{font-size:.58rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);display:block;line-height:1;margin-bottom:2px;}
         /* ===== ADMIN MODE（設定管理已移至 admin.html）===== */
         /* ===== POSTER VIEW ===== */
-        #poster-view{display:none;padding:10px 12px 80px;}
-        #poster-view.show{display:block;}
+        #poster-view{display:none;padding:10px 12px 80px;flex-direction:column;flex:1;min-height:0;overflow-y:auto;}
+        #poster-view.show{display:flex;}
         .poster-festival-title{text-align:center;font-size:.65rem;font-weight:800;letter-spacing:3px;color:var(--muted);text-transform:uppercase;padding:8px 0 14px;}
         .poster-day-block{margin-bottom:18px;}
         .poster-day-label{font-size:.7rem;font-weight:800;color:var(--accent);letter-spacing:2px;text-transform:uppercase;padding:5px 10px 8px;border-bottom:1px solid var(--border);margin:0 -12px 8px;background:var(--header-bg);backdrop-filter:blur(8px);position:sticky;top:0;z-index:10;}
@@ -468,6 +468,9 @@ async function loadTimetableSettings(){
             var dc=(snap.data().displayConfig)||{};
             _applyDisplayConfig(dc);
             _setCache(_SETTINGS_KEY,{dc:dc}); // 存入 localStorage 快取
+            // 套用後立即更新 UI（timeline、toolbar）
+            if(typeof syncToolbarVisibility==="function") syncToolbarVisibility();
+            if(typeof updateTimeLine==="function") updateTimeLine();
         }
     }catch(e){console.warn("display settings load failed",e);}
 }
