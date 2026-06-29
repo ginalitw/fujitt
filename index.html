@@ -424,7 +424,7 @@ function isOwner(){ return new URLSearchParams(window.location.search).get("uid"
 var _adminSettings = {conflict:true,countdown:true,festival:false,phase:"grid",
                       showPersonal:false,showGrid:true,showStage:false,showTime:false,
                       showStageLbl:true,showNow:true,showSummary:true,showRemind:true,showAllDays:true,
-                      placeholderMode:false,showArtistTime:false};
+                      placeholderMode:false,showArtistTime:false,showTimeLine:true};
 var _SETTINGS_KEY = "fujitt_settings_v1";
 var _SETTINGS_TTL = 5*60*1000; // 5 分鐘快取
 
@@ -432,7 +432,7 @@ var _SETTINGS_TTL = 5*60*1000; // 5 分鐘快取
 function _applyDisplayConfig(dc){
     ["showPersonal","showGrid","showStage","showTime","showStageLbl","showNow",
      "showSummary","showRemind","showAllDays","conflict","countdown","festival",
-     "placeholderMode","showArtistTime"].forEach(function(k){
+     "placeholderMode","showArtistTime","showTimeLine"].forEach(function(k){
         if(dc[k]!==undefined)_adminSettings[k]=dc[k];
     });
     if(dc.phase!==undefined)_adminSettings.phase=dc.phase;
@@ -799,9 +799,9 @@ function gasGet(url) {
 function _dateToDay(d){
     if(!d)return "";
     var s=String(d).trim();
-    if(s==="Day 1"||s==="7/24"||s==="2026-07-24")return "Day 1";
-    if(s==="Day 2"||s==="7/25"||s==="2026-07-25")return "Day 2";
-    if(s==="Day 3"||s==="7/26"||s==="2026-07-26")return "Day 3";
+    if(s==="Day 1"||s==="7/24"||s==="2026-07-24"||s==="2026/7/24"||s==="2026/07/24")return "Day 1";
+    if(s==="Day 2"||s==="7/25"||s==="2026-07-25"||s==="2026/7/25"||s==="2026/07/25")return "Day 2";
+    if(s==="Day 3"||s==="7/26"||s==="2026-07-26"||s==="2026/7/26"||s==="2026/07/26")return "Day 3";
     return s; // 其他格式原樣保留
 }
 // ── Firestore artists → master 格式轉換 helper ─────────
@@ -1321,6 +1321,7 @@ function updateNowBanner(){
     banner.classList.add("show");
 }
 function updateTimeLine(){
+    if(!_adminSettings.showTimeLine){var tl=document.getElementById("tl");if(tl)tl.style.display="none";return;}
     if(viewMode==="list")return;
     var now=new Date(),h=now.getHours(),m=now.getMinutes();if(h>=0&&h<5)h+=24;
     if(h>=11&&h<=29){var r=(h-11)*60+m+2;var tl=document.getElementById("tl");
