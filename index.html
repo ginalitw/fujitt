@@ -44,8 +44,9 @@
         .scroll-container{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;position:relative;}
         .tt-grid{display:grid;position:relative;padding-bottom:20px;grid-auto-rows:2px;}
         .time-col-bg{grid-column:1;grid-row:1/-1;position:sticky;left:0;z-index:90;background:var(--bg);border-right:1px solid var(--border);width:50px;min-width:50px;}
-        .corner{grid-column:1;grid-row:1;position:sticky;top:0;left:0;z-index:200;background:var(--bg);border-bottom:2px solid var(--border);border-right:1px solid var(--border);width:50px;min-width:50px;}
-        .stage-hdr{grid-row:1;position:sticky;top:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;text-align:center;border-bottom:2px solid;padding:8px 2px;}
+        .stage-hdr-row{position:sticky;top:0;z-index:110;background:var(--bg);display:grid;}
+        .corner{grid-column:1;position:sticky;top:0;left:0;z-index:200;background:var(--bg);border-bottom:2px solid var(--border);border-right:1px solid var(--border);width:50px;min-width:50px;}
+        .stage-hdr{background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;text-align:center;border-bottom:2px solid;padding:8px 2px;}
         .time-lbl{grid-column:1;position:sticky;left:0;z-index:95;background:var(--bg);font-size:.7rem;color:var(--muted);text-align:right;padding-right:6px;transform:translateY(-8px);width:50px;min-width:50px;height:0;overflow:visible;align-self:start;}
         .grid-line{grid-column:2/-1;height:0;border-top:1px solid var(--border);z-index:1;}
         .grid-line.half{border-top:1px dashed var(--border);}
@@ -136,6 +137,7 @@
         .ev.glow-hi{box-shadow:0 0 16px rgba(234,179,8,.6),0 2px 5px rgba(0,0,0,.5);}
         .ev.selected.glow-hi{box-shadow:0 0 0 2px #eab308,0 0 14px rgba(234,179,8,.5),0 2px 8px rgba(234,179,8,.3);}
         /* ===== CLEAN MODE ===== */
+        body.clean-hdr .stage-hdr-row{opacity:0;pointer-events:none;}
         body.clean-hdr .stage-hdr{opacity:0;pointer-events:none;}
         body.clean-hdr .corner{opacity:0;}
         body.clean-hdr .list-hdr span:last-child{display:none;}
@@ -280,7 +282,7 @@
         <div class="now-inner" id="now-inner"></div>
     </div>
     <div class="watermark" id="wm">2026 FUJI ROCK MY TT</div>
-    <div class="scroll-container" id="scroll"><div class="tt-grid" id="grid"></div></div>
+    <div class="scroll-container" id="scroll"><div class="stage-hdr-row" id="stage-hdr-row"></div><div class="tt-grid" id="grid"></div></div>
     <div class="list-view" id="listview"></div>
     <!-- Now & Next 快覽 -->
     <div id="now-view"><div class="now-cards" id="now-cards"></div></div>
@@ -975,12 +977,15 @@ function _fmtTime(ts){
 }
 function renderGrid(){
     var g=document.getElementById("grid");g.innerHTML="";
+    var hdrRow=document.getElementById("stage-hdr-row");hdrRow.innerHTML="";
     var active=STAGES.filter(function(s){return s.vis;});
     if(!active.length){g.innerHTML='<div style="text-align:center;color:#666;padding:40px">沒有舞台</div>';return;}
-    g.style.gridTemplateColumns="50px repeat("+active.length+",minmax(100px,1fr))";
-    g.style.minWidth=(50+active.length*100)+"px";
-    g.appendChild(Object.assign(document.createElement("div"),{className:"corner"}));
-    active.forEach(function(s,i){var h=document.createElement("div");h.className="stage-hdr";h.style.gridColumn=i+2;h.style.borderBottomColor=s.color;h.style.color=s.color;h.innerText=s.name;g.appendChild(h);});
+    var cols="50px repeat("+active.length+",minmax(100px,1fr))";
+    var mw=(50+active.length*100)+"px";
+    g.style.gridTemplateColumns=cols;g.style.minWidth=mw;
+    hdrRow.style.gridTemplateColumns=cols;hdrRow.style.minWidth=mw;
+    hdrRow.appendChild(Object.assign(document.createElement("div"),{className:"corner"}));
+    active.forEach(function(s,i){var h=document.createElement("div");h.className="stage-hdr";h.style.gridColumn=i+2;h.style.borderBottomColor=s.color;h.style.color=s.color;h.innerText=s.name;hdrRow.appendChild(h);});
     _renderTimeGrid(g,"2/span "+active.length);
     var evts=master.filter(function(it){
         if(it.day!==curDay)return false;
@@ -1173,10 +1178,11 @@ function renderStageView(){
     document.getElementById("stage-nav-counter").textContent=(curStageIdx+1)+" / "+active.length;
     // 建立格子（單欄）
     var g=document.getElementById("grid");g.innerHTML="";
-    g.style.gridTemplateColumns="50px 1fr";
-    g.style.minWidth="100%";
-    g.appendChild(Object.assign(document.createElement("div"),{className:"corner"}));
-    var hdr=document.createElement("div");hdr.className="stage-hdr";hdr.style.gridColumn=2;hdr.style.borderBottomColor=stage.color;hdr.style.color=stage.color;hdr.innerText=stage.name;g.appendChild(hdr);
+    var hdrRow=document.getElementById("stage-hdr-row");hdrRow.innerHTML="";
+    g.style.gridTemplateColumns="50px 1fr";g.style.minWidth="100%";
+    hdrRow.style.gridTemplateColumns="50px 1fr";hdrRow.style.minWidth="100%";
+    hdrRow.appendChild(Object.assign(document.createElement("div"),{className:"corner"}));
+    var hdr=document.createElement("div");hdr.className="stage-hdr";hdr.style.gridColumn=2;hdr.style.borderBottomColor=stage.color;hdr.style.color=stage.color;hdr.innerText=stage.name;hdrRow.appendChild(hdr);
     _renderTimeGrid(g,"2");
     var evts=master.filter(function(it){
         if(it.day!==curDay)return false;
