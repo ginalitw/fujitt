@@ -398,8 +398,8 @@ function _matchStage(sn, kw){
 }
 function _renderTimeGrid(g, colSpan){
     var bg=document.createElement("div");bg.className="time-col-bg";g.appendChild(bg);
-    for(var i=0;i<=47;i++){  // 延伸至 10:30（i=47 → 34:30）
-        var hour=11+Math.floor(i/2),min=i%2===0?"00":"30",dh=hour>=24?(hour-24<10?"0"+(hour-24):String(hour-24)):String(hour),r=i*30+2;
+    for(var i=0;i<=42;i++){  // 08:00 起點，i=42 → 05:00 翌日
+        var hour=8+Math.floor(i/2),min=i%2===0?"00":"30",dh=hour>=24?(hour-24<10?"0"+(hour-24):String(hour-24)):(hour<10?"0"+hour:String(hour)),r=i*30+2;
         var l=document.createElement("div");l.className="grid-line"+(min==="30"?" half":"");l.style.gridRow=r;l.style.gridColumn=colSpan;g.appendChild(l);
         if(min==="00"){var lb=document.createElement("div");lb.className="time-lbl";lb.style.gridRow=r;lb.innerText=dh+":"+min;g.appendChild(lb);}
     }
@@ -975,11 +975,11 @@ function stageInfo(sn){
     var active=STAGES.filter(function(s){return s.vis;});
     return{col:active.findIndex(function(s){return s.id===match.id;})+2,stage:match};
 }
-var _GRID_END_ROW=1412; // 34:30 = 10:30+1day（涵蓋 PYRAMID 早場到 10:30）
+var _GRID_END_ROW=1262; // 29:00 = 05:00+1day（以 08:00 為起點，05:00 = row 1262）
 function timeToRow(ts){
     if(!ts||!ts.includes(":"))return 2;
     var p=ts.split(":"),h=parseInt(p[0]),m=parseInt(p[1]);
-    if(isNaN(h)||isNaN(m))return 2;if(h<11)h+=24;return(h-11)*60+m+2;
+    if(isNaN(h)||isNaN(m))return 2;if(h<8)h+=24;return(h-8)*60+m+2;
 }
 // 顯示用：將 25:30 → "01:30"，24:00 → "00:00"
 function _fmtTime(ts){
@@ -1356,8 +1356,8 @@ function updateNowBanner(){
 function updateTimeLine(){
     if(!_adminSettings.showTimeLine){var tl=document.getElementById("tl");if(tl)tl.style.display="none";return;}
     if(viewMode==="list")return;
-    var now=new Date(),h=now.getHours(),m=now.getMinutes();if(h<11)h+=24; // 0-10 → 24-34
-    if(h>=11&&h<=34){var r=(h-11)*60+m+2;var tl=document.getElementById("tl");
+    var now=new Date(),h=now.getHours(),m=now.getMinutes();if(h<8)h+=24; // 0-7 → 24-31
+    if(h>=8&&h<=29){var r=(h-8)*60+m+2;var tl=document.getElementById("tl");
         if(!tl){tl=document.createElement("div");tl.id="tl";tl.className="time-line";var d=document.createElement("div");d.className="time-dot";tl.appendChild(d);}
         var g=document.getElementById("grid");
         var span=viewMode==="stage"?"1":(STAGES.filter(function(s){return s.vis;}).length+"");
@@ -1422,8 +1422,8 @@ function changeDay(idx){
     if(viewMode!=="list"&&viewMode!=="now") document.getElementById("scroll").scrollTop=0;
 }
 function jumpNow(){
-    var n=new Date(),h=n.getHours();if(h>=0&&h<5)h+=24;
-    if(h>=11&&h<=29)document.getElementById("scroll").scrollTo({top:Math.max(0,((h-11)*60+n.getMinutes())*2-100),behavior:"smooth"});
+    var n=new Date(),h=n.getHours();if(h<8)h+=24;
+    if(h>=8&&h<=29)document.getElementById("scroll").scrollTo({top:Math.max(0,((h-8)*60+n.getMinutes())*2-100),behavior:"smooth"});
     else toast("非演出時間");
 }
 var _filterSnapshot=[];
