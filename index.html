@@ -398,8 +398,8 @@ function _matchStage(sn, kw){
 }
 function _renderTimeGrid(g, colSpan){
     var bg=document.createElement("div");bg.className="time-col-bg";g.appendChild(bg);
-    for(var i=0;i<=36;i++){
-        var hour=11+Math.floor(i/2),min=i%2===0?"00":"30",dh=hour>=24?(hour-24<10?"0"+(hour-24):hour-24):hour,r=i*30+2;
+    for(var i=0;i<=47;i++){  // 延伸至 10:30（i=47 → 34:30）
+        var hour=11+Math.floor(i/2),min=i%2===0?"00":"30",dh=hour>=24?(hour-24<10?"0"+(hour-24):String(hour-24)):String(hour),r=i*30+2;
         var l=document.createElement("div");l.className="grid-line"+(min==="30"?" half":"");l.style.gridRow=r;l.style.gridColumn=colSpan;g.appendChild(l);
         if(min==="00"){var lb=document.createElement("div");lb.className="time-lbl";lb.style.gridRow=r;lb.innerText=dh+":"+min;g.appendChild(lb);}
     }
@@ -975,7 +975,7 @@ function stageInfo(sn){
     var active=STAGES.filter(function(s){return s.vis;});
     return{col:active.findIndex(function(s){return s.id===match.id;})+2,stage:match};
 }
-var _GRID_END_ROW=1082; // 29:00 = 05:00+1day
+var _GRID_END_ROW=1412; // 34:30 = 10:30+1day（涵蓋 PYRAMID 早場到 10:30）
 function timeToRow(ts){
     if(!ts||!ts.includes(":"))return 2;
     var p=ts.split(":"),h=parseInt(p[0]),m=parseInt(p[1]);
@@ -1356,8 +1356,8 @@ function updateNowBanner(){
 function updateTimeLine(){
     if(!_adminSettings.showTimeLine){var tl=document.getElementById("tl");if(tl)tl.style.display="none";return;}
     if(viewMode==="list")return;
-    var now=new Date(),h=now.getHours(),m=now.getMinutes();if(h>=0&&h<5)h+=24;
-    if(h>=11&&h<=29){var r=(h-11)*60+m+2;var tl=document.getElementById("tl");
+    var now=new Date(),h=now.getHours(),m=now.getMinutes();if(h<11)h+=24; // 0-10 → 24-34
+    if(h>=11&&h<=34){var r=(h-11)*60+m+2;var tl=document.getElementById("tl");
         if(!tl){tl=document.createElement("div");tl.id="tl";tl.className="time-line";var d=document.createElement("div");d.className="time-dot";tl.appendChild(d);}
         var g=document.getElementById("grid");
         var span=viewMode==="stage"?"1":(STAGES.filter(function(s){return s.vis;}).length+"");
