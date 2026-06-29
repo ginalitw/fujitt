@@ -237,7 +237,7 @@
             <button class="tbr-btn hl" id="tbr-mode" onclick="toggleMode()"><span class="ico">👤</span>專屬</button>
             <button class="tbr-btn" id="tbr-view" onclick="toggleView()"><span class="ico">📋</span>列表</button>
             <button class="tbr-btn" id="tbr-now" onclick="toggleNowView()"><span class="ico">⚡</span>快覽</button>
-            <button class="tbr-btn" id="tbr-stage" onclick="openFilter()"><span class="ico">🏟️</span>舞台</button>
+            <button class="tbr-btn" id="tbr-stage" onclick="openFilter()" style="display:none"><span class="ico">🏟️</span>舞台</button>
             <button class="tbr-btn" id="tbr-poster" onclick="togglePosterView()"><span class="ico">🎪</span>海報</button>
             <button class="tbr-btn green" onclick="syncFromLine()"><span class="ico">🔄</span>同步</button>
             <button class="tbr-btn" onclick="toggleSS()"><span class="ico">📸</span>截圖</button>
@@ -286,7 +286,7 @@
     <div id="now-view"><div class="now-cards" id="now-cards"></div></div>
     <!-- 海報視圖 -->
     <div id="poster-view"></div>
-    <button class="fab" onclick="jumpNow()" id="fab">📍</button>
+    <button class="fab" onclick="openFilter()" id="fab" title="選擇舞台">🎪</button>
     <button class="ss-dl-btn" onclick="downloadScreenshot()" title="下載截圖">💾</button>
     <div class="modal-bg" id="filterModal" onclick="if(event.target===this)closeFilter()">
       <div class="modal">
@@ -421,10 +421,10 @@ var OWNER_UID = "Uaad7f6d86f0316d7ddf10f660ade5205";
 function isOwner(){ return new URLSearchParams(window.location.search).get("uid")===OWNER_UID; }
 
 // 預設值：由 Firestore timetable/OWNER_UID.displayConfig 覆蓋
-var _adminSettings = {conflict:true,countdown:true,festival:false,phase:"auto",
-                      showPersonal:false,showGrid:false,showStage:false,showTime:false,
+var _adminSettings = {conflict:true,countdown:true,festival:false,phase:"grid",
+                      showPersonal:false,showGrid:true,showStage:false,showTime:false,
                       showStageLbl:true,showNow:true,showSummary:true,showRemind:true,showAllDays:true,
-                      placeholderMode:true,showArtistTime:false};
+                      placeholderMode:false,showArtistTime:false};
 var _SETTINGS_KEY = "fujitt_settings_v1";
 var _SETTINGS_TTL = 5*60*1000; // 5 分鐘快取
 
@@ -1367,7 +1367,7 @@ function _applyViewMode(){
     lv.style.display=viewMode==="list"?"flex":"none";
     nv.classList.toggle("show",viewMode==="now");
     if(pv) pv.classList.toggle("show",isPoster);
-    fab.style.display=isTimeGrid?"flex":"none";
+    fab.style.display="flex"; // 舞台篩選按鈕永遠顯示
     if(viewMode!=="stage")nav.classList.remove("show");
     // 海報模式：日期列已由海報內部 Day 標題取代，隱藏以減少視覺干擾
     var ds=document.getElementById("days");
