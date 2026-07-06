@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>群組成員對應表</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f5f7;color:#1d1d1f;font-size:14px}
+.header{background:#fff;border-bottom:1px solid #e0e0e0;padding:12px 16px;position:sticky;top:0;z-index:100}
+.header h1{font-size:16px;font-weight:600;margin-bottom:8px}
+.search-bar{width:100%;padding:8px 12px;border:1px solid #ccc;border-radius:10px;font-size:14px;outline:none;background:#f5f5f7}
+.search-bar:focus{border-color:#007aff;background:#fff}
+.stats{padding:6px 16px;font-size:12px;color:#888;background:#f5f5f7;border-bottom:1px solid #e8e8e8;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+table{width:100%;border-collapse:collapse;background:#fff}
+th{padding:8px 8px;text-align:left;font-size:11px;font-weight:600;color:#666;background:#f0f0f3;border-bottom:1px solid #ddd;position:sticky;top:83px;z-index:99}
+td{padding:9px 8px;border-bottom:.5px solid #ececec;vertical-align:middle}
+tr:hover td{background:#fafafa}
+tr.not-joined td{background:#fff8f8;color:#c00}
+tr.hidden{display:none}
+.col-num{width:30px;color:#aaa;font-size:12px;text-align:center}
+.col-line{font-size:12px;color:#555;max-width:120px;word-break:break-word;line-height:1.4}
+.col-name{font-weight:500}
+.col-count{color:#999;font-size:12px;text-align:center;width:36px}
+.col-order{max-width:130px}
+.col-room{width:90px;text-align:center}
+.order-text{font-family:monospace;font-size:10.5px;color:#bbb;display:block;word-break:break-all}
+.room-badge{display:inline-block;padding:3px 8px;border-radius:8px;font-size:12px;font-weight:700;margin:1px 0}
+.room-naka{background:#dceeff;color:#003a80}
+.room-fuku{background:#e8f5ec;color:#1a6b32}
+.room-staff{background:#f3e8ff;color:#5a1a8a}
+.room-empty{color:#ccc}
+.gender-badge{display:inline-block;padding:2px 5px;border-radius:6px;font-size:10px;font-weight:600;margin-left:3px}
+.gender-m{background:#e0f0ff;color:#0055bb}
+.gender-f{background:#ffe0f0;color:#bb0055}
+.note-tag{font-size:11px;background:#fff3e8;color:#7a4010;border-radius:8px;padding:2px 6px;margin-left:5px;white-space:nowrap}
+.section-label{padding:7px 10px;font-size:11px;font-weight:600;background:#f0f0f3;border-top:2px solid #ccc;border-bottom:1px solid #ddd;color:#666;letter-spacing:.05em}
+.legend{padding:8px 16px;font-size:11px;color:#999;background:#fff;border-top:1px solid #eee}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🚌 櫻雪富搖2026 群組成員對應表</h1>
+  <input class="search-bar" type="text" id="q" placeholder="搜尋姓名、LINE名稱、訂單號、房號…" oninput="filter()">
+</div>
+<div class="stats">
+  36組・71人 已確認
+  <span class="room-badge room-naka" style="font-size:11px;padding:2px 7px">1xx/2xx 中村屋</span>
+  <span class="room-badge room-fuku" style="font-size:11px;padding:2px 7px">3xx/4xx 福田屋</span>
+  <span class="room-badge room-staff" style="font-size:11px;padding:2px 7px">STAFF</span>
+</div>
+<table>
+  <thead><tr><th>#</th><th>LINE 名稱</th><th>姓名</th><th>人數</th><th>訂單號</th><th>房號</th></tr></thead>
+  <tbody id="main">
+<tr data-s="官 官孟樺 6fjr9300021338 302/303"><td class="col-num">1</td><td class="col-line">官</td><td class="col-name">官孟樺</td><td class="col-count">×2</td><td class="col-order"><span class="order-text">6FJR9300021338</span></td><td class="col-room"><span class="room-badge room-fuku">302</span><span class="room-badge room-fuku">303</span></td></tr>
+<tr data-s="clementine 許舒婷 6fjr9297463028 302"><td class="col-num">2</td><td class="col-line">Clementine</td><td class="col-name">許舒婷</td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9297463028</span></td><td class="col-room"><span class="room-badge room-fuku">302</span></td></tr>
+<tr data-s="tracy tsw 謝思穎 6fjr9300731544 311"><td class="col-num">3</td><td class="col-line">tracy tsw</td><td class="col-name">謝思穎</td><td class="col-count">×2</td><td class="col-order"><span class="order-text">6FJR9300731544</span></td><td class="col-room"><span class="room-badge room-fuku">311</span></td></tr>
+<tr data-s="yu 曾郁庭 6fjr9298771266 411"><td class="col-num">4</td><td class="col-line">Yu</td><td class="col-name">曾郁庭</td><td class="col-count">×2</td><td class="col-order"><span class="order-text">6FJR9298771266</span></td><td class="col-room"><span class="room-badge room-fuku">411</span></td></tr>
+<tr data-s="能銓 許能銓 6fjr9300829479 310"><td class="col-num">5</td><td class="col-line">能銓</td><td class="col-name">許能銓<span class="note-tag">成田上車</span></td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9300829479</span></td><td class="col-room"><span class="room-badge room-fuku">310</span></td></tr>
+<tr data-s="ロジャ男（阿軒） 羅世軒 6fjr9297467587 101"><td class="col-num">6</td><td class="col-line">ロジャ男（阿軒）</td><td class="col-name">羅世軒</td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9297467587</span></td><td class="col-room"><span class="room-badge room-naka">101</span><span class="gender-badge gender-m">男</span></td></tr>
+<tr data-s="kenny 李岳林 6fjr9297705204 101"><td class="col-num">7</td><td class="col-line">Kenny</td><td class="col-name">李岳林</td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9297705204</span></td><td class="col-room"><span class="room-badge room-naka">101</span></td></tr>
+<tr data-s="馬紹瑀 / 馬紹瑄 / 施丞謙 馬紹瑀 6fjr9297453972 102"><td class="col-num">8</td><td class="col-line">馬紹瑀 / 馬紹瑄 / 施丞謙</td><td class="col-name">馬紹瑀</td><td class="col-count">×3</td><td class="col-order"><span class="order-text">6FJR9297453972</span></td><td class="col-room"><span class="room-badge room-naka">102</span></td></tr>
+<tr data-s="曾薇帆 / 刁于珊チョウ 曾薇帆+刁于珊 6fjr9299115716 102"><td class="col-num">9</td><td class="col-line">曾薇帆 / 刁于珊チョウ</td><td class="col-name">曾薇帆+刁于珊</td><td class="col-count">×2</td><td class="col-order"><span class="order-text">6FJR9299115716</span></td><td class="col-room"><span class="room-badge room-naka">102</span></td></tr>
+<tr data-s="陳浩-fj / ibi 陳浩宇+ibi 6fjr9297391816 103"><td class="col-num">10</td><td class="col-line">陳浩-FJ / Ibi</td><td class="col-name">陳浩宇+Ibi</td><td class="col-count">×2</td><td class="col-order"><span class="order-text">6FJR9297391816</span></td><td class="col-room"><span class="room-badge room-naka">103</span></td></tr>
+<tr data-s="海綿 王海年 6fjr9297823750 103"><td class="col-num">11</td><td class="col-line">海綿</td><td class="col-name">王海年</td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9297823750</span></td><td class="col-room"><span class="room-badge room-naka">103</span></td></tr>
+<tr data-s="何姸瑤 何姸瑤 6fjr9297455954 105"><td class="col-num">12</td><td class="col-line">何姸瑤</td><td class="col-name">何姸瑤</td><td class="col-count">×4</td><td class="col-order"><span class="order-text">6FJR9297455954</span></td><td class="col-room"><span class="room-badge room-naka">105</span></td></tr>
+<tr data-s="陳思媛milk 陳思媛 6fjr9297387480 108"><td class="col-num">13</td><td class="col-line">陳思媛Milk</td><td class="col-name">陳思媛</td><td class="col-count">×3</td><td class="col-order"><span class="order-text">6FJR9297387480</span></td><td class="col-room"><span class="room-badge room-naka">108</span></td></tr>
+<tr data-s="廖研智 廖研智 6fjr9297384426 110"><td class="col-num">14</td><td class="col-line">廖研智</td><td class="col-name">廖研智</td><td class="col-count">×4</td><td class="col-order"><span class="order-text">6FJR9297384426</span></td><td class="col-room"><span class="room-badge room-naka">110</span></td></tr>
+<tr data-s="有丁 王鈺禎 6fjr9297444463 202"><td class="col-num">15</td><td class="col-line">有丁</td><td class="col-name">王鈺禎</td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9297444463</span></td><td class="col-room"><span class="room-badge room-naka">202</span></td></tr>
+<tr data-s="chiao🐱巧真 陳巧真 6fjr9297449556 202"><td class="col-num">16</td><td class="col-line">Chiao🐱巧真</td><td class="col-name">陳巧真</td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9297449556</span></td><td class="col-room"><span class="room-badge room-naka">202</span></td></tr>
+<tr data-s="阿平 魏平 6fjr9299162995 202"><td class="col-num">17</td><td class="col-line">阿平</td><td class="col-name">魏平</td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9299162995</span></td><td class="col-room"><span class="room-badge room-naka">202</span></td></tr>
+<tr data-s="呂 呂立茗 6fjr9297507860 202"><td class="col-num">18</td><td class="col-line">呂</td><td class="col-name">呂立茗</td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9297507860</span></td><td class="col-room"><span class="room-badge room-naka">202</span></td></tr>
+<tr data-s="舒 楊舒涵 6fjr9297395524 205"><td class="col-num">19</td><td class="col-line">舒</td><td class="col-name">楊舒涵</td><td class="col-count">×3</td><td class="col-order"><span class="order-text">6FJR9297395524</span></td><td class="col-room"><span class="room-badge room-naka">205</span></td></tr>
+<tr data-s="蘇宏仁 / 黃安婕 / 77seafood 蘇宏仁 6fjr9297399686 206"><td class="col-num">20</td><td class="col-line">蘇宏仁 / 黃安婕 / 77seafood</td><td class="col-name">蘇宏仁</td><td class="col-count">×3</td><td class="col-order"><span class="order-text">6FJR9297399686</span></td><td class="col-room"><span class="room-badge room-naka">206</span></td></tr>
+<tr data-s="佩珍☃️ / 李逸寬 / amelie 吳佩珍 6fjr9297456072 207"><td class="col-num">21</td><td class="col-line">佩珍☃️ / 李逸寬 / Amelie</td><td class="col-name">吳佩珍</td><td class="col-count">×3</td><td class="col-order"><span class="order-text">6FJR9297456072</span></td><td class="col-room"><span class="room-badge room-naka">207</span></td></tr>
+<tr data-s="莊 莊凱崴 6fjr9297595663 208"><td class="col-num">22</td><td class="col-line">莊</td><td class="col-name">莊凱崴</td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9297595663</span></td><td class="col-room"><span class="room-badge room-naka">208</span></td></tr>
+<tr data-s="jing 陳婉菁 6fjr9297649654 210"><td class="col-num">23</td><td class="col-line">jing</td><td class="col-name">陳婉菁</td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9297649654</span></td><td class="col-room"><span class="room-badge room-naka">210</span><span class="gender-badge gender-f">女</span></td></tr>
+<tr data-s="詹婷玉 / 楊予萱 / ㄚ潘 詹婷玉 6fjr9299063280 211"><td class="col-num">24</td><td class="col-line">詹婷玉 / 楊予萱 / ㄚ潘</td><td class="col-name">詹婷玉</td><td class="col-count">×3</td><td class="col-order"><span class="order-text">6FJR9299063280</span></td><td class="col-room"><span class="room-badge room-naka">211</span></td></tr>
+<tr data-s="pobby / 黃偵傑 / amy cho / 君君 / ivan wu / alvin 陳思穎 6fjr9298255128 212/213"><td class="col-num">25</td><td class="col-line">Pobby / 黃偵傑 / Amy Cho / 君君 / Ivan Wu / Alvin</td><td class="col-name">陳思穎</td><td class="col-count">×6</td><td class="col-order"><span class="order-text">6FJR9298255128</span></td><td class="col-room"><span class="room-badge room-naka">212</span><span class="room-badge room-naka">213</span></td></tr>
+<tr data-s="林七 林鈴卿 6fjr9300246330 215"><td class="col-num">26</td><td class="col-line">林七</td><td class="col-name">林鈴卿</td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9300246330</span></td><td class="col-room"><span class="room-badge room-naka">215</span></td></tr>
+<tr data-s="李婉嘉 李婉嘉 6fjr9300574023 215"><td class="col-num">27</td><td class="col-line">李婉嘉</td><td class="col-name">李婉嘉<span class="note-tag">成田上車</span></td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9300574023</span></td><td class="col-room"><span class="room-badge room-naka">215</span></td></tr>
+<tr data-s="wangchan 王韻涵 6fjr9298663410 202"><td class="col-num">28</td><td class="col-line">Wangchan</td><td class="col-name">王韻涵<span class="note-tag">成田上車</span></td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9298663410</span></td><td class="col-room"><span class="room-badge room-naka">202</span></td></tr>
+<tr data-s="tanya 張庭瑜 6fjr9302042059 215"><td class="col-num">29</td><td class="col-line">Tanya</td><td class="col-name">張庭瑜</td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9302042059</span></td><td class="col-room"><span class="room-badge room-naka">215</span></td></tr>
+<tr data-s="創益-santi 宗原 何宗原 6fjr9307847014 staff"><td class="col-num">30</td><td class="col-line">創益-Santi 宗原</td><td class="col-name">何宗原</td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9307847014</span></td><td class="col-room"><span class="room-badge room-staff">STAFF</span></td></tr>
+<tr data-s="yt1892 洪朗倛 6fjr9298637484 101"><td class="col-num">31</td><td class="col-line">yt1892</td><td class="col-name">洪朗倛</td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9298637484</span></td><td class="col-room"><span class="room-badge room-naka">101</span><span class="gender-badge gender-m">男</span></td></tr>
+<tr data-s="kuo shan huang 黃國珊 6fjr9297484815 210"><td class="col-num">32</td><td class="col-line">Kuo Shan Huang</td><td class="col-name">黃國珊</td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9297484815</span></td><td class="col-room"><span class="room-badge room-naka">210</span></td></tr>
+<tr data-s="aurora李昕 李昕 6fjr9298645591 210"><td class="col-num">33</td><td class="col-line">Aurora李昕</td><td class="col-name">李昕</td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9298645591</span></td><td class="col-room"><span class="room-badge room-naka">210</span></td></tr>
+<tr data-s="man 陳羨文 6fjr9304956605 302"><td class="col-num">34</td><td class="col-line">Man</td><td class="col-name">陳羨文<span class="note-tag">成田上車</span></td><td class="col-count">×1</td><td class="col-order"><span class="order-text">6FJR9304956605</span></td><td class="col-room"><span class="room-badge room-fuku">302</span></td></tr>
+<tr data-s="kevinhsu 許詩愷 6fjr9297986760 106"><td class="col-num">35</td><td class="col-line">KevinHsu</td><td class="col-name">許詩愷</td><td class="col-count">×4</td><td class="col-order"><span class="order-text">6FJR9297986760</span></td><td class="col-room"><span class="room-badge room-naka">106</span></td></tr>
+<tr data-s="elisha / 承宗 傅于庭 6fjr9299293450 208"><td class="col-num">36</td><td class="col-line">Elisha / 承宗</td><td class="col-name">傅于庭<span class="note-tag">僅去程</span></td><td class="col-count">×2</td><td class="col-order"><span class="order-text">6FJR9299293450</span></td><td class="col-room"><span class="room-badge room-naka">208</span></td></tr>
+  </tbody>
+  <tbody>
+    <tr><td colspan="6" class="section-label">🚫 未加入群組</td></tr>
+<tr class="not-joined"><td class="col-num">🚫</td><td class="col-line">—</td><td class="col-name">鄭鉅樺</td><td class="col-count">×4</td><td class="col-order"><span class="order-text">6FJR9298816726</span></td><td class="col-room"><span class="room-badge room-naka">107</span></td></tr>
+  </tbody>
+  <tbody>
+    <tr><td colspan="6" class="section-label">ℹ️ 在群組但非巴士乘客</td></tr>
+    <tr><td class="col-num">—</td><td class="col-line">朱🎿宣淵 / 馬哥</td><td>櫻雪人員</td><td></td><td></td><td></td></tr>
+  </tbody>
+</table>
+<div class="legend">更新：2026-07-06</div>
+<script>
+function filter(){
+  var q=document.getElementById('q').value.toLowerCase();
+  document.querySelectorAll('#main tr').forEach(function(r){
+    r.classList.toggle('hidden', q.length>0 && !r.getAttribute('data-s').includes(q));
+  });
+}
+</script>
+</body>
+</html>
