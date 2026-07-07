@@ -848,6 +848,9 @@ function _namesToCodes(names){
 }
 // ── 背景靜默重整（快取命中後並行更新資料）─────────────────
 function _refreshDataBg(){
+    // 快取在 30 分鐘內剛更新過 → 不需再打 Firestore（節省讀取配額）
+    var _BG_MIN=30*60*1000;
+    try{var _raw=JSON.parse(localStorage.getItem(_CACHE_KEY)||"null");if(_raw&&Date.now()-_raw.ts<_BG_MIN)return;}catch(e){}
     // artists + users 同時拉，不序列等待
     var p1=_db.collection("artists").get();
     var p2=uid?_db.collection("users").doc(uid).get():Promise.resolve(null);
