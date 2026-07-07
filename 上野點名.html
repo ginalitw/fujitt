@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>上野點名表</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f5f7;color:#1d1d1f;font-size:15px}
+.header{background:#fff;border-bottom:1px solid #e0e0e0;padding:12px 16px;position:sticky;top:0;z-index:100}
+.header h1{font-size:17px;font-weight:600}
+.tabs{display:flex;gap:0;border-bottom:2px solid #e0e0e0;background:#fff;position:sticky;top:49px;z-index:99}
+.tab-btn{flex:1;padding:10px 0;font-size:14px;font-weight:500;border:none;background:none;cursor:pointer;color:#888;border-bottom:2px solid transparent;margin-bottom:-2px;transition:.15s}
+.tab-btn.active{color:#007aff;border-bottom-color:#007aff}
+.counter-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;background:#fff;border-bottom:1px solid #e8e8e8;position:sticky;top:93px;z-index:98}
+.counter-text{font-size:14px;color:#555;flex:1}
+.counter-text strong{color:#1d1d1f}
+.progress-wrap{height:6px;background:#e8e8e8;border-radius:3px;flex:2;min-width:80px}
+.progress-fill{height:6px;background:#34c759;border-radius:3px;transition:.3s}
+.reset-btn{font-size:13px;padding:5px 12px;border:1px solid #ccc;border-radius:8px;background:#fff;cursor:pointer;color:#555}
+.reset-btn:active{background:#f5f5f5}
+.tab-content{display:none}
+.tab-content.active{display:block;padding-bottom:80px}
+.section-hd{padding:8px 16px;font-size:12px;font-weight:600;letter-spacing:.06em;color:#666;background:#f0f0f3;border-top:1px solid #ddd;border-bottom:1px solid #ddd;margin-top:2px}
+.section-hd.s-narita{background:#fff3e8;color:#7a4010;border-left:4px solid #cc5500}
+.person-row{display:flex;align-items:center;padding:0 16px;border-bottom:.5px solid #ececec;background:#fff;min-height:48px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+.person-row.checked{background:#f0faf3}
+.person-row.grey-out{background:#fafafa;opacity:.6}
+.person-row.grey-out.checked{opacity:.9}
+.cb{width:24px;height:24px;border-radius:50%;border:2px solid #ccc;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s;margin-right:12px}
+.cb svg{display:none}
+.person-row.checked .cb{background:#34c759;border-color:#34c759}
+.person-row.checked .cb svg{display:block}
+.person-info{flex:1;min-width:0}
+.person-name{font-size:15px;font-weight:500}
+.person-detail{font-size:12px;color:#888;margin-top:1px}
+.person-room{display:none}
+.badge-grey{font-size:11px;background:#eee;color:#888;border-radius:10px;padding:2px 7px;margin-left:6px}
+.person-row.car-a{border-left:4px solid #007aff}
+.person-row.car-b{border-left:4px solid #ff6b00}
+.section-hd.s-a{background:#dceeff;color:#003a80;border-left:4px solid #007aff}
+.section-hd.s-b{background:#fff0dd;color:#7a3500;border-left:4px solid #ff6b00}
+.tag-fuku{font-size:13px;font-weight:700;color:#d00;margin-right:8px;flex-shrink:0;line-height:1}
+.note-box{padding:10px 16px;font-size:12px;color:#555;background:#fff8ec;border-top:1px solid #ffe0b0;line-height:1.8;margin-top:2px}
+.counter-bar{top:49px}
+</style>
+</head>
+<body>
+<div class="header"><h1>🚌 富搖2026 上野點名（去程 67人）</h1></div>
+<div class="counter-bar">
+  <span class="counter-text">已到 <strong id="cnt">0</strong> / <strong id="tot">67</strong></span>
+  <div class="progress-wrap"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+  <button class="reset-btn" onclick="resetAll()">重置</button>
+</div>
+<div style="padding-bottom:80px">
+<div class="section-hd s-a">🅰 A車 7人｜上野上車 → 福田屋下車</div>
+<div class="person-row car-a" data-count="1" onclick="toggle(this)"><span class="tag-fuku">福</span><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">許舒婷<span class="badge-grey">僅去程</span></div><div class="person-detail">上野→福田屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-a" data-count="2" onclick="toggle(this)"><span class="tag-fuku">福</span><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">官孟樺 2人</div><div class="person-detail">上野→福田屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-a" data-count="2" onclick="toggle(this)"><span class="tag-fuku">福</span><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">謝思穎 2人</div><div class="person-detail">上野→福田屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-a" data-count="2" onclick="toggle(this)"><span class="tag-fuku">福</span><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">曾郁庭 2人</div><div class="person-detail">上野→福田屋</div></div><div class="person-room"></div></div>
+<div class="section-hd s-a">🅰 A車 24人｜上野上車 → 中村屋下車</div>
+<div class="person-row car-a" data-count="1" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">羅世軒</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-a" data-count="1" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">洪朗倛</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-a" data-count="1" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">王鈺禎</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-a" data-count="1" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">陳巧真</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-a" data-count="1" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">魏平</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-a" data-count="1" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">呂立茗</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-a" data-count="4" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">何姸瑤 4人</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-a" data-count="4" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">許詩愷 4人</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-a" data-count="4" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">鄭鉅樺 4人</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-a" data-count="6" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">陳思穎 6人</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="section-hd s-b">🅱 B車 36人｜上野上車 → 中村屋下車</div>
+<div class="person-row car-b" data-count="3" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">馬紹瑀 3人</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="2" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">曾薇帆+刁于珊 2人</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="2" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">陳浩宇+Ibi 2人</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="1" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">王海年</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="3" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">陳思媛 3人</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="4" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">廖研智 4人</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="3" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">楊舒涵 3人</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="3" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">蘇宏仁 3人</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="3" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">吳佩珍 3人</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="2" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">傅于庭 2人<span class="badge-grey">僅去程</span></div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="1" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">莊凱崴</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="1" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">黃國珊</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="1" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">陳婉菁</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="1" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">李昕</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="2" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">詹婷玉 2人</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="1" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">林鈴卿</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="1" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">李岳林</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="1" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">張庭瑜</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="person-row car-b" data-count="1" onclick="toggle(this)"><div class="cb"><svg viewBox="0 0 12 10" width="12"><polyline points="1,5 4.5,9 11,1" stroke="#fff" stroke-width="2" fill="none"/></svg></div><div class="person-info"><div class="person-name">何宗原</div><div class="person-detail">上野→中村屋</div></div><div class="person-room"></div></div>
+<div class="note-box">ℹ️ <b>許舒婷</b>：去程×1，回程確認不搭車。<br>ℹ️ <b>傅于庭×2</b>：確認僅去程，無回程巴士。<br>ℹ️ 成田上車4人（陳羨文、許能銓、王韻涵、李婉嘉）未列入本名單。</div>
+
+</div>
+<script>
+function toggle(el){el.classList.toggle('checked');updateCount();}
+var total=67;
+function updateCount(){
+  var checked=document.querySelectorAll('.person-row.checked');
+  var cnt=0;
+  checked.forEach(function(r){cnt+=parseInt(r.dataset.count||1);});
+  document.getElementById('cnt').textContent=cnt;
+  document.getElementById('tot').textContent=total;
+  document.getElementById('prog').style.width=(cnt/total*100)+'%';
+}
+function resetAll(){
+  document.querySelectorAll('.person-row.checked').forEach(function(r){r.classList.remove('checked');});
+  updateCount();
+}
+updateCount();
+</script>
+</body>
+</html>
